@@ -1,0 +1,21 @@
+services:
+  app:
+    container_name: bidoli-bookafield-app
+    build: .
+    command: nodemon --watch /usr/src/app -e js app.js
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./app:/usr/src/app
+
+  mongo:
+    container_name: bidoli-bookafield-mongo
+    image: mongo
+    ports:
+      - "27017:27017"
+    volumes:
+      - bidoli-bookafield-data:/data/db
+
+volumes:
+  bidoli-bookafield-data:
+    name: bidoli-bookafield-data
