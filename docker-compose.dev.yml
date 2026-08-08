@@ -7,6 +7,7 @@ services:
       - "3000:3000"
     volumes:
       - ./app:/usr/src/app
+      - docker_node_modules:/usr/src/app/node_modules
 
   mongo:
     container_name: bidoli-bookafield-mongo
@@ -17,5 +18,6 @@ services:
       - bidoli-bookafield-data:/data/db
 
 volumes:
+  docker_node_modules:
   bidoli-bookafield-data:
     name: bidoli-bookafield-data
