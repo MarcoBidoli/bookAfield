@@ -111,4 +111,38 @@ router.post("/:id/bookings", passport.authenticate("jwt", { session: false }), a
     }
 });
 
+router.delete("/:id/bookings/:bookingId", passport.authenticate("jwt", { session: false }), async (req, res, next) => {
+    try {
+        const db = getDB();
+        const bookingId = new ObjectId(req.params.bookingId);
+
+        const booking = await db.collection("bookings").findOne({_id: bookingId});
+        if (!booking) {
+            return res.status(404).json({error: "Booking not found"});
+        }
+
+        // authorization check
+        const reqUserId = req.user._id.toString();
+        const bookingUserId = booking.userId.toString();
+        if(reqUserId !== bookingUserId) {
+            return res.status(403).json({error: "You don't have the authorization to cancel this booking"});
+        }
+
+        // future booking check
+        const bookingDateTime = new Date(`${booking.date}T${booking.slot.split('-')[0]}`);
+        if (bookingDateTime <= Date.now()) {
+            return res.status(400).json({error: "Cannot cancel past bookings"});
+        }
+
+        if(booking.type === "tournament") {
+            return res.status(400).json({error: "Tournament bookings must be cancelled through the tournament schedule"});
+        }
+
+        await db.collection("bookings").deleteOne({_id: bookingId});
+        res.json({message: "Booking deleted successfully"});
+    } catch (err) {
+        next(err);
+    }
+});
+
 export default router;

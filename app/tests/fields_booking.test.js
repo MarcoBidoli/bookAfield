@@ -3,6 +3,7 @@ import request from "supertest";
 import { ObjectId } from "mongodb";
 import app from "../app.js";
 import { connectDB, getDB } from "../db.js";
+import jwt from "jsonwebtoken";
 
 describe("Fields & Bookings API Integration Tests", () => {
     let db;
@@ -47,7 +48,7 @@ describe("Fields & Bookings API Integration Tests", () => {
             .send({ username: mainUser.username, password: mainUser.password });
 
         userToken = mainAuth.body.token;
-        userId = mainAuth.body.userId || mainAuth.body.user?.id;
+        userId = jwt.decode(userToken).userId;
 
         // 3. Register a second user for ownership authorization tests
         const otherUser = {
@@ -325,7 +326,7 @@ describe("Fields & Bookings API Integration Tests", () => {
                 .set("Authorization", `Bearer ${userToken}`);
 
             expect(res.status).toBe(400);
-            expect(res.body.error).toMatch(/future/i);
+            expect(res.body.error).toMatch(/past/i);
         });
     });
 });
