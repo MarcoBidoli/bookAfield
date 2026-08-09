@@ -1,5 +1,6 @@
 import express from "express";
 import {getDB} from "../db.js";
+import {ObjectId} from "mongodb";
 
 const router = express.Router();
 
@@ -19,6 +20,20 @@ router.get("/", async (req, res, next) => {
 
         const fields = await db.collection("fields").find(filter).toArray();
         res.json(fields);
+    } catch (err) {
+        next(err);
+    }
+});
+
+router.get("/:id", async (req, res, next) => {
+    try {
+        const db = getDB();
+        const field = await db.collection("fields").findOne({_id: new ObjectId(req.params.id)});
+
+        if (!field) {
+            return res.status(404).json({error: "Field not found"});
+        }
+        res.json(field);
     } catch (err) {
         next(err);
     }
