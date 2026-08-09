@@ -39,4 +39,33 @@ router.get("/:id", async (req, res, next) => {
     }
 });
 
- export default router;
+router.get("/:id/slots", async (req, res, next) => {
+    try {
+        const {date} = req.query; // "YYYY-MM-DD" expected
+        if(!date) {
+            return res.status(400).json({error: "Date query parameter is required"});
+        }
+
+        const db = getDB();
+        const fieldId = new ObjectId(req.params.id);
+
+        const field = await db.collection("fields").findOne({_id: new ObjectId(req.params.id)});
+        if (!field) {
+            return res.status(404).json({error: "Field not found"});
+        }
+
+        const bookings = await db.collection("bookings").find({fieldId: fieldId, date: date}).toArray();
+        const bookedSlots = bookings.map(b => b.slot);
+
+        const availableSlots = field.slots.map(slot => ({
+            slot,
+            available: !bookedSlots.includes(slot)
+        }));
+
+        res.json(availableSlots);
+    } catch (err) {
+        next(err);
+    }
+});
+
+export default router;
