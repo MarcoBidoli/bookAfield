@@ -3,6 +3,7 @@ import passport from "passport";
 import "./config/passport.js";
 
 import authRouter from "./routes/auth.js";
+import fieldsRouter from "./routes/fields.js";
 
 const app = express();
 
@@ -12,6 +13,7 @@ app.use(passport.initialize());
 
 // route mounts
 app.use("/api/1.0/auth", authRouter);
+app.use("/api/1.0/fields", fieldsRouter);
 
 // root route
 app.get("/", (req, res) => {
