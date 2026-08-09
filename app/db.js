@@ -3,7 +3,7 @@ import dotenv from 'dotenv';
 
 dotenv.config();
 
-const uri = process.env.MONGO_URI;
+const uri = process.env.MONGO_URI || 'mongodb://localhost:27017/bookafield';
 if (!uri) {
     throw new Error('MONGO_URI is missing from environment variables (.env).');
 }

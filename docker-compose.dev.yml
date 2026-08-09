@@ -1,6 +1,8 @@
+name: bidoli-bookafield-webapplicationprogramming
 services:
   app:
     container_name: bidoli-bookafield-app
+    image: bookafield-app
     build: .
     command: nodemon --watch /usr/src/app -e js app.js
     ports:
