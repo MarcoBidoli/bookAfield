@@ -4,6 +4,8 @@ import "./config/passport.js";
 
 import authRouter from "./routes/auth.js";
 import fieldsRouter from "./routes/fields.js";
+import tournamentsRouter from "./routes/tournaments.js";
+import matchesRouter from "./routes/matches.js";
 
 const app = express();
 
@@ -14,6 +16,8 @@ app.use(passport.initialize());
 // route mounts
 app.use("/api/1.0/auth", authRouter);
 app.use("/api/1.0/fields", fieldsRouter);
+app.use("/api/1.0/tournaments", tournamentsRouter);
+app.use("/api/1.0/matches", matchesRouter);
 
 // root route
 app.get("/", (req, res) => {

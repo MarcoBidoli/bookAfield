@@ -47,6 +47,7 @@ passport.use(
                 const db = getDB();
 
                 // Find the user associated with the ID in the JWT payload
+                // TODO: renaming _id to id and edit when using `req.user._id` to avoid mongoDB notation dependency and confusion
                 const user = await db.collection("users").findOne(
                     { _id: new ObjectId(jwtPayload.userId) },
                     { projection: { password: 0 } } // avoid sending back the password has
