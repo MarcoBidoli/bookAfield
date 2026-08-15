@@ -38,6 +38,7 @@ router.post('/signin', (req, res, next) => {
         }
         if (!user) {
             // `?.` op returns info if not null
+            console.log("info:", info);
             return res.status(401).json({error: info?.message || 'Unauthorized'});
         }
 

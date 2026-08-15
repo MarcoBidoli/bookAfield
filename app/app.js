@@ -7,6 +7,8 @@ import fieldsRouter from "./routes/fields.js";
 import tournamentsRouter from "./routes/tournaments.js";
 import matchesRouter from "./routes/matches.js";
 import usersRouter from "./routes/users.js";
+import {getDB} from "./db.js";
+import {ObjectId} from "mongodb";
 
 const app = express();
 
@@ -29,6 +31,24 @@ app.use((err, req, res, next) => {
     }
     console.error(err);
     res.status(500).json({ error: "Internal server error" });
+});
+
+app.get("/api/1.0/whoami", (req, res, next) => {
+    passport.authenticate("jwt", (error, user, info) => {
+        if (error) {
+            return next(error);
+        }
+
+        if (!user) {
+            return res.status(401).json({
+                error: info?.message || "Unauthorized"
+            });
+        }
+
+        return res.status(200).json({
+            user
+        });
+    })(req, res, next);
 });
 
 // root route
