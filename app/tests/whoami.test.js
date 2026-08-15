@@ -1,8 +1,8 @@
-import { afterAll, beforeAll, describe, expect, it } from "vitest";
+import {afterAll, beforeAll, describe, expect, it} from "vitest";
 import request from "supertest";
 import jwt from "jsonwebtoken";
 import app from "../app.js";
-import { closeDB, connectDB, getDB } from "../db.js";
+import {closeDB, connectDB, getDB} from "../db.js";
 
 describe("WhoAmI API Integration Tests", () => {
     let db;

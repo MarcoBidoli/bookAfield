@@ -1,8 +1,8 @@
-import { describe, it, expect, beforeAll, afterAll, beforeEach } from "vitest";
+import {afterAll, beforeAll, beforeEach, describe, expect, it} from "vitest";
 import request from "supertest";
-import { ObjectId } from "mongodb";
+import {ObjectId} from "mongodb";
 import app from "../app.js";
-import { connectDB, getDB } from "../db.js";
+import {connectDB, getDB} from "../db.js";
 import jwt from "jsonwebtoken";
 
 describe("Fields & Bookings API Integration Tests", () => {

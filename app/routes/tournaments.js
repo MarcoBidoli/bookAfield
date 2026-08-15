@@ -1,4 +1,4 @@
-import { Router } from 'express';
+import {Router} from 'express';
 import {getDB} from "../db.js";
 import passport from "passport";
 import {ObjectId} from "mongodb";
@@ -187,8 +187,6 @@ router.post(
         }
     }
 );
-
-
 
 router.get("/:id/standings", async (req, res, next) => {
    try {

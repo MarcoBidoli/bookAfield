@@ -1,7 +1,7 @@
-import { describe, it, expect, beforeAll, afterAll } from "vitest";
+import {afterAll, beforeAll, describe, expect, it} from "vitest";
 import request from "supertest";
 import app from "../app.js";
-import { connectDB, getDB } from "../db.js";
+import {connectDB, getDB} from "../db.js";
 
 describe("Auth API Integration Tests", () => {
     let token = "";

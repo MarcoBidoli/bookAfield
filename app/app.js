@@ -7,8 +7,6 @@ import fieldsRouter from "./routes/fields.js";
 import tournamentsRouter from "./routes/tournaments.js";
 import matchesRouter from "./routes/matches.js";
 import usersRouter from "./routes/users.js";
-import {getDB} from "./db.js";
-import {ObjectId} from "mongodb";
 
 const app = express();
 
