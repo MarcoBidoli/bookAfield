@@ -25,7 +25,7 @@ describe("WhoAmI API Integration Tests", () => {
         const password = "Password123!";
 
         await request(app)
-            .post("/api/1.0/auth/signup")
+            .post("/api/auth/signup")
             .send({
                 username,
                 password,
@@ -35,7 +35,7 @@ describe("WhoAmI API Integration Tests", () => {
             .expect(201);
 
         const auth = await request(app)
-            .post("/api/1.0/auth/signin")
+            .post("/api/auth/signin")
             .send({
                 username,
                 password,
@@ -75,10 +75,10 @@ describe("WhoAmI API Integration Tests", () => {
     // GET /api/whoami
     // =========================================================================
 
-    describe("GET /api/1.0/whoami", () => {
+    describe("GET /api/whoami", () => {
         it("should return the authenticated user's information", async () => {
             const res = await request(app)
-                .get("/api/1.0/whoami")
+                .get("/api/whoami")
                 .set("Authorization", `Bearer ${userToken}`)
                 .expect(200);
 
@@ -91,7 +91,7 @@ describe("WhoAmI API Integration Tests", () => {
 
         it("should not expose the user's password", async () => {
             const res = await request(app)
-                .get("/api/1.0/whoami")
+                .get("/api/whoami")
                 .set("Authorization", `Bearer ${userToken}`)
                 .expect(200);
 
@@ -100,7 +100,7 @@ describe("WhoAmI API Integration Tests", () => {
 
         it("should reject requests without authentication", async () => {
             const res = await request(app)
-                .get("/api/1.0/whoami")
+                .get("/api/whoami")
                 .expect(401);
 
             expect(res.body).toHaveProperty("error");
@@ -108,7 +108,7 @@ describe("WhoAmI API Integration Tests", () => {
 
         it("should reject an invalid JWT token", async () => {
             const res = await request(app)
-                .get("/api/1.0/whoami")
+                .get("/api/whoami")
                 .set("Authorization", "Bearer invalid-token")
                 .expect(401);
 
@@ -117,7 +117,7 @@ describe("WhoAmI API Integration Tests", () => {
 
         it("should reject a request with an invalid Authorization header", async () => {
             const res = await request(app)
-                .get("/api/1.0/whoami")
+                .get("/api/whoami")
                 .set("Authorization", "invalid-header")
                 .expect(401);
 
@@ -126,7 +126,7 @@ describe("WhoAmI API Integration Tests", () => {
 
         it("should return the correct user identified by the JWT", async () => {
             const res = await request(app)
-                .get("/api/1.0/whoami")
+                .get("/api/whoami")
                 .set("Authorization", `Bearer ${userToken}`)
                 .expect(200);
 

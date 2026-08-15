@@ -17,11 +17,11 @@ app.use(express.json()); // Parse JSON request bodies
 app.use(passport.initialize());
 
 // route mounts
-app.use("/api/1.0/auth", authRouter);
-app.use("/api/1.0/fields", fieldsRouter);
-app.use("/api/1.0/tournaments", tournamentsRouter);
-app.use("/api/1.0/matches", matchesRouter);
-app.use("/api/1.0/users", usersRouter);
+app.use("/api/auth", authRouter);
+app.use("/api/fields", fieldsRouter);
+app.use("/api/tournaments", tournamentsRouter);
+app.use("/api/matches", matchesRouter);
+app.use("/api/users", usersRouter);
 
 // Error handler to avoid non ObjectId params (e.g. tournaments/123 instead of tournaments/6a784646e136ccd82438cee2)
 app.use((err, req, res, next) => {
@@ -33,7 +33,7 @@ app.use((err, req, res, next) => {
     res.status(500).json({ error: "Internal server error" });
 });
 
-app.get("/api/1.0/whoami", (req, res, next) => {
+app.get("/api/whoami", (req, res, next) => {
     passport.authenticate("jwt", (error, user, info) => {
         if (error) {
             return next(error);

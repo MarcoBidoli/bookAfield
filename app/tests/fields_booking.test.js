@@ -42,9 +42,9 @@ describe("Fields & Bookings API Integration Tests", () => {
             name: "Booking",
             surname: "Owner",
         };
-        await request(app).post("/api/1.0/auth/signup").send(mainUser);
+        await request(app).post("/api/auth/signup").send(mainUser);
         const mainAuth = await request(app)
-            .post("/api/1.0/auth/signin")
+            .post("/api/auth/signin")
             .send({ username: mainUser.username, password: mainUser.password });
 
         userToken = mainAuth.body.token;
@@ -57,9 +57,9 @@ describe("Fields & Bookings API Integration Tests", () => {
             name: "Other",
             surname: "User",
         };
-        await request(app).post("/api/1.0/auth/signup").send(otherUser);
+        await request(app).post("/api/auth/signup").send(otherUser);
         const otherAuth = await request(app)
-            .post("/api/1.0/auth/signin")
+            .post("/api/auth/signin")
             .send({ username: otherUser.username, password: otherUser.password });
 
         otherUserToken = otherAuth.body.token;
@@ -96,11 +96,11 @@ describe("Fields & Bookings API Integration Tests", () => {
     });
 
     // ==========================================
-    // 1. GET /api/1.0/fields & GET /api/1.0/fields/:id
+    // 1. GET /api/fields & GET /api/fields/:id
     // ==========================================
-    describe("GET /api/1.0/fields", () => {
+    describe("GET /api/fields", () => {
         it("should return a list of available sports fields", async () => {
-            const res = await request(app).get("/api/1.0/fields");
+            const res = await request(app).get("/api/fields");
 
             expect(res.status).toBe(200);
             expect(Array.isArray(res.body)).toBe(true);
@@ -113,7 +113,7 @@ describe("Fields & Bookings API Integration Tests", () => {
         });
 
         it("should return detailed info for a valid field ID", async () => {
-            const res = await request(app).get(`/api/1.0/fields/${fieldId}`);
+            const res = await request(app).get(`/api/fields/${fieldId}`);
 
             expect(res.status).toBe(200);
             expect(res.body).toHaveProperty("_id", fieldId);
@@ -123,7 +123,7 @@ describe("Fields & Bookings API Integration Tests", () => {
 
         it("should return 404 for a non-existent field ID", async () => {
             const fakeId = new ObjectId().toString();
-            const res = await request(app).get(`/api/1.0/fields/${fakeId}`);
+            const res = await request(app).get(`/api/fields/${fakeId}`);
 
             expect(res.status).toBe(404);
             expect(res.body).toHaveProperty("error");
@@ -131,9 +131,9 @@ describe("Fields & Bookings API Integration Tests", () => {
     });
 
     // ==========================================
-    // 2. GET /api/1.0/fields/:id/slots?date=YYYY-MM-DD
+    // 2. GET /api/fields/:id/slots?date=YYYY-MM-DD
     // ==========================================
-    describe("GET /api/1.0/fields/:id/slots", () => {
+    describe("GET /api/fields/:id/slots", () => {
         it("should return predefined field slots mapped with booking availability", async () => {
             const futureDate = getFutureDate(3);
 
@@ -146,7 +146,7 @@ describe("Fields & Bookings API Integration Tests", () => {
                 type: "standard",
             });
 
-            const res = await request(app).get(`/api/1.0/fields/${fieldId}/slots?date=${futureDate}`);
+            const res = await request(app).get(`/api/fields/${fieldId}/slots?date=${futureDate}`);
 
             expect(res.status).toBe(200);
             expect(Array.isArray(res.body)).toBe(true);
@@ -162,7 +162,7 @@ describe("Fields & Bookings API Integration Tests", () => {
         });
 
         it("should return 400 if date query parameter is missing or invalid", async () => {
-            const res = await request(app).get(`/api/1.0/fields/${fieldId}/slots`);
+            const res = await request(app).get(`/api/fields/${fieldId}/slots`);
 
             expect(res.status).toBe(400);
             expect(res.body).toHaveProperty("error");
@@ -170,14 +170,14 @@ describe("Fields & Bookings API Integration Tests", () => {
     });
 
     // ==========================================
-    // 3. POST /api/1.0/fields/:id/bookings
+    // 3. POST /api/fields/:id/bookings
     // ==========================================
-    describe("POST /api/1.0/fields/:id/bookings", () => {
+    describe("POST /api/fields/:id/bookings", () => {
         it("should create a booking successfully for a valid future date and field slot", async () => {
             const futureDate = getFutureDate(2);
 
             const res = await request(app)
-                .post(`/api/1.0/fields/${fieldId}/bookings`)
+                .post(`/api/fields/${fieldId}/bookings`)
                 .set("Authorization", `Bearer ${userToken}`)
                 .send({
                     date: futureDate,
@@ -197,13 +197,13 @@ describe("Fields & Bookings API Integration Tests", () => {
 
             // First booking succeeds
             await request(app)
-                .post(`/api/1.0/fields/${fieldId}/bookings`)
+                .post(`/api/fields/${fieldId}/bookings`)
                 .set("Authorization", `Bearer ${userToken}`)
                 .send(bookingData);
 
             // Concurrent/subsequent double booking fails with 409 Conflict
             const conflictRes = await request(app)
-                .post(`/api/1.0/fields/${fieldId}/bookings`)
+                .post(`/api/fields/${fieldId}/bookings`)
                 .set("Authorization", `Bearer ${otherUserToken}`)
                 .send(bookingData);
 
@@ -215,7 +215,7 @@ describe("Fields & Bookings API Integration Tests", () => {
             const pastDate = getPastDate(1);
 
             const res = await request(app)
-                .post(`/api/1.0/fields/${fieldId}/bookings`)
+                .post(`/api/fields/${fieldId}/bookings`)
                 .set("Authorization", `Bearer ${userToken}`)
                 .send({
                     date: pastDate,
@@ -231,7 +231,7 @@ describe("Fields & Bookings API Integration Tests", () => {
             const futureDate = getFutureDate(2);
 
             const res = await request(app)
-                .post(`/api/1.0/fields/${fieldId}/bookings`)
+                .post(`/api/fields/${fieldId}/bookings`)
                 .send({
                     date: futureDate,
                     slot: "09:00-10:00",
@@ -243,9 +243,9 @@ describe("Fields & Bookings API Integration Tests", () => {
     });
 
     // ==========================================
-    // 4. DELETE /api/1.0/fields/:id/bookings/:bookingId
+    // 4. DELETE /api/fields/:id/bookings/:bookingId
     // ==========================================
-    describe("DELETE /api/1.0/fields/:id/bookings/:bookingId", () => {
+    describe("DELETE /api/fields/:id/bookings/:bookingId", () => {
         it("should allow a user to cancel their own future standard booking", async () => {
             const futureDate = getFutureDate(4);
 
@@ -259,7 +259,7 @@ describe("Fields & Bookings API Integration Tests", () => {
             const bookingId = insertRes.insertedId.toString();
 
             const res = await request(app)
-                .delete(`/api/1.0/fields/${fieldId}/bookings/${bookingId}`)
+                .delete(`/api/fields/${fieldId}/bookings/${bookingId}`)
                 .set("Authorization", `Bearer ${userToken}`);
 
             expect(res.status).toBe(200);
@@ -282,7 +282,7 @@ describe("Fields & Bookings API Integration Tests", () => {
             const bookingId = insertRes.insertedId.toString();
 
             const res = await request(app)
-                .delete(`/api/1.0/fields/${fieldId}/bookings/${bookingId}`)
+                .delete(`/api/fields/${fieldId}/bookings/${bookingId}`)
                 .set("Authorization", `Bearer ${otherUserToken}`);
 
             expect(res.status).toBe(403);
@@ -302,7 +302,7 @@ describe("Fields & Bookings API Integration Tests", () => {
             const bookingId = insertRes.insertedId.toString();
 
             const res = await request(app)
-                .delete(`/api/1.0/fields/${fieldId}/bookings/${bookingId}`)
+                .delete(`/api/fields/${fieldId}/bookings/${bookingId}`)
                 .set("Authorization", `Bearer ${userToken}`);
 
             expect(res.status).toBe(400);
@@ -322,7 +322,7 @@ describe("Fields & Bookings API Integration Tests", () => {
             const bookingId = insertRes.insertedId.toString();
 
             const res = await request(app)
-                .delete(`/api/1.0/fields/${fieldId}/bookings/${bookingId}`)
+                .delete(`/api/fields/${fieldId}/bookings/${bookingId}`)
                 .set("Authorization", `Bearer ${userToken}`);
 
             expect(res.status).toBe(400);

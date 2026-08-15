@@ -31,7 +31,7 @@ describe("Users API Integration Tests", () => {
         const password = "Password123!";
 
         await request(app)
-            .post("/api/1.0/auth/signup")
+            .post("/api/auth/signup")
             .send({
                 username,
                 password,
@@ -41,7 +41,7 @@ describe("Users API Integration Tests", () => {
             .expect(201);
 
         const auth = await request(app)
-            .post("/api/1.0/auth/signin")
+            .post("/api/auth/signin")
             .send({
                 username,
                 password,
@@ -176,13 +176,13 @@ describe("Users API Integration Tests", () => {
     });
 
     // =========================================================================
-    // 1. GET /api/1.0/users
+    // 1. GET /api/users
     // =========================================================================
 
-    describe("GET /api/1.0/users", () => {
+    describe("GET /api/users", () => {
         it("should return a list of users", async () => {
             const res = await request(app)
-                .get("/api/1.0/users")
+                .get("/api/users")
                 .expect(200);
 
             expect(Array.isArray(res.body)).toBe(true);
@@ -191,7 +191,7 @@ describe("Users API Integration Tests", () => {
 
         it("should return only public user information", async () => {
             const res = await request(app)
-                .get("/api/1.0/users")
+                .get("/api/users")
                 .expect(200);
 
             const user = res.body.find(
@@ -210,7 +210,7 @@ describe("Users API Integration Tests", () => {
             const uniquePart = "alice";
 
             const res = await request(app)
-                .get("/api/1.0/users")
+                .get("/api/users")
                 .query({ q: uniquePart.toUpperCase() })
                 .expect(200);
 
@@ -222,7 +222,7 @@ describe("Users API Integration Tests", () => {
 
         it("should search users by first name", async () => {
             const res = await request(app)
-                .get("/api/1.0/users")
+                .get("/api/users")
                 .query({ q: "ali" })
                 .expect(200);
 
@@ -237,7 +237,7 @@ describe("Users API Integration Tests", () => {
 
         it("should search users by surname", async () => {
             const res = await request(app)
-                .get("/api/1.0/users")
+                .get("/api/users")
                 .query({ q: "john" })
                 .expect(200);
 
@@ -252,7 +252,7 @@ describe("Users API Integration Tests", () => {
 
         it("should return no users when the search has no matches", async () => {
             const res = await request(app)
-                .get("/api/1.0/users")
+                .get("/api/users")
                 .query({ q: "this_user_does_not_exist_xyz" })
                 .expect(200);
 
@@ -261,7 +261,7 @@ describe("Users API Integration Tests", () => {
 
         it("should safely handle regex special characters in the search query", async () => {
             const res = await request(app)
-                .get("/api/1.0/users")
+                .get("/api/users")
                 .query({ q: "[" })
                 .expect(200);
 
@@ -270,7 +270,7 @@ describe("Users API Integration Tests", () => {
 
         it("should not return users outside the search criteria", async () => {
             const res = await request(app)
-                .get("/api/1.0/users")
+                .get("/api/users")
                 .query({ q: "Alice" })
                 .expect(200);
 
@@ -282,13 +282,13 @@ describe("Users API Integration Tests", () => {
     });
 
     // =========================================================================
-    // 2. GET /api/1.0/users/:id
+    // 2. GET /api/users/:id
     // =========================================================================
 
-    describe("GET /api/1.0/users/:id", () => {
+    describe("GET /api/users/:id", () => {
         it("should return a user by ID", async () => {
             const res = await request(app)
-                .get(`/api/1.0/users/${user1Id}`)
+                .get(`/api/users/${user1Id}`)
                 .expect(200);
 
             expect(res.body).toHaveProperty("user");
@@ -301,7 +301,7 @@ describe("Users API Integration Tests", () => {
 
         it("should return only public user information", async () => {
             const res = await request(app)
-                .get(`/api/1.0/users/${user1Id}`)
+                .get(`/api/users/${user1Id}`)
                 .expect(200);
 
             expect(res.body).toHaveProperty("user");
@@ -318,7 +318,7 @@ describe("Users API Integration Tests", () => {
             const nonExistentId = new ObjectId().toString();
 
             const res = await request(app)
-                .get(`/api/1.0/users/${nonExistentId}`)
+                .get(`/api/users/${nonExistentId}`)
                 .expect(404);
 
             expect(res.body).toHaveProperty("error");
@@ -326,7 +326,7 @@ describe("Users API Integration Tests", () => {
 
         it("should return 400 for an invalid user ID", async () => {
             const res = await request(app)
-                .get("/api/1.0/users/not-a-valid-object-id")
+                .get("/api/users/not-a-valid-object-id")
                 .expect(400);
 
             expect(res.body).toHaveProperty("error");
@@ -345,7 +345,7 @@ describe("Users API Integration Tests", () => {
             });
 
             const res = await request(app)
-                .get(`/api/1.0/users/${user1Id}`)
+                .get(`/api/users/${user1Id}`)
                 .expect(200);
 
             expect(res.body).toHaveProperty("user");
@@ -371,7 +371,7 @@ describe("Users API Integration Tests", () => {
             });
 
             const res = await request(app)
-                .get(`/api/1.0/users/${user1Id}`)
+                .get(`/api/users/${user1Id}`)
                 .expect(200);
 
             expect(res.body.tournaments).toHaveLength(2);
@@ -396,7 +396,7 @@ describe("Users API Integration Tests", () => {
             });
 
             const res = await request(app)
-                .get(`/api/1.0/users/${user1Id}`)
+                .get(`/api/users/${user1Id}`)
                 .expect(200);
 
             const tournamentNames = res.body.tournaments.map(
@@ -415,7 +415,7 @@ describe("Users API Integration Tests", () => {
             });
 
             const res = await request(app)
-                .get(`/api/1.0/users/${newUserId}`)
+                .get(`/api/users/${newUserId}`)
                 .expect(200);
 
             expect(res.body).toHaveProperty("tournaments");
@@ -442,7 +442,7 @@ describe("Users API Integration Tests", () => {
             });
 
             const res = await request(app)
-                .get(`/api/1.0/users/${user1Id}`)
+                .get(`/api/users/${user1Id}`)
                 .expect(200);
 
             expect(res.body.tournaments).toHaveLength(3);

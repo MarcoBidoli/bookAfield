@@ -25,10 +25,10 @@ describe("Auth API Integration Tests", () => {
         }
     });
 
-    describe("POST /api/1.0/auth/signup", () => {
+    describe("POST /api/auth/signup", () => {
         it("should register a user successfully", async () => {
             const res = await request(app)
-                .post("/api/1.0/auth/signup")
+                .post("/api/auth/signup")
                 .send(testUser);
 
             expect(res.status).toBe(201);
@@ -36,10 +36,10 @@ describe("Auth API Integration Tests", () => {
         });
     });
 
-    describe("POST /api/1.0/auth/signin", () => {
+    describe("POST /api/auth/signin", () => {
         it("should authenticate and return a token", async () => {
             const res = await request(app)
-                .post("/api/1.0/auth/signin")
+                .post("/api/auth/signin")
                 .send({
                     username: testUser.username,
                     password: testUser.password
@@ -51,10 +51,10 @@ describe("Auth API Integration Tests", () => {
         });
     });
 
-    describe("GET /api/1.0/auth/whoami", () => {
+    describe("GET /api/auth/whoami", () => {
         it("should return profile for authenticated user", async () => {
             const res = await request(app)
-                .get("/api/1.0/auth/whoami")
+                .get("/api/auth/whoami")
                 .set("Authorization", `Bearer ${token}`);
 
             expect(res.status).toBe(200);
