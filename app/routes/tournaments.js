@@ -71,30 +71,66 @@ router.get("/:id", async (req, res, next) => {
 
 router.put(
     "/:id",
-    passport.authenticate("jwt", { session: false}),
+    passport.authenticate("jwt", { session: false }),
     requireOwner("tournaments"),
     requireTournamentState(["registration"]),
     async (req, res, next) => {
-       try {
-           const db = getDB();
-           const {name, maxTeams, startDate, teams} = req.body;
+        try {
+            const db = getDB();
+            const { name, maxTeams, startDate, teams } = req.body;
 
-           const updateData = {};
-           if (name) updateData.name = name;
-           if (maxTeams) updateData.maxTeams = Number(maxTeams);
-           if (startDate) updateData.startDate = startDate;
-           if (teams) updateData.teams = teams;
+            const updateData = {};
 
-           await db.collection("tournaments").updateOne(
-               { _id: req.resource._id },
-               { $set: updateData }
-           );
+            if (typeof name === "string") updateData.name = name.trim();
 
-           const updated = await db.collection("tournaments").findOne({ _id: req.resource._id});
-           res.json(updated);
-       } catch (error) {
-           next(error);
-       }
+            if (maxTeams !== undefined) {
+                const parsedMax = Number(maxTeams);
+                if (Number.isNaN(parsedMax) || parsedMax < 2) {
+                    return res.status(400).json({ error: "Invalid maxTeams value" });
+                }
+                updateData.maxTeams = parsedMax;
+            }
+
+            if (startDate && !Number.isNaN(Date.parse(startDate))) {
+                updateData.startDate = startDate;
+            }
+
+            if (Array.isArray(teams)) {
+                const targetMaxTeams = updateData.maxTeams || req.resource.maxTeams;
+                if (teams.length > targetMaxTeams) {
+                    return res.status(400).json({ error: "Teams count exceeds maxTeams limit" });
+                }
+
+                // Sanitize nested team and player objects strictly
+                updateData.teams = teams.map((team) => ({
+                    _id: team._id ? new ObjectId(team._id) : new ObjectId(),
+                    name: String(team.name || "").trim(),
+                    players: Array.isArray(team.players)
+                        ? team.players.map((player) => ({
+                            userId: new ObjectId(player.userId),
+                            name: String(player.name || "").trim(),
+                            surname: String(player.surname || "").trim(),
+                            jerseyNumber:
+                                player.jerseyNumber !== undefined && player.jerseyNumber !== null
+                                    ? String(player.jerseyNumber).trim()
+                                    : null,
+                        }))
+                        : [],
+                }));
+            }
+
+            const updated = await db
+                .collection("tournaments")
+                .findOneAndUpdate(
+                    { _id: req.resource._id },
+                    { $set: updateData },
+                    { returnDocument: "after" }
+                );
+
+            res.json(updated);
+        } catch (error) {
+            next(error);
+        }
     }
 );
 
