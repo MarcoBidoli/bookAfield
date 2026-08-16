@@ -27,7 +27,10 @@ export async function fetchFieldSlots(fieldId, date) {
   return response.json();
 }
 
-export async function bookFieldSlot(fieldId, { date, slot, type = 'standard' }) {
+export async function bookFieldSlot(
+  fieldId,
+  { date, slot, type = 'standard', tournamentId = null }
+) {
   const token = localStorage.getItem('token');
   if (!token) {
     throw new Error('Authentication required to book a field');
@@ -39,7 +42,12 @@ export async function bookFieldSlot(fieldId, { date, slot, type = 'standard' }) 
       'Content-Type': 'application/json',
       Authorization: `Bearer ${token}`
     },
-    body: JSON.stringify({ date, slot, type })
+    body: JSON.stringify({
+      date,
+      slot,
+      type,
+      tournamentId
+    })
   });
 
   if (!response.ok) {

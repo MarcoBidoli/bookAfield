@@ -134,7 +134,7 @@ onMounted(() => {
           :to="`/fields?tournamentId=${tournamentId}`"
           style="margin-left: 8px;"
         >
-          <AquaButton>Book Match Field ⚽</AquaButton>
+          <AquaButton>Book a Field</AquaButton>
         </router-link>
       </div>
     </AquaPanel>

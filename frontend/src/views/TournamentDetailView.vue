@@ -1,12 +1,8 @@
 <script setup>
-import { ref, reactive, computed, onMounted } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
-import { useAuthStore } from '@/stores/auth'
-import {
-  fetchTournamentById,
-  updateTournament,
-  generateTournamentSchedule
-} from '@/api/tournaments'
+import {computed, onMounted, reactive, ref} from 'vue'
+import {useRoute, useRouter} from 'vue-router'
+import {useAuthStore} from '@/stores/auth'
+import {fetchTournamentById, generateTournamentSchedule, updateTournament} from '@/api/tournaments'
 
 import AquaPanel from '@/components/AquaPanel.vue'
 import AquaButton from '@/components/AquaButton.vue'
@@ -68,10 +64,9 @@ async function handleAddTeam() {
   successMessage.value = ''
 
   try {
-    const updated = await updateTournament(tournamentId, {
+    tournament.value = await updateTournament(tournamentId, {
       teams: updatedTeams
     })
-    tournament.value = updated
     newTeamName.value = ''
     successMessage.value = 'Team registered successfully!'
   } catch (err) {
@@ -263,7 +258,7 @@ onMounted(() => {
 
             <!-- Player list for this team -->
             <div class="roster-section">
-              <span class="roster-label">Players / Roster:</span>
+              <span class="roster-label">Players</span>
               <ul v-if="team.players && team.players.length > 0" class="player-list">
                 <li v-for="(p, pIdx) in team.players" :key="pIdx">
                   {{ p.name }} {{ p.surname }}

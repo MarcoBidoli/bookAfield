@@ -136,7 +136,8 @@ async function handleBooking() {
     await bookFieldSlot(selectedFieldId.value, {
       date: selectedDate.value,
       slot: selectedSlot.value,
-      type: bookingType.value === 'tournament' ? 'tournament' : 'standard'
+      type: bookingType.value === 'tournament' ? 'tournament' : 'standard',
+      tournamentId: bookingType.value === 'tournament' ? selectedTournamentId.value : null
     })
 
     successMessage.value = `Successfully booked slot ${selectedSlot.value} on ${selectedDate.value} (${bookingType.value} reservation)!`

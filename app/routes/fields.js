@@ -72,31 +72,51 @@ router.get("/:id/slots", async (req, res, next) => {
 // TODO: how to manage tournament bookings?
 router.post("/:id/bookings", passport.authenticate("jwt", { session: false }), async (req, res, next) => {
     try {
-        const {date, slot, type = "standard"} = req.body;
+        const {
+            date,
+            slot,
+            type = "standard",
+            tournamentId = null,
+            matchId = null
+        } = req.body;
+
         const fieldId = new ObjectId(req.params.id);
         const db = getDB();
 
         // Field existence
-        const field = await db.collection("fields").findOne({_id: new ObjectId(fieldId)});
+        const field = await db.collection("fields").findOne({ _id: fieldId });
         if (!field || !field.slots.includes(slot)) {
-            return res.status(400).json({error: "Invalid field or slot"});
+            return res.status(400).json({ error: "Invalid field or slot"});
         }
 
-        // future booking
+        // Future booking
         const bookingDateTime = new Date(`${date}T${slot.split('-')[0]}`);
         if (bookingDateTime <= Date.now()) {
-           return res.status(400).json({error: "Booking date must be in the future"});
+            return res.status(400).json({
+                error: "Booking date must be in the future"
+            });
         }
 
-        // insert booking
+        // Tournament validation
+        if (type === "tournament") {
+            if (!tournamentId) {
+                return res.status(400).json({
+                    error: "Tournament booking requires a tournamentId"
+                });
+            }
+        }
+
         const newBooking = {
             fieldId,
             userId: req.user._id, // set by passport-jwt
             date,
             slot,
-            type, // normal or tournament only
+            type,
+            tournamentId: tournamentId
+                ? new ObjectId(tournamentId)
+                : null,
             createdAt: new Date()
-        }
+        };
 
         const result = await db.collection("bookings").insertOne(newBooking);
         res.status(201).json({
