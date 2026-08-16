@@ -123,6 +123,59 @@ export async function fetchTournamentMatches(id) {
   return response.json();
 }
 
+export async function fetchTournamentBookings(tournamentId) {
+  const token = localStorage.getItem('token');
+
+  const response = await fetch(
+    `/api/tournaments/${tournamentId}/bookings`,
+    {
+      headers: {
+        Authorization: `Bearer ${token}`
+      }
+    }
+  );
+
+  if (!response.ok) {
+    const err = await response.json().catch(() => ({}));
+    throw new Error(
+      err.error || 'Failed to load tournament bookings'
+    );
+  }
+
+  return response.json();
+}
+
+export async function assignMatchBooking(matchId, bookingId) {
+  const token = localStorage.getItem('token');
+
+  if (!token) {
+    throw new Error('Authentication required');
+  }
+
+  const response = await fetch(
+    `/api/matches/${matchId}/bookings`,
+    {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`
+      },
+      body: JSON.stringify({
+        bookingId
+      })
+    }
+  );
+
+  if (!response.ok) {
+    const err = await response.json().catch(() => ({}));
+    throw new Error(
+      err.error || 'Failed to assign booking'
+    );
+  }
+
+  return response.json();
+}
+
 export async function recordMatchScore(matchId, { scoreA, scoreB }) {
   const token = localStorage.getItem('token');
   if (!token) {

@@ -3,6 +3,8 @@ import { ref, reactive, computed, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import {
+  assignMatchBooking,
+  fetchTournamentBookings,
   fetchTournamentById,
   fetchTournamentMatches,
   recordMatchScore
@@ -21,6 +23,8 @@ const isLoading = ref(true)
 const errorMessage = ref('')
 const successMessage = ref('')
 const isSubmitting = ref(false)
+const bookings = ref([])
+const selectedBookings = reactive({})
 
 // State for recording score
 const scoreInputs = reactive({})
@@ -45,25 +49,61 @@ const matchesByRound = computed(() => {
 async function loadMatches() {
   isLoading.value = true
   errorMessage.value = ''
+
   try {
-    const [tData, mData] = await Promise.all([
+    const [tData, mData, bData] = await Promise.all([
       fetchTournamentById(tournamentId),
-      fetchTournamentMatches(tournamentId)
+      fetchTournamentMatches(tournamentId),
+      fetchTournamentBookings(tournamentId)
     ])
     tournament.value = tData
     matches.value = mData
+    bookings.value = bData
 
-    // Initialize score inputs for played/upcoming matches
     for (const match of mData) {
       scoreInputs[match._id] = {
         scoreA: match.result?.scoreA ?? '',
         scoreB: match.result?.scoreB ?? ''
       }
+
+      // Preselect currently assigned booking
+      selectedBookings[match._id] =
+        match.bookingId ? String(match.bookingId) : ''
     }
   } catch (err) {
     errorMessage.value = err.message || 'Failed to load matches'
   } finally {
     isLoading.value = false
+  }
+}
+
+async function handleAssignBooking(match) {
+  const bookingId = selectedBookings[match._id]
+
+  if (!bookingId) {
+    errorMessage.value = 'Please select a booking'
+    return
+  }
+
+  isSubmitting.value = true
+  errorMessage.value = ''
+  successMessage.value = ''
+
+  try {
+    await assignMatchBooking(
+      match._id,
+      bookingId
+    )
+
+    successMessage.value =
+      `Booking assigned to ${match.teamAName} vs ${match.teamBName}`
+
+    await loadMatches()
+  } catch (err) {
+    errorMessage.value =
+      err.message || 'Failed to assign booking'
+  } finally {
+    isSubmitting.value = false
   }
 }
 
@@ -216,6 +256,48 @@ onMounted(() => {
                 </div>
 
                 <span class="team-name team-away">{{ match.teamBName }}</span>
+              </div>
+
+              <!-- Match Booking -->
+              <div v-if="isOwner" class="booking-assignment">
+                <label class="booking-label">
+                  Field booking:
+                </label>
+
+                <div class="booking-controls">
+                  <select
+                    v-model="selectedBookings[match._id]"
+                    class="booking-select"
+                    :disabled="isSubmitting"
+                  >
+                    <option value="">
+                      -- Select a tournament booking --
+                    </option>
+
+                    <option
+                      v-for="booking in bookings"
+                      :key="booking._id"
+                      :value="String(booking._id)"
+                    >
+                      {{ booking.date }} | {{ booking.slot }}
+                      <template v-if="booking.fieldName">
+                        — {{ booking.fieldName }}
+                      </template>
+                    </option>
+                  </select>
+
+                  <button
+                    type="button"
+                    class="btn-assign"
+                    :disabled="
+        isSubmitting ||
+        !selectedBookings[match._id]
+      "
+                    @click="handleAssignBooking(match)"
+                  >
+                    Assign
+                  </button>
+                </div>
               </div>
 
               <!-- Match Schedule Info -->
@@ -449,5 +531,64 @@ onMounted(() => {
   border-radius: 8px;
   font-size: 11px;
   color: #666;
+}
+
+.booking-assignment {
+  margin-top: 10px;
+  padding-top: 8px;
+  border-top: 1px solid #eee;
+}
+
+.booking-label {
+  display: block;
+  margin-bottom: 5px;
+  font-size: 11px;
+  font-weight: bold;
+  color: #555;
+}
+
+.booking-controls {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+
+.booking-select {
+  flex: 1;
+  background: #fff;
+  border: 1px solid #8e8e8e;
+  border-radius: 4px;
+  padding: 4px 7px;
+  font-size: 11px;
+}
+
+.btn-assign {
+  background: linear-gradient(
+    180deg,
+    #8bcbfc 0%,
+    #3092f7 48%,
+    #0d6fe3 50%,
+    #1e87f0 100%
+  );
+  border: 1px solid #08489b;
+  border-radius: 6px;
+  color: #fff;
+  font-size: 10px;
+  font-weight: bold;
+  padding: 4px 10px;
+  cursor: pointer;
+}
+
+.btn-assign:hover {
+  background: linear-gradient(
+    180deg,
+    #0d6fe3 0%,
+    #3092f7 100%
+  );
+}
+
+.btn-assign:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 </style>

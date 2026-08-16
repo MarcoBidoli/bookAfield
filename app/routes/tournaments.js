@@ -321,9 +321,47 @@ router.get("/:id/matches", async (req, res, next) => {
        const db = getDB();
        const tournamentId = new ObjectId(req.params.id);
 
-       const matches = await db.collection("matches").find(
-           { tournamentId: tournamentId })
-           .sort({ round: 1})
+       const matches = await db.collection("matches")
+           .aggregate([
+               {
+                   $match: {
+                       tournamentId
+                   }
+               },
+               {
+                   $lookup: {
+                       from: "bookings",
+                       localField: "bookingId",
+                       foreignField: "_id",
+                       as: "booking"
+                   }
+               },
+               {
+                   $unwind: {
+                       path: "$booking",
+                       preserveNullAndEmptyArrays: true
+                   }
+               },
+               {
+                   $lookup: {
+                       from: "fields",
+                       localField: "fieldId",
+                       foreignField: "_id",
+                       as: "field"
+                   }
+               },
+               {
+                   $unwind: {
+                       path: "$field",
+                       preserveNullAndEmptyArrays: true
+                   }
+               },
+               {
+                   $sort: {
+                       round: 1
+                   }
+               }
+           ])
            .toArray();
 
        res.json(matches);
@@ -331,5 +369,53 @@ router.get("/:id/matches", async (req, res, next) => {
        next(error);
    }
 });
+
+// Not in the project details, added to manage somehow the association tournament bookings <-> match
+router.get(
+    "/:id/bookings",
+    passport.authenticate("jwt", { session: false }),
+    requireOwner("tournaments"),
+    async (req, res, next) => {
+        try {
+            const db = getDB();
+            const tournamentId = req.resource._id;
+
+            const bookings = await db.collection("bookings")
+                .aggregate([
+                    {
+                        $match: {
+                            tournamentId,
+                            type: "tournament"
+                        }
+                    },
+                    {
+                        $lookup: {
+                            from: "fields",
+                            localField: "fieldId",
+                            foreignField: "_id",
+                            as: "field"
+                        }
+                    },
+                    {
+                        $unwind: {
+                            path: "$field",
+                            preserveNullAndEmptyArrays: true
+                        }
+                    },
+                    {
+                        $sort: {
+                            date: 1,
+                            slot: 1
+                        }
+                    }
+                ])
+                .toArray();
+
+            res.json(bookings);
+        } catch (error) {
+            next(error);
+        }
+    }
+);
 
 export default router;

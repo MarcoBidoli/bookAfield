@@ -70,4 +70,85 @@ router.put(
     }
 });
 
+// not in project specifications, used to map bookings with matches
+router.patch(
+    "/:id/bookings",
+    passport.authenticate("jwt", { session: false }),
+    requireTournamentOwner,
+    async (req, res, next) => {
+        try {
+            const db = getDB();
+
+            const match = req.match;
+            const tournament = req.tournament;
+
+            if (!match) {
+                return res.status(404).json({
+                    error: "Match not found"
+                });
+            }
+
+            if (!tournament) {
+                return res.status(404).json({
+                    error: "Tournament not found"
+                });
+            }
+
+            const { bookingId } = req.body;
+
+            if (!bookingId) {
+                return res.status(400).json({
+                    error: "bookingId is required"
+                });
+            }
+
+            let bookingObjectId;
+
+            try {
+                bookingObjectId = new ObjectId(bookingId);
+            } catch {
+                return res.status(400).json({
+                    error: "Invalid bookingId"
+                });
+            }
+
+            // The booking must belong to this tournament.
+            const booking = await db.collection("bookings").findOne({
+                _id: bookingObjectId,
+                tournamentId: tournament._id,
+                type: "tournament"
+            });
+
+            if (!booking) {
+                return res.status(400).json({
+                    error: "Booking does not belong to this tournament"
+                });
+            }
+
+            // Assign the booking to the match.
+            // Multiple matches are allowed to reference the same booking.
+            await db.collection("matches").updateOne(
+                { _id: match._id },
+                {
+                    $set: {
+                        bookingId: booking._id,
+                        fieldId: booking.fieldId,
+                        date: booking.date,
+                        slot: booking.slot
+                    }
+                }
+            );
+
+            const updatedMatch = await db.collection("matches").findOne({
+                _id: match._id
+            });
+
+            res.json(updatedMatch);
+
+        } catch (error) {
+            next(error);
+        }
+    }
+);
+
 export default router;

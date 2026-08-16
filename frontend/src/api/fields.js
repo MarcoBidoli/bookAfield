@@ -29,11 +29,17 @@ export async function fetchFieldSlots(fieldId, date) {
 
 export async function bookFieldSlot(
   fieldId,
-  { date, slot, type = 'standard', tournamentId = null }
+  {
+    date,
+    slot,
+    type = 'standard',
+    tournamentId = null
+  }
 ) {
-  const token = localStorage.getItem('token');
+  const token = localStorage.getItem('token')
+
   if (!token) {
-    throw new Error('Authentication required to book a field');
+    throw new Error('Authentication required to book a field')
   }
 
   const response = await fetch(`/api/fields/${fieldId}/bookings`, {
@@ -48,14 +54,14 @@ export async function bookFieldSlot(
       type,
       tournamentId
     })
-  });
+  })
 
   if (!response.ok) {
-    const err = await response.json().catch(() => ({}));
-    throw new Error(err.error || 'Booking failed');
+    const err = await response.json().catch(() => ({}))
+    throw new Error(err.error || 'Booking failed')
   }
 
-  return response.json();
+  return response.json()
 }
 
 export async function cancelBooking(fieldId, bookingId) {
