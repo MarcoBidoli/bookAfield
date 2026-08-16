@@ -56,6 +56,13 @@ const currentSelectedTournament = computed(() => {
   return tournaments.value.find(t => t._id === selectedTournamentId.value) || null
 })
 
+const minimumBookingDate = computed(() => {
+  if ( bookingType.value === 'tournament' &&  currentSelectedTournament.value?.startDate ) {
+    return currentSelectedTournament.value.startDate
+  }
+  return getTodayDate()
+})
+
 // Filtered fields: when tournament booking is selected, only show fields matching tournament sport
 const displayedFields = computed(() => {
   if (bookingType.value === 'tournament' && currentSelectedTournament.value) {
@@ -174,7 +181,15 @@ watch(bookingType, () => {
     if (myActiveTournaments.value.length > 0 && !selectedTournamentId.value) {
       selectedTournamentId.value = myActiveTournaments.value[0]._id
     }
+
+    // Make sure selected date is not before tournament start
+    const tournament = currentSelectedTournament.value
+
+    if (tournament?.startDate && selectedDate.value < tournament.startDate) {
+      selectedDate.value = tournament.startDate
+    }
   }
+
   // Auto-select first matching field
   if (displayedFields.value.length > 0) {
     selectedFieldId.value = displayedFields.value[0]._id
@@ -184,6 +199,17 @@ watch(bookingType, () => {
 watch(selectedTournamentId, () => {
   if (displayedFields.value.length > 0) {
     selectedFieldId.value = displayedFields.value[0]._id
+  }
+
+  if (
+    bookingType.value === 'tournament' &&
+    currentSelectedTournament.value?.startDate
+  ) {
+    const tournamentStart = currentSelectedTournament.value.startDate
+
+    if (selectedDate.value < tournamentStart) {
+      selectedDate.value = tournamentStart
+    }
   }
 })
 
@@ -278,7 +304,7 @@ onMounted(() => {
               id="date-select"
               v-model="selectedDate"
               type="date"
-              :min="getTodayDate()"
+              :min="minimumBookingDate"
               required
             />
           </div>
