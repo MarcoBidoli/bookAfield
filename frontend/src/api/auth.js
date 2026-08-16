@@ -27,7 +27,25 @@ export async function login(credentials) {
   });
 
   if (!response.ok) {
-    throw new Error('Login failed');
+    const errorData = await response.json().catch(() => ({}));
+    throw new Error(errorData.error || 'Login failed');
+  }
+
+  return response.json();
+}
+
+export async function signup(userData) {
+  const response = await fetch('/api/auth/signup', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify(userData)
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({}));
+    throw new Error(errorData.error || 'Registration failed');
   }
 
   return response.json();
