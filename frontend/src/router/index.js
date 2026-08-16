@@ -5,6 +5,9 @@ import HomeView from "@/views/HomeView.vue";
 import LoginView from "@/views/LoginView.vue";
 import FieldsView from "@/views/FieldsView.vue";
 import UserBookingsView from "@/views/UserBookingsView.vue";
+import TournamentsView from "@/views/TournamentsView.vue";
+import TournamentDetailView from "@/views/TournamentDetailView.vue";
+import MatchesView from "@/views/MatchesView.vue";
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -18,6 +21,21 @@ const router = createRouter({
       path: '/fields',
       name: 'fields',
       component: FieldsView
+    },
+    {
+      path: '/tournaments',
+      name: 'tournaments',
+      component: TournamentsView
+    },
+    {
+      path: '/tournaments/:id',
+      name: 'tournament-detail',
+      component: TournamentDetailView
+    },
+    {
+      path: '/tournaments/:id/matches',
+      name: 'tournament-matches',
+      component: MatchesView
     },
     {
       path: '/my-bookings',

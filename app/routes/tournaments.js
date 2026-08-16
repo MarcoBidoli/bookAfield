@@ -325,9 +325,6 @@ router.get("/:id/matches", async (req, res, next) => {
            { tournamentId: tournamentId })
            .sort({ round: 1})
            .toArray();
-       if (matches.length === 0) {
-           res.status(404).json({error: "Tournament not found"});
-       }
 
        res.json(matches);
    } catch (error) {

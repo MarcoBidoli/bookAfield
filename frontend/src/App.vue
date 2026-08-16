@@ -40,6 +40,11 @@ const authStore = useAuthStore()
               Book a Field
             </router-link>
           </li>
+          <li>
+            <router-link to="/tournaments" active-class="active">
+              Tournaments
+            </router-link>
+          </li>
           <li v-if="authStore.isAuthenticated">
             <router-link to="/my-bookings" active-class="active">
               My Bookings

@@ -1,22 +1,29 @@
 <script setup>
-import { ref, onMounted, watch } from 'vue'
-import { useRouter } from 'vue-router'
+import { ref, computed, onMounted, watch } from 'vue'
+import { useRouter, useRoute } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import { fetchFields, fetchFieldSlots, bookFieldSlot } from '@/api/fields'
+import { fetchTournaments } from '@/api/tournaments'
 
 import AquaPanel from '@/components/AquaPanel.vue'
 import AquaButton from '@/components/AquaButton.vue'
 
 const router = useRouter()
+const route = useRoute()
 const authStore = useAuthStore()
 
 // State
 const fields = ref([])
+const tournaments = ref([])
 const searchQuery = ref('')
 const selectedFieldId = ref('')
 const selectedDate = ref(getTomorrowDate())
 const availableSlots = ref([])
 const selectedSlot = ref('')
+
+// Booking Type: 'standard' | 'tournament'
+const bookingType = ref('standard')
+const selectedTournamentId = ref('')
 
 const isLoadingFields = ref(false)
 const isLoadingSlots = ref(false)
@@ -34,16 +41,53 @@ function getTodayDate() {
   return new Date().toISOString().split('T')[0]
 }
 
-async function loadFields() {
+// User's active tournaments where they are creator
+const myActiveTournaments = computed(() => {
+  if (!authStore.isAuthenticated || !authStore.user) return []
+  const userId = authStore.user._id || authStore.user.id
+  return tournaments.value.filter(
+    t => String(t.creatorId) === String(userId) && t.status === 'active'
+  )
+})
+
+// Selected tournament object
+const currentSelectedTournament = computed(() => {
+  if (!selectedTournamentId.value) return null
+  return tournaments.value.find(t => t._id === selectedTournamentId.value) || null
+})
+
+// Filtered fields: when tournament booking is selected, only show fields matching tournament sport
+const displayedFields = computed(() => {
+  if (bookingType.value === 'tournament' && currentSelectedTournament.value) {
+    return fields.value.filter(
+      f => f.sport?.toLowerCase() === currentSelectedTournament.value.sport?.toLowerCase()
+    )
+  }
+  return fields.value
+})
+
+async function loadData() {
   isLoadingFields.value = true
   errorMessage.value = ''
   try {
-    fields.value = await fetchFields(searchQuery.value)
-    if (fields.value.length > 0 && !selectedFieldId.value) {
-      selectedFieldId.value = fields.value[0]._id
+    const [fieldsData, tournamentsData] = await Promise.all([
+      fetchFields(searchQuery.value),
+      fetchTournaments()
+    ])
+    fields.value = fieldsData
+    tournaments.value = tournamentsData
+
+    // Check URL query parameters (e.g. redirected from matches: ?tournamentId=...&sport=...)
+    if (route.query.tournamentId) {
+      bookingType.value = 'tournament'
+      selectedTournamentId.value = route.query.tournamentId
+    }
+
+    if (displayedFields.value.length > 0 && !selectedFieldId.value) {
+      selectedFieldId.value = displayedFields.value[0]._id
     }
   } catch (err) {
-    errorMessage.value = err.message || 'Error loading sports fields'
+    errorMessage.value = err.message || 'Error loading data'
   } finally {
     isLoadingFields.value = false
   }
@@ -81,15 +125,22 @@ async function handleBooking() {
     return
   }
 
+  if (bookingType.value === 'tournament' && !selectedTournamentId.value) {
+    errorMessage.value = 'Please select which tournament this match booking is for'
+    return
+  }
+
   isSubmitting.value = true
   try {
+    // Calls POST /api/fields/:id/bookings with date, slot, type
     await bookFieldSlot(selectedFieldId.value, {
       date: selectedDate.value,
-      slot: selectedSlot.value
+      slot: selectedSlot.value,
+      type: bookingType.value === 'tournament' ? 'tournament' : 'standard'
     })
 
-    successMessage.value = `Successfully booked slot ${selectedSlot.value} for ${selectedDate.value}!`
-    // Reload slots to show slot as booked
+    successMessage.value = `Successfully booked slot ${selectedSlot.value} on ${selectedDate.value} (${bookingType.value} reservation)!`
+    selectedSlot.value = ''
     await loadSlots()
   } catch (err) {
     errorMessage.value = err.message || 'Booking failed'
@@ -117,8 +168,26 @@ watch(selectedDate, () => {
   }
 })
 
+watch(bookingType, () => {
+  if (bookingType.value === 'tournament') {
+    if (myActiveTournaments.value.length > 0 && !selectedTournamentId.value) {
+      selectedTournamentId.value = myActiveTournaments.value[0]._id
+    }
+  }
+  // Auto-select first matching field
+  if (displayedFields.value.length > 0) {
+    selectedFieldId.value = displayedFields.value[0]._id
+  }
+})
+
+watch(selectedTournamentId, () => {
+  if (displayedFields.value.length > 0) {
+    selectedFieldId.value = displayedFields.value[0]._id
+  }
+})
+
 onMounted(() => {
-  loadFields()
+  loadData()
 })
 </script>
 
@@ -134,25 +203,69 @@ onMounted(() => {
 
     <!-- Booking Form Panel -->
     <AquaPanel title="Book a Sports Field">
+      <!-- Booking Type Segmented Switcher -->
+      <div class="type-switcher-container">
+        <label class="section-label">Reservation Purpose:</label>
+        <div class="segmented-control">
+          <button
+            type="button"
+            :class="['tab-btn', { active: bookingType === 'standard' }]"
+            @click="bookingType = 'standard'"
+          >
+            Standard / Casual Booking
+          </button>
+          <button
+            type="button"
+            :class="['tab-btn', { active: bookingType === 'tournament' }]"
+            @click="bookingType = 'tournament'"
+          >
+            Tournament Match Booking
+          </button>
+        </div>
+      </div>
+
+      <!-- Tournament Selector (Visible when Tournament Match mode is active) -->
+      <div v-if="bookingType === 'tournament'" class="tournament-select-box">
+        <label for="tournament-select">Select Your Active Tournament:</label>
+        <div v-if="myActiveTournaments.length === 0" class="no-tournaments-warn">
+          You have no active tournaments created. You can create one in the <router-link to="/tournaments">Tournaments</router-link> tab.
+        </div>
+        <select
+          v-else
+          id="tournament-select"
+          v-model="selectedTournamentId"
+        >
+          <option
+            v-for="t in myActiveTournaments"
+            :key="t._id"
+            :value="t._id"
+          >
+            {{ t.name }} ({{ t.sport }}) — {{ t.teams?.length || 0 }} Teams
+          </option>
+        </select>
+      </div>
+
       <form @submit.prevent="handleBooking" class="booking-form">
         <div class="form-grid">
           <!-- Field Selector -->
           <div class="form-group">
-            <label for="field-select">Field / Sport:</label>
+            <label for="field-select">
+              Field ({{ bookingType === 'tournament' && currentSelectedTournament ? `${currentSelectedTournament.sport} only` : 'All Sports' }}):
+            </label>
             <select
               id="field-select"
               v-model="selectedFieldId"
-              :disabled="isLoadingFields || fields.length === 0"
+              :disabled="isLoadingFields || displayedFields.length === 0"
             >
-              <option v-if="fields.length === 0" value="" disabled>
-                {{ isLoadingFields ? 'Loading fields...' : 'No fields found' }}
+              <option v-if="displayedFields.length === 0" value="" disabled>
+                {{ isLoadingFields ? 'Loading fields...' : 'No fields found matching sport' }}
               </option>
               <option
-                v-for="field in fields"
+                v-for="field in displayedFields"
                 :key="field._id"
                 :value="field._id"
               >
-                {{ field.name }} ({{ field.sport }}) — {{ field.address || 'Campus' }}
+                {{ field.name }} ({{ field.sport }}) — {{ field.address || 'Main Complex' }}
               </option>
             </select>
           </div>
@@ -213,23 +326,23 @@ onMounted(() => {
         <div class="actions-row">
           <AquaButton
             type="submit"
-            :disabled="isSubmitting || !selectedSlot"
+            :disabled="isSubmitting || !selectedSlot || (bookingType === 'tournament' && !selectedTournamentId)"
           >
-            {{ isSubmitting ? 'Booking...' : (authStore.isAuthenticated ? 'Confirm Booking' : 'Sign In to Book') }}
+            {{ isSubmitting ? 'Booking...' : (authStore.isAuthenticated ? (bookingType === 'tournament' ? 'Confirm Tournament Match Booking' : 'Confirm Standard Booking') : 'Sign In to Book') }}
           </AquaButton>
         </div>
       </form>
     </AquaPanel>
 
     <!-- Available Fields Directory -->
-    <AquaPanel title="Fields">
+    <AquaPanel title="Fields Directory">
       <div class="search-bar">
         <input
           v-model="searchQuery"
           type="text"
           class="search-pill"
           placeholder="Filter fields by name or address..."
-          @input="loadFields"
+          @input="loadData"
         />
       </div>
 
@@ -237,13 +350,13 @@ onMounted(() => {
         Loading directory...
       </div>
 
-      <div v-else-if="fields.length === 0" class="empty-state">
-        No sports fields match your search.
+      <div v-else-if="displayedFields.length === 0" class="empty-state">
+        No sports fields match your criteria.
       </div>
 
       <div v-else class="field-list">
         <div
-          v-for="field in fields"
+          v-for="field in displayedFields"
           :key="field._id"
           :class="['field-item', { active: selectedFieldId === field._id }]"
           @click="selectField(field._id)"
@@ -285,6 +398,56 @@ onMounted(() => {
   background-color: #ffe6e6;
   border: 1px solid #ff9999;
   color: #990000;
+}
+
+.type-switcher-container {
+  margin-bottom: 12px;
+}
+
+.segmented-control {
+  display: flex;
+  background: #d8d8d8;
+  border-radius: 6px;
+  padding: 2px;
+  margin-top: 4px;
+  border: 1px solid #b2b2b2;
+  max-width: 420px;
+}
+
+.tab-btn {
+  flex: 1;
+  background: transparent;
+  border: none;
+  font-size: 11px;
+  font-weight: bold;
+  color: #555;
+  padding: 5px 10px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.tab-btn.active {
+  background: linear-gradient(180deg, #ffffff 0%, #e2e2e2 100%);
+  color: #111;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+}
+
+.tournament-select-box {
+  background: #fff;
+  border: 1px solid #c0d4ec;
+  padding: 10px 12px;
+  border-radius: 5px;
+  margin-bottom: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.no-tournaments-warn {
+  font-size: 11px;
+  color: #a05000;
+  font-style: italic;
 }
 
 .booking-form {
