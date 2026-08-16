@@ -96,7 +96,7 @@ async function handleAssignBooking(match) {
     )
 
     successMessage.value =
-      `Booking assigned to ${match.teamAName} vs ${match.teamBName}`
+      `Field booking successfully assigned to ${match.teamAName} vs ${match.teamBName}`
 
     await loadMatches()
   } catch (err) {
@@ -135,14 +135,6 @@ async function handleSaveScore(match) {
 
 function isMatchScheduled(match) {
   return !!(match.date && match.slot)
-}
-
-function isMatchPastOrToday(dateStr) {
-  if (!dateStr) return false
-  const matchDate = new Date(dateStr)
-  const today = new Date()
-  today.setHours(23, 59, 59, 999)
-  return matchDate <= today
 }
 
 onMounted(() => {
@@ -258,10 +250,10 @@ onMounted(() => {
                 <span class="team-name team-away">{{ match.teamBName }}</span>
               </div>
 
-              <!-- Match Booking -->
+              <!-- Isolated Inset Well for Booking Assignment -->
               <div v-if="isOwner" class="booking-assignment">
                 <label class="booking-label">
-                  Field booking:
+                  Field booking assignment:
                 </label>
 
                 <div class="booking-controls">
@@ -289,10 +281,7 @@ onMounted(() => {
                   <button
                     type="button"
                     class="btn-assign"
-                    :disabled="
-        isSubmitting ||
-        !selectedBookings[match._id]
-      "
+                    :disabled="isSubmitting || !selectedBookings[match._id]"
                     @click="handleAssignBooking(match)"
                   >
                     Assign
@@ -300,7 +289,7 @@ onMounted(() => {
                 </div>
               </div>
 
-              <!-- Match Schedule Info -->
+              <!-- Match Schedule Info Footer -->
               <div class="match-meta">
                 <span v-if="isMatchScheduled(match)" class="meta-item">
                   📅 {{ match.date }} | ⏱ {{ match.slot }}
@@ -349,6 +338,8 @@ onMounted(() => {
 .header-actions {
   display: flex;
   align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
 }
 
 .loading-state, .empty-state {
@@ -361,15 +352,18 @@ onMounted(() => {
 .matches-grid {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 12px;
 }
 
 .match-card {
   background: #ffffff;
   border: 1px solid #c8c8c8;
   border-radius: 6px;
-  padding: 12px 16px;
+  padding: 14px 16px;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
 }
 
 .match-played {
@@ -381,7 +375,7 @@ onMounted(() => {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  gap: 12px;
+  gap: 16px;
 }
 
 .team-name {
@@ -404,6 +398,7 @@ onMounted(() => {
   align-items: center;
   justify-content: center;
   min-width: 140px;
+  margin-bottom: 10px;
 }
 
 .score-badge {
@@ -411,7 +406,7 @@ onMounted(() => {
   color: #ffffff;
   font-weight: bold;
   font-size: 13px;
-  padding: 3px 14px;
+  padding: 4px 16px;
   border-radius: 12px;
   text-shadow: 0 1px 1px rgba(0, 0, 0, 0.4);
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.4);
@@ -429,17 +424,19 @@ onMounted(() => {
 .score-form {
   display: inline-flex;
   align-items: center;
-  gap: 4px;
+  gap: 6px;
 }
 
 .score-input {
-  width: 32px;
+  width: 36px;
+  height: 26px;
   text-align: center;
   padding: 3px;
   font-size: 12px;
   border: 1px solid #8e8e8e;
   border-radius: 4px;
   outline: none;
+  background: #fff;
 }
 
 .score-input:focus {
@@ -455,12 +452,13 @@ onMounted(() => {
 .btn-enter {
   background: linear-gradient(180deg, #8bcbfc 0%, #3092f7 48%, #0d6fe3 50%, #1e87f0 100%);
   border: 1px solid #08489b;
-  border-radius: 8px;
+  border-radius: 6px;
   color: #ffffff;
-  font-size: 10px;
+  font-size: 11px;
   font-weight: bold;
-  padding: 3px 8px;
+  padding: 5px 10px;
   cursor: pointer;
+  height: 26px;
   text-shadow: 0 -1px 1px rgba(0, 0, 0, 0.4);
 }
 
@@ -473,11 +471,74 @@ onMounted(() => {
   cursor: not-allowed;
 }
 
+/* Isolated Inset Well for Booking Controls */
+.booking-assignment {
+  background: #f0f3f7;
+  border: 1px solid #d0dbe5;
+  border-radius: 5px;
+  padding: 8px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.booking-label {
+  font-size: 11px;
+  font-weight: bold;
+  color: #445566;
+}
+
+.booking-controls {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.booking-select {
+  flex: 1;
+  background: #fff;
+  border: 1px solid #8e8e8e;
+  border-radius: 4px;
+  padding: 4px 8px;
+  font-size: 12px;
+  height: 26px;
+}
+
+.btn-assign {
+  background: linear-gradient(
+    180deg,
+    #8bcbfc 0%,
+    #3092f7 48%,
+    #0d6fe3 50%,
+    #1e87f0 100%
+  );
+  border: 1px solid #08489b;
+  border-radius: 6px;
+  color: #fff;
+  font-size: 11px;
+  font-weight: bold;
+  padding: 4px 12px;
+  cursor: pointer;
+  height: 26px;
+}
+
+.btn-assign:hover {
+  background: linear-gradient(
+    180deg,
+    #0d6fe3 0%,
+    #3092f7 100%
+  );
+}
+
+.btn-assign:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
 .match-meta {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-top: 8px;
   padding-top: 6px;
   border-top: 1px solid #eee;
   font-size: 11px;
@@ -531,64 +592,5 @@ onMounted(() => {
   border-radius: 8px;
   font-size: 11px;
   color: #666;
-}
-
-.booking-assignment {
-  margin-top: 10px;
-  padding-top: 8px;
-  border-top: 1px solid #eee;
-}
-
-.booking-label {
-  display: block;
-  margin-bottom: 5px;
-  font-size: 11px;
-  font-weight: bold;
-  color: #555;
-}
-
-.booking-controls {
-  display: flex;
-  gap: 6px;
-  align-items: center;
-}
-
-.booking-select {
-  flex: 1;
-  background: #fff;
-  border: 1px solid #8e8e8e;
-  border-radius: 4px;
-  padding: 4px 7px;
-  font-size: 11px;
-}
-
-.btn-assign {
-  background: linear-gradient(
-    180deg,
-    #8bcbfc 0%,
-    #3092f7 48%,
-    #0d6fe3 50%,
-    #1e87f0 100%
-  );
-  border: 1px solid #08489b;
-  border-radius: 6px;
-  color: #fff;
-  font-size: 10px;
-  font-weight: bold;
-  padding: 4px 10px;
-  cursor: pointer;
-}
-
-.btn-assign:hover {
-  background: linear-gradient(
-    180deg,
-    #0d6fe3 0%,
-    #3092f7 100%
-  );
-}
-
-.btn-assign:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
 }
 </style>
