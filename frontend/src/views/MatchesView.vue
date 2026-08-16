@@ -51,14 +51,21 @@ async function loadMatches() {
   errorMessage.value = ''
 
   try {
-    const [tData, mData, bData] = await Promise.all([
+    const [tData, mData] = await Promise.all([
       fetchTournamentById(tournamentId),
-      fetchTournamentMatches(tournamentId),
-      fetchTournamentBookings(tournamentId)
+      fetchTournamentMatches(tournamentId)
     ])
+
     tournament.value = tData
     matches.value = mData
-    bookings.value = bData
+
+    // Only the tournament owner needs booking data.
+    // /:id/bookings is protected by JWT + requireOwner().
+    if (isOwner.value) {
+      bookings.value = await fetchTournamentBookings(tournamentId)
+    } else {
+      bookings.value = []
+    }
 
     for (const match of mData) {
       scoreInputs[match._id] = {
@@ -66,12 +73,12 @@ async function loadMatches() {
         scoreB: match.result?.scoreB ?? ''
       }
 
-      // Preselect currently assigned booking
       selectedBookings[match._id] =
         match.bookingId ? String(match.bookingId) : ''
     }
   } catch (err) {
-    errorMessage.value = err.message || 'Failed to load matches'
+    errorMessage.value =
+      err.message || 'Failed to load matches'
   } finally {
     isLoading.value = false
   }
@@ -148,43 +155,70 @@ onMounted(() => {
     <div v-if="successMessage" class="banner success-banner">
       ✓ {{ successMessage }}
     </div>
+
     <div v-if="errorMessage" class="banner error-banner">
       ⚠️ {{ errorMessage }}
     </div>
 
     <!-- Header Panel -->
-    <AquaPanel :title="`Fixtures & Scores — ${tournament?.name || 'Tournament'}`">
+    <AquaPanel
+      :title="`Fixtures & Scores — ${tournament?.name || 'Tournament'}`"
+    >
       <div class="header-actions">
         <router-link :to="`/tournaments/${tournamentId}`">
-          <AquaButton>← Details & Teams</AquaButton>
+          <AquaButton>
+            ← Details & Teams
+          </AquaButton>
         </router-link>
-        <router-link :to="`/tournaments/${tournamentId}/standings`" style="margin-left: 8px;">
-          <AquaButton>Standings Table</AquaButton>
+
+        <router-link
+          :to="`/tournaments/${tournamentId}/standings`"
+          style="margin-left: 8px;"
+        >
+          <AquaButton>
+            Standings Table
+          </AquaButton>
         </router-link>
+
+        <!-- Tournament owner only -->
         <router-link
           v-if="isOwner"
           :to="`/fields?tournamentId=${tournamentId}`"
           style="margin-left: 8px;"
         >
-          <AquaButton>Book a Field</AquaButton>
+          <AquaButton>
+            Book a Field
+          </AquaButton>
         </router-link>
       </div>
     </AquaPanel>
 
+    <!-- Loading -->
     <div v-if="isLoading" class="loading-state">
       Loading tournament match fixtures...
     </div>
 
-    <div v-else-if="matches.length === 0" class="empty-state">
+    <!-- No Matches -->
+    <div
+      v-else-if="matches.length === 0"
+      class="empty-state"
+    >
       <AquaPanel title="Schedule">
-        <p>No matches generated yet.</p>
-        <p v-if="isOwner" style="margin-top: 8px;">
-          Once all teams are registered in the tournament details page, generate the match fixtures to start the tournament.
+        <p>
+          No matches generated yet.
+        </p>
+
+        <p
+          v-if="isOwner"
+          style="margin-top: 8px;"
+        >
+          Once all teams are registered in the tournament details page,
+          generate the match fixtures to start the tournament.
         </p>
       </AquaPanel>
     </div>
 
-    <!-- Matches Grouped by Round -->
+    <!-- Matches -->
     <template v-else>
       <AquaPanel
         v-for="(roundMatches, roundNum) in matchesByRound"
@@ -195,43 +229,84 @@ onMounted(() => {
           <div
             v-for="match in roundMatches"
             :key="match._id"
-            :class="['match-card', { 'match-played': match.status === 'played' }]"
+            :class="[
+              'match-card',
+              {
+                'match-played': match.status === 'played'
+              }
+            ]"
           >
             <!-- BYE Match -->
-            <div v-if="!match.teamA || !match.teamB" class="bye-row">
-              <span class="bye-team">{{ match.teamAName === 'BYE' ? match.teamBName : match.teamAName }}</span>
-              <span class="bye-badge">Rest Day (BYE)</span>
+            <div
+              v-if="!match.teamA || !match.teamB"
+              class="bye-row"
+            >
+              <span class="bye-team">
+                {{
+                  match.teamAName === 'BYE'
+                    ? match.teamBName
+                    : match.teamAName
+                }}
+              </span>
+
+              <span class="bye-badge">
+                Rest Day (BYE)
+              </span>
             </div>
 
             <!-- Standard Match -->
-            <div v-else class="match-content">
+            <div
+              v-else
+              class="match-content"
+            >
+              <!-- Teams + Score -->
               <div class="teams-versus">
-                <span class="team-name team-home">{{ match.teamAName }}</span>
+                <span class="team-name team-home">
+                  {{ match.teamAName }}
+                </span>
 
-                <!-- Score Display or Input -->
                 <div class="score-container">
-                  <template v-if="match.status === 'played'">
+                  <!-- Match already played:
+                       everyone can see the score -->
+                  <template
+                    v-if="match.status === 'played'"
+                  >
                     <span class="score-badge">
-                      {{ match.result?.scoreA }} - {{ match.result?.scoreB }}
+                      {{ match.result?.scoreA }}
+                      -
+                      {{ match.result?.scoreB }}
                     </span>
                   </template>
-                  <template v-else-if="isOwner">
+
+                  <!-- Tournament owner can enter score -->
+                  <template
+                    v-else-if="isOwner"
+                  >
                     <div class="score-form">
                       <input
-                        v-model.number="scoreInputs[match._id].scoreA"
+                        v-model.number="
+                          scoreInputs[match._id].scoreA
+                        "
                         type="number"
                         min="0"
                         class="score-input"
                         placeholder="0"
                       />
-                      <span class="score-colon">:</span>
+
+                      <span class="score-colon">
+                        :
+                      </span>
+
                       <input
-                        v-model.number="scoreInputs[match._id].scoreB"
+                        v-model.number="
+                          scoreInputs[match._id].scoreB
+                        "
                         type="number"
                         min="0"
                         class="score-input"
                         placeholder="0"
                       />
+
                       <button
                         type="button"
                         class="btn-enter"
@@ -242,23 +317,35 @@ onMounted(() => {
                       </button>
                     </div>
                   </template>
+
+                  <!-- Everyone else sees VS -->
                   <template v-else>
-                    <span class="vs-badge">VS</span>
+                    <span class="vs-badge">
+                      VS
+                    </span>
                   </template>
                 </div>
 
-                <span class="team-name team-away">{{ match.teamBName }}</span>
+                <span class="team-name team-away">
+                  {{ match.teamBName }}
+                </span>
               </div>
 
-              <!-- Isolated Inset Well for Booking Assignment -->
-              <div v-if="isOwner" class="booking-assignment">
+              <!-- Booking Assignment
+                   Tournament owner only -->
+              <div
+                v-if="isOwner"
+                class="booking-assignment"
+              >
                 <label class="booking-label">
                   Field booking assignment:
                 </label>
 
                 <div class="booking-controls">
                   <select
-                    v-model="selectedBookings[match._id]"
+                    v-model="
+                      selectedBookings[match._id]
+                    "
                     class="booking-select"
                     :disabled="isSubmitting"
                   >
@@ -271,8 +358,13 @@ onMounted(() => {
                       :key="booking._id"
                       :value="String(booking._id)"
                     >
-                      {{ booking.date }} | {{ booking.slot }}
-                      <template v-if="booking.fieldName">
+                      {{ booking.date }}
+                      |
+                      {{ booking.slot }}
+
+                      <template
+                        v-if="booking.fieldName"
+                      >
                         — {{ booking.fieldName }}
                       </template>
                     </option>
@@ -281,7 +373,10 @@ onMounted(() => {
                   <button
                     type="button"
                     class="btn-assign"
-                    :disabled="isSubmitting || !selectedBookings[match._id]"
+                    :disabled="
+                      isSubmitting ||
+                      !selectedBookings[match._id]
+                    "
                     @click="handleAssignBooking(match)"
                   >
                     Assign
@@ -289,16 +384,32 @@ onMounted(() => {
                 </div>
               </div>
 
-              <!-- Match Schedule Info Footer -->
+              <!-- Match Schedule + Status
+                   Everyone can see this -->
               <div class="match-meta">
-                <span v-if="isMatchScheduled(match)" class="meta-item">
-                  📅 {{ match.date }} | ⏱ {{ match.slot }}
-                </span>
-                <span v-else class="meta-item unscheduled">
-                  ⚠️ Unscheduled (Field booking required)
+                <span
+                  v-if="isMatchScheduled(match)"
+                  class="meta-item"
+                >
+                  📅 {{ match.date }}
+                  |
+                  ⏱ {{ match.slot }}
                 </span>
 
-                <span :class="['status-pill', `status-${match.status}`]">
+                <span
+                  v-else
+                  class="meta-item unscheduled"
+                >
+                   Unscheduled
+                  (Field booking required)
+                </span>
+
+                <span
+                  :class="[
+                    'status-pill',
+                    `status-${match.status}`
+                  ]"
+                >
                   {{ match.status }}
                 </span>
               </div>
