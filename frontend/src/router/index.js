@@ -1,8 +1,10 @@
 import { createRouter, createWebHistory } from 'vue-router'
-import {useAuthStore} from "../stores/auth.js";
+import { useAuthStore } from "@/stores/auth.js";
 
-import HomeView from "../views/HomeView.vue";
-import LoginView from "../views/LoginView.vue";
+import HomeView from "@/views/HomeView.vue";
+import LoginView from "@/views/LoginView.vue";
+import FieldsView from "@/views/FieldsView.vue";
+import UserBookingsView from "@/views/UserBookingsView.vue";
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -11,6 +13,17 @@ const router = createRouter({
       path: '/',
       name: 'home',
       component: HomeView
+    },
+    {
+      path: '/fields',
+      name: 'fields',
+      component: FieldsView
+    },
+    {
+      path: '/my-bookings',
+      name: 'my-bookings',
+      component: UserBookingsView,
+      meta: { requiresAuth: true }
     },
     {
       path: '/login',
@@ -31,6 +44,11 @@ router.beforeEach(async (to, from) => {
   // Redirect to home if already logged in and trying to access /login
   if (to.name === 'login' && authStore.isAuthenticated) {
     return { name: 'home' }
+  }
+
+  // Protect authenticated routes
+  if (to.meta.requiresAuth && !authStore.isAuthenticated) {
+    return { name: 'login' }
   }
 });
 

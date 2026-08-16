@@ -35,6 +35,16 @@ const authStore = useAuthStore()
               Active Fields & Cups
             </router-link>
           </li>
+          <li>
+            <router-link to="/fields" active-class="active">
+              Book a Field
+            </router-link>
+          </li>
+          <li v-if="authStore.isAuthenticated">
+            <router-link to="/my-bookings" active-class="active">
+              My Bookings
+            </router-link>
+          </li>
           <li v-if="!authStore.isAuthenticated">
             <router-link to="/login" active-class="active">
               Account Access
