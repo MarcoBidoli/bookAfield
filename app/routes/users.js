@@ -1,8 +1,48 @@
 import {Router} from 'express';
 import {getDB} from "../db.js";
 import {ObjectId} from "mongodb";
+import passport from "passport";
 
 const router = Router();
+
+// Added because of missing functionality even if not in the project spec
+// TODO: add tests
+router.get("/:id/bookings", passport.authenticate("jwt", { session: false }), async (req, res, next) => {
+    try {
+        const db = getDB();
+        const targetUserId = new ObjectId(req.params.id);
+
+        // Ensure users can only view their own bookings
+        if (req.user._id.toString() !== targetUserId.toString()) {
+            return res.status(403).json({ error: "Unauthorized to view these bookings" });
+        }
+
+        const bookings = await db.collection("bookings")
+            .aggregate([
+                { $match: { userId: targetUserId } },
+                {
+                    $lookup: {
+                        from: "fields",
+                        localField: "fieldId",
+                        foreignField: "_id",
+                        as: "fieldDetails"
+                    }
+                },
+                {
+                    $unwind: {
+                        path: "$fieldDetails",
+                        preserveNullAndEmptyArrays: true
+                    }
+                },
+                { $sort: { date: 1, slot: 1 } }
+            ])
+            .toArray();
+
+        res.json(bookings);
+    } catch (err) {
+        next(err);
+    }
+});
 
 router.get("/:id", async function(req, res, next) {
     try {
