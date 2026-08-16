@@ -142,7 +142,7 @@ onMounted(() => {
               </td>
               <td style="text-align: center;">
                 <button
-                  v-if="!isBookingPast(booking.date, booking.slot) && booking.type !== 'tournament'"
+                  v-if="!isBookingPast(booking.date, booking.slot)"
                   type="button"
                   class="cancel-btn"
                   :disabled="cancellingId === booking._id"
@@ -150,9 +150,7 @@ onMounted(() => {
                 >
                   {{ cancellingId === booking._id ? 'Cancelling...' : 'Cancel' }}
                 </button>
-                <span v-else-if="booking.type === 'tournament'" class="hint-text">
-                  Tournament match
-                </span>
+
                 <span v-else class="hint-text">
                   —
                 </span>

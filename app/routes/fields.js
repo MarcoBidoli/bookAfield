@@ -156,7 +156,11 @@ router.delete("/:id/bookings/:bookingId", passport.authenticate("jwt", { session
         }
 
         if(booking.type === "tournament") {
-            return res.status(400).json({error: "Tournament bookings must be cancelled through the tournament schedule"});
+            // before cancelling the booking set the corresponding tournament matches bookingId to null
+            await db.collection("matches").updateMany(
+                { bookingId: bookingId },
+                { $set: { bookingId: null } }
+            );
         }
 
         await db.collection("bookings").deleteOne({_id: bookingId});
