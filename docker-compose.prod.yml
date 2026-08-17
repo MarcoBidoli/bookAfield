@@ -1,0 +1,26 @@
+name: bidoli-bookafield
+
+services:
+  app:
+    container_name: bidoli-bookafield-app
+    build:
+      context: .
+      dockerfile: Dockerfile.prod
+    env_file:
+      - ./app/.env
+    ports:
+      - "3000:3000"
+    depends_on:
+      - mongo
+    restart: unless-stopped
+
+  mongo:
+    container_name: bidoli-bookafield-mongo
+    image: mongo:8
+    volumes:
+      - bidoli-bookafield-data:/data/db
+    restart: unless-stopped
+
+volumes:
+  bidoli-bookafield-data:
+    name: bidoli-bookafield-data

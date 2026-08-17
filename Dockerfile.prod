@@ -1,0 +1,29 @@
+# 1. Build Vue frontend
+FROM node:26-alpine AS frontend-builder
+WORKDIR /app/frontend
+
+COPY frontend/package*.json ./
+RUN npm ci
+
+COPY frontend/ ./
+RUN npm run build
+
+# 2. Production backend
+FROM node:26-alpine
+WORKDIR /usr/src/app
+
+ENV NODE_ENV=production
+
+# Install backend production dependencies
+COPY app/package*.json ./
+RUN npm ci --omit=dev
+
+# Copy backend source
+COPY app/ ./
+
+# Copy Vue production build
+COPY --from=frontend-builder /app/frontend/dist /usr/src/frontend/dist
+
+EXPOSE 3000
+
+CMD ["node", "server.js"]

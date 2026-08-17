@@ -1,6 +1,10 @@
 node_modules
 .git
 .gitignore
-npm-debug.log
-Dockerfile*
+npm-debug.log*
+Dockerfile.prod
 compose*.yml
+frontend/dist
+.env
+.env.*
+!.env.example

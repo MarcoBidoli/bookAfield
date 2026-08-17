@@ -3,7 +3,9 @@ services:
   app:
     container_name: bidoli-bookafield-app
     image: bookafield-app
-    build: .
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
     command: npm run dev
     ports:
       - "3000:3000"
