@@ -279,6 +279,30 @@ onMounted(() => {
                 </span>
               </div>
 
+              <!-- Match Schedule + Status
+                   Everyone can see this -->
+              <div class="match-meta">
+                <div class="match-info">
+                  <template v-if="isMatchScheduled(match)">
+                    <span class="meta-item"> 📅 {{ match.date }} | ⏱ {{ match.slot }} </span>
+
+                    <span v-if="match.field" class="meta-item"> 🏟️ {{ match.field.name }} </span>
+
+                    <span v-if="match.field?.address" class="meta-item">
+                      📍 {{ match.field.address }}
+                    </span>
+                  </template>
+
+                  <span v-else class="meta-item unscheduled">
+                    Unscheduled (Field booking required)
+                  </span>
+                </div>
+
+                <span :class="['status-pill', `status-${match.status}`]">
+                  {{ match.status }}
+                </span>
+              </div>
+
               <!-- Booking Assignment
                    Tournament owner only -->
               <div v-if="isOwner && tournament?.status === 'active'" class="booking-assignment">
@@ -314,30 +338,6 @@ onMounted(() => {
                     Assign
                   </button>
                 </div>
-              </div>
-
-              <!-- Match Schedule + Status
-                   Everyone can see this -->
-              <div class="match-meta">
-                <div class="match-info">
-                  <template v-if="isMatchScheduled(match)">
-                    <span class="meta-item"> 📅 {{ match.date }} | ⏱ {{ match.slot }} </span>
-
-                    <span v-if="match.field" class="meta-item"> 🏟️ {{ match.field.name }} </span>
-
-                    <span v-if="match.field?.address" class="meta-item">
-                      📍 {{ match.field.address }}
-                    </span>
-                  </template>
-
-                  <span v-else class="meta-item unscheduled">
-                    Unscheduled (Field booking required)
-                  </span>
-                </div>
-
-                <span :class="['status-pill', `status-${match.status}`]">
-                  {{ match.status }}
-                </span>
               </div>
             </div>
           </div>
@@ -525,6 +525,7 @@ onMounted(() => {
   display: flex;
   flex-direction: column;
   gap: 6px;
+  margin-top: 15px;
 }
 
 .booking-label {

@@ -38,14 +38,18 @@ const authStore = useAuthStore()
           <li>
             <router-link to="/tournaments" active-class="active"> Tournaments </router-link>
           </li>
-          <li v-if="authStore.isAuthenticated">
-            <router-link to="/my-bookings" active-class="active"> My Bookings </router-link>
-          </li>
           <li>
             <router-link to="/users" active-class="active"> Users </router-link>
           </li>
+          <li v-if="authStore.isAuthenticated">
+            <router-link to="/my-bookings" active-class="active"> My Bookings </router-link>
+          </li>
+        </ul>
+
+        <div v-if="!authStore.isAuthenticated" class="sidebar-group-title">Account Access</div>
+        <ul class="sidebar-menu">
           <li v-if="!authStore.isAuthenticated">
-            <router-link to="/login" active-class="active"> Account Access </router-link>
+            <router-link to="/login" active-class="active"> Login or Register </router-link>
           </li>
         </ul>
       </aside>
@@ -138,6 +142,7 @@ const authStore = useAuthStore()
 
 .sidebar-menu {
   list-style: none;
+  margin-bottom: 15px;
 }
 
 .sidebar-menu a {
