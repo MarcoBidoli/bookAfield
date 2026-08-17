@@ -84,11 +84,22 @@ router.put(
             if (typeof name === "string") updateData.name = name.trim();
 
             if (maxTeams !== undefined) {
-                const parsedMax = Number(maxTeams);
-                if (Number.isNaN(parsedMax) || parsedMax < 2) {
-                    return res.status(400).json({ error: "Invalid maxTeams value" });
-                }
-                updateData.maxTeams = parsedMax;
+              const parsedMax = Number(maxTeams);
+              if (Number.isNaN(parsedMax) || parsedMax < 2) {
+                return res.status(400).json({
+                  error: "Invalid maxTeams value",
+                });
+              }
+
+              // Do not allow the maximum team smaller than the number of teams already registered.
+              if (Array.isArray(req.resource.teams) && req.resource.teams.length > parsedMax) {
+                return res.status(400).json({
+                  error:
+                    "maxTeams cannot be lower than the current number of teams",
+                });
+              }
+
+              updateData.maxTeams = parsedMax;
             }
 
             if (startDate && !Number.isNaN(Date.parse(startDate))) {
