@@ -9,6 +9,7 @@ import TournamentsView from "@/views/TournamentsView.vue";
 import TournamentDetailView from "@/views/TournamentDetailView.vue";
 import MatchesView from "@/views/MatchesView.vue";
 import StandingsView from "@/views/StandingsView.vue";
+import tournamentEditView from '@/views/TournamentEditView.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -44,6 +45,11 @@ const router = createRouter({
       component: StandingsView
     },
     {
+      path: '/tournaments/:id/edit',
+      name: 'tournament-edit',
+      component: tournamentEditView
+    },
+    {
       path: '/my-bookings',
       name: 'my-bookings',
       component: UserBookingsView,
@@ -57,7 +63,7 @@ const router = createRouter({
   ],
 });
 
-router.beforeEach(async (to, from) => {
+router.beforeEach(async (to) => {
   const authStore = useAuthStore()
 
   // Run initial token verification once if token exists

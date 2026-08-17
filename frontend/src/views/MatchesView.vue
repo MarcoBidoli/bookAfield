@@ -7,7 +7,7 @@ import {
   fetchTournamentBookings,
   fetchTournamentById,
   fetchTournamentMatches,
-  recordMatchScore
+  recordMatchScore,
 } from '@/api/tournaments'
 
 import AquaPanel from '@/components/AquaPanel.vue'
@@ -53,7 +53,7 @@ async function loadMatches() {
   try {
     const [tData, mData] = await Promise.all([
       fetchTournamentById(tournamentId),
-      fetchTournamentMatches(tournamentId)
+      fetchTournamentMatches(tournamentId),
     ])
 
     tournament.value = tData
@@ -70,15 +70,13 @@ async function loadMatches() {
     for (const match of mData) {
       scoreInputs[match._id] = {
         scoreA: match.result?.scoreA ?? '',
-        scoreB: match.result?.scoreB ?? ''
+        scoreB: match.result?.scoreB ?? '',
       }
 
-      selectedBookings[match._id] =
-        match.bookingId ? String(match.bookingId) : ''
+      selectedBookings[match._id] = match.bookingId ? String(match.bookingId) : ''
     }
   } catch (err) {
-    errorMessage.value =
-      err.message || 'Failed to load matches'
+    errorMessage.value = err.message || 'Failed to load matches'
   } finally {
     isLoading.value = false
   }
@@ -97,18 +95,13 @@ async function handleAssignBooking(match) {
   successMessage.value = ''
 
   try {
-    await assignMatchBooking(
-      match._id,
-      bookingId
-    )
+    await assignMatchBooking(match._id, bookingId)
 
-    successMessage.value =
-      `Field booking successfully assigned to ${match.teamAName} vs ${match.teamBName}`
+    successMessage.value = `Field booking successfully assigned to ${match.teamAName} vs ${match.teamBName}`
 
     await loadMatches()
   } catch (err) {
-    errorMessage.value =
-      err.message || 'Failed to assign booking'
+    errorMessage.value = err.message || 'Failed to assign booking'
   } finally {
     isSubmitting.value = false
   }
@@ -128,7 +121,7 @@ async function handleSaveScore(match) {
   try {
     await recordMatchScore(match._id, {
       scoreA: Number(input.scoreA),
-      scoreB: Number(input.scoreB)
+      scoreB: Number(input.scoreB),
     })
 
     successMessage.value = `Score updated for ${match.teamAName} vs ${match.teamBName}!`
@@ -151,69 +144,47 @@ onMounted(() => {
 
 <template>
   <div class="matches-view">
-    <!-- Feedback Banners -->
-    <div v-if="successMessage" class="banner success-banner">
-      ✓ {{ successMessage }}
+    <!-- Back to tournament detail -->
+    <div class="back-link-row">
+      <router-link :to="`/tournaments/${tournamentId}`" class="back-link">
+        ← Back
+      </router-link>
     </div>
 
-    <div v-if="errorMessage" class="banner error-banner">
-      ⚠️ {{ errorMessage }}
-    </div>
+    <!-- Feedback Banners -->
+    <div v-if="successMessage" class="banner success-banner">✓ {{ successMessage }}</div>
+
+    <div v-if="errorMessage" class="banner error-banner">⚠️ {{ errorMessage }}</div>
 
     <!-- Header Panel -->
-    <AquaPanel
-      :title="`Fixtures & Scores — ${tournament?.name || 'Tournament'}`"
-    >
+    <AquaPanel :title="`Fixtures & Scores — ${tournament?.name || 'Tournament'}`">
       <div class="header-actions">
-        <router-link :to="`/tournaments/${tournamentId}`">
-          <AquaButton>
-            ← Details & Teams
-          </AquaButton>
-        </router-link>
-
-        <router-link
-          :to="`/tournaments/${tournamentId}/standings`"
-          style="margin-left: 8px;"
-        >
-          <AquaButton>
-            Standings Table
-          </AquaButton>
+        <router-link :to="`/tournaments/${tournamentId}/standings`" style="margin-left: 8px">
+          <AquaButton> Standings Table </AquaButton>
         </router-link>
 
         <!-- Tournament owner only -->
         <router-link
           v-if="isOwner"
           :to="`/fields?tournamentId=${tournamentId}`"
-          style="margin-left: 8px;"
+          style="margin-left: 8px"
         >
-          <AquaButton>
-            Book a Field
-          </AquaButton>
+          <AquaButton> Book a Field </AquaButton>
         </router-link>
       </div>
     </AquaPanel>
 
     <!-- Loading -->
-    <div v-if="isLoading" class="loading-state">
-      Loading tournament match fixtures...
-    </div>
+    <div v-if="isLoading" class="loading-state">Loading tournament match fixtures...</div>
 
     <!-- No Matches -->
-    <div
-      v-else-if="matches.length === 0"
-      class="empty-state"
-    >
+    <div v-else-if="matches.length === 0" class="empty-state">
       <AquaPanel title="Schedule">
-        <p>
-          No matches generated yet.
-        </p>
+        <p>No matches generated yet.</p>
 
-        <p
-          v-if="isOwner"
-          style="margin-top: 8px;"
-        >
-          Once all teams are registered in the tournament details page,
-          generate the match fixtures to start the tournament.
+        <p v-if="isOwner" style="margin-top: 8px">
+          Once all teams are registered in the tournament details page, generate the match fixtures
+          to start the tournament.
         </p>
       </AquaPanel>
     </div>
@@ -232,33 +203,21 @@ onMounted(() => {
             :class="[
               'match-card',
               {
-                'match-played': match.status === 'played'
-              }
+                'match-played': match.status === 'played',
+              },
             ]"
           >
             <!-- BYE Match -->
-            <div
-              v-if="!match.teamA || !match.teamB"
-              class="bye-row"
-            >
+            <div v-if="!match.teamA || !match.teamB" class="bye-row">
               <span class="bye-team">
-                {{
-                  match.teamAName === 'BYE'
-                    ? match.teamBName
-                    : match.teamAName
-                }}
+                {{ match.teamAName === 'BYE' ? match.teamBName : match.teamAName }}
               </span>
 
-              <span class="bye-badge">
-                Rest Day (BYE)
-              </span>
+              <span class="bye-badge"> Rest Day (BYE) </span>
             </div>
 
             <!-- Standard Match -->
-            <div
-              v-else
-              class="match-content"
-            >
+            <div v-else class="match-content">
               <!-- Teams + Score -->
               <div class="teams-versus">
                 <span class="team-name team-home">
@@ -268,9 +227,7 @@ onMounted(() => {
                 <div class="score-container">
                   <!-- Match already played:
                        everyone can see the score -->
-                  <template
-                    v-if="match.status === 'played'"
-                  >
+                  <template v-if="match.status === 'played'">
                     <span class="score-badge">
                       {{ match.result?.scoreA }}
                       -
@@ -279,28 +236,20 @@ onMounted(() => {
                   </template>
 
                   <!-- Tournament owner can enter score -->
-                  <template
-                    v-else-if="isOwner"
-                  >
+                  <template v-else-if="isOwner">
                     <div class="score-form">
                       <input
-                        v-model.number="
-                          scoreInputs[match._id].scoreA
-                        "
+                        v-model.number="scoreInputs[match._id].scoreA"
                         type="number"
                         min="0"
                         class="score-input"
                         placeholder="0"
                       />
 
-                      <span class="score-colon">
-                        :
-                      </span>
+                      <span class="score-colon"> : </span>
 
                       <input
-                        v-model.number="
-                          scoreInputs[match._id].scoreB
-                        "
+                        v-model.number="scoreInputs[match._id].scoreB"
                         type="number"
                         min="0"
                         class="score-input"
@@ -320,9 +269,7 @@ onMounted(() => {
 
                   <!-- Everyone else sees VS -->
                   <template v-else>
-                    <span class="vs-badge">
-                      VS
-                    </span>
+                    <span class="vs-badge"> VS </span>
                   </template>
                 </div>
 
@@ -333,25 +280,16 @@ onMounted(() => {
 
               <!-- Booking Assignment
                    Tournament owner only -->
-              <div
-                v-if="isOwner"
-                class="booking-assignment"
-              >
-                <label class="booking-label">
-                  Field booking assignment:
-                </label>
+              <div v-if="isOwner" class="booking-assignment">
+                <label class="booking-label"> Field booking assignment: </label>
 
                 <div class="booking-controls">
                   <select
-                    v-model="
-                      selectedBookings[match._id]
-                    "
+                    v-model="selectedBookings[match._id]"
                     class="booking-select"
                     :disabled="isSubmitting"
                   >
-                    <option value="">
-                      -- Select a tournament booking --
-                    </option>
+                    <option value="">-- Select a tournament booking --</option>
 
                     <option
                       v-for="booking in bookings"
@@ -362,21 +300,14 @@ onMounted(() => {
                       |
                       {{ booking.slot }}
 
-                      <template
-                        v-if="booking.fieldName"
-                      >
-                        — {{ booking.fieldName }}
-                      </template>
+                      <template v-if="booking.fieldName"> — {{ booking.fieldName }} </template>
                     </option>
                   </select>
 
                   <button
                     type="button"
                     class="btn-assign"
-                    :disabled="
-                      isSubmitting ||
-                      !selectedBookings[match._id]
-                    "
+                    :disabled="isSubmitting || !selectedBookings[match._id]"
                     @click="handleAssignBooking(match)"
                   >
                     Assign
@@ -387,29 +318,15 @@ onMounted(() => {
               <!-- Match Schedule + Status
                    Everyone can see this -->
               <div class="match-meta">
-                <span
-                  v-if="isMatchScheduled(match)"
-                  class="meta-item"
-                >
-                  📅 {{ match.date }}
-                  |
-                  ⏱ {{ match.slot }}
+                <span v-if="isMatchScheduled(match)" class="meta-item">
+                  📅 {{ match.date }} | ⏱ {{ match.slot }}
                 </span>
 
-                <span
-                  v-else
-                  class="meta-item unscheduled"
-                >
-                   Unscheduled
-                  (Field booking required)
+                <span v-else class="meta-item unscheduled">
+                  Unscheduled (Field booking required)
                 </span>
 
-                <span
-                  :class="[
-                    'status-pill',
-                    `status-${match.status}`
-                  ]"
-                >
+                <span :class="['status-pill', `status-${match.status}`]">
                   {{ match.status }}
                 </span>
               </div>
@@ -453,7 +370,8 @@ onMounted(() => {
   gap: 8px;
 }
 
-.loading-state, .empty-state {
+.loading-state,
+.empty-state {
   text-align: center;
   font-size: 12px;
   color: #666;
@@ -616,13 +534,7 @@ onMounted(() => {
 }
 
 .btn-assign {
-  background: linear-gradient(
-    180deg,
-    #8bcbfc 0%,
-    #3092f7 48%,
-    #0d6fe3 50%,
-    #1e87f0 100%
-  );
+  background: linear-gradient(180deg, #8bcbfc 0%, #3092f7 48%, #0d6fe3 50%, #1e87f0 100%);
   border: 1px solid #08489b;
   border-radius: 6px;
   color: #fff;
@@ -634,11 +546,7 @@ onMounted(() => {
 }
 
 .btn-assign:hover {
-  background: linear-gradient(
-    180deg,
-    #0d6fe3 0%,
-    #3092f7 100%
-  );
+  background: linear-gradient(180deg, #0d6fe3 0%, #3092f7 100%);
 }
 
 .btn-assign:disabled {
@@ -703,5 +611,21 @@ onMounted(() => {
   border-radius: 8px;
   font-size: 11px;
   color: #666;
+}
+
+.back-link-row {
+  display: flex;
+  align-items: center;
+}
+
+.back-link {
+  color: #0044bb;
+  font-size: 12px;
+  font-weight: bold;
+  text-decoration: none;
+}
+
+.back-link:hover {
+  text-decoration: underline;
 }
 </style>

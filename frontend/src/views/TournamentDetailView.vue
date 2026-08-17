@@ -208,6 +208,12 @@ onMounted(() => {
           <router-link :to="`/tournaments/${tournament._id}/standings`" style="margin-left: 10px">
             <AquaButton>View Standings</AquaButton>
           </router-link>
+          <router-link
+            v-if="isOwner && tournament.status === 'registration'"
+            :to="`/tournaments/${tournament._id}/edit`"
+          >
+            <AquaButton> Edit Tournament </AquaButton>
+          </router-link>
           <AquaButton
             v-if="
               isOwner &&
