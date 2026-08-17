@@ -1,8 +1,12 @@
 <script setup>
-import {computed, onMounted, reactive, ref} from 'vue'
-import {useRoute, useRouter} from 'vue-router'
-import {useAuthStore} from '@/stores/auth'
-import {fetchTournamentById, generateTournamentSchedule, updateTournament} from '@/api/tournaments'
+import { computed, onMounted, reactive, ref } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
+import { useAuthStore } from '@/stores/auth'
+import {
+  fetchTournamentById,
+  generateTournamentSchedule,
+  updateTournament,
+} from '@/api/tournaments'
 
 import AquaPanel from '@/components/AquaPanel.vue'
 import AquaButton from '@/components/AquaButton.vue'
@@ -22,7 +26,7 @@ const newTeamName = ref('')
 const newPlayer = reactive({
   name: '',
   surname: '',
-  jerseyNumber: ''
+  jerseyNumber: '',
 })
 const selectedTeamIndex = ref(0)
 
@@ -34,8 +38,10 @@ const isOwner = computed(() => {
 
 const canAddTeams = computed(() => {
   if (!tournament.value) return false
-  return tournament.value.status === 'registration' &&
+  return (
+    tournament.value.status === 'registration' &&
     (tournament.value.teams || []).length < tournament.value.maxTeams
+  )
 })
 
 async function loadTournament() {
@@ -56,7 +62,7 @@ async function handleAddTeam() {
   const updatedTeams = [...(tournament.value.teams || [])]
   updatedTeams.push({
     name: newTeamName.value.trim(),
-    players: []
+    players: [],
   })
 
   isUpdating.value = true
@@ -65,7 +71,7 @@ async function handleAddTeam() {
 
   try {
     tournament.value = await updateTournament(tournamentId, {
-      teams: updatedTeams
+      teams: updatedTeams,
     })
     newTeamName.value = ''
     successMessage.value = 'Team registered successfully!'
@@ -83,7 +89,7 @@ async function handleRemoveTeam(index) {
   isUpdating.value = true
   try {
     const updated = await updateTournament(tournamentId, {
-      teams: updatedTeams
+      teams: updatedTeams,
     })
     tournament.value = updated
     successMessage.value = 'Team removed.'
@@ -107,7 +113,7 @@ async function handleAddPlayer() {
     userId: authStore.user?._id || authStore.user?.id,
     name: newPlayer.name.trim(),
     surname: newPlayer.surname.trim(),
-    jerseyNumber: newPlayer.jerseyNumber ? String(newPlayer.jerseyNumber).trim() : null
+    jerseyNumber: newPlayer.jerseyNumber ? String(newPlayer.jerseyNumber).trim() : null,
   })
 
   team.players = players
@@ -116,7 +122,7 @@ async function handleAddPlayer() {
   errorMessage.value = ''
   try {
     const updated = await updateTournament(tournamentId, {
-      teams: currentTeams
+      teams: currentTeams,
     })
     tournament.value = updated
     newPlayer.name = ''
@@ -132,7 +138,7 @@ async function handleAddPlayer() {
 
 async function handleGenerateSchedule() {
   const confirmGen = window.confirm(
-    'Generating match schedule will close team registrations and activate the tournament. Proceed?'
+    'Generating match schedule will close team registrations and activate the tournament. Proceed?',
   )
   if (!confirmGen) return
 
@@ -158,17 +164,16 @@ onMounted(() => {
 
 <template>
   <div class="tournament-detail-view">
-    <!-- Status Banners -->
-    <div v-if="successMessage" class="banner success-banner">
-      ✓ {{ successMessage }}
-    </div>
-    <div v-if="errorMessage" class="banner error-banner">
-      ⚠️ {{ errorMessage }}
+    <!-- Back to Tournaments -->
+    <div class="back-link-row">
+      <router-link to="/tournaments" class="back-link"> ← Back to Tournaments </router-link>
     </div>
 
-    <div v-if="isLoading" class="loading-box">
-      Loading tournament details...
-    </div>
+    <!-- Status Banners -->
+    <div v-if="successMessage" class="banner success-banner">✓ {{ successMessage }}</div>
+    <div v-if="errorMessage" class="banner error-banner">⚠️ {{ errorMessage }}</div>
+
+    <div v-if="isLoading" class="loading-box">Loading tournament details...</div>
 
     <template v-else-if="tournament">
       <!-- Tournament Header Panel -->
@@ -200,12 +205,16 @@ onMounted(() => {
           <router-link :to="`/tournaments/${tournament._id}/matches`">
             <AquaButton>View Match Schedule</AquaButton>
           </router-link>
-          <router-link :to="`/tournaments/${tournament._id}/standings`" style="margin-left: 10px;">
+          <router-link :to="`/tournaments/${tournament._id}/standings`" style="margin-left: 10px">
             <AquaButton>View Standings</AquaButton>
           </router-link>
           <AquaButton
-            v-if="isOwner && tournament.status === 'registration' && tournament.teams?.length === tournament.maxTeams"
-            style="margin-left: 10px;"
+            v-if="
+              isOwner &&
+              tournament.status === 'registration' &&
+              tournament.teams?.length === tournament.maxTeams
+            "
+            style="margin-left: 10px"
             :disabled="isUpdating"
             @click="handleGenerateSchedule"
           >
@@ -225,7 +234,7 @@ onMounted(() => {
               type="text"
               placeholder="Team Name (e.g. FC Barcelona)"
               required
-              style="flex: 2;"
+              style="flex: 2"
             />
             <AquaButton type="submit" :disabled="isUpdating || !newTeamName.trim()">
               Add Team
@@ -239,11 +248,7 @@ onMounted(() => {
 
         <!-- Teams Grid -->
         <div v-else class="teams-container">
-          <div
-            v-for="(team, idx) in tournament.teams"
-            :key="team._id || idx"
-            class="team-card"
-          >
+          <div v-for="(team, idx) in tournament.teams" :key="team._id || idx" class="team-card">
             <div class="team-header">
               <span class="team-name">{{ idx + 1 }}. {{ team.name }}</span>
               <button
@@ -271,15 +276,14 @@ onMounted(() => {
         </div>
 
         <!-- Add Player Form (If in registration) -->
-        <div v-if="isOwner && tournament.status === 'registration' && tournament.teams?.length > 0" class="add-player-box">
+        <div
+          v-if="isOwner && tournament.status === 'registration' && tournament.teams?.length > 0"
+          class="add-player-box"
+        >
           <label class="form-title">Add Player to Team Roster:</label>
           <form @submit.prevent="handleAddPlayer" class="player-form">
-            <select v-model="selectedTeamIndex" style="flex: 1;">
-              <option
-                v-for="(team, idx) in tournament.teams"
-                :key="idx"
-                :value="idx"
-              >
+            <select v-model="selectedTeamIndex" style="flex: 1">
+              <option v-for="(team, idx) in tournament.teams" :key="idx" :value="idx">
                 {{ team.name }}
               </option>
             </select>
@@ -289,25 +293,23 @@ onMounted(() => {
               type="text"
               placeholder="First Name"
               required
-              style="flex: 1;"
+              style="flex: 1"
             />
             <input
               v-model="newPlayer.surname"
               type="text"
               placeholder="Surname"
               required
-              style="flex: 1;"
+              style="flex: 1"
             />
             <input
               v-model="newPlayer.jerseyNumber"
               type="text"
               placeholder="Jersey #"
-              style="width: 80px;"
+              style="width: 80px"
             />
 
-            <AquaButton type="submit" :disabled="isUpdating">
-              Add Player
-            </AquaButton>
+            <AquaButton type="submit" :disabled="isUpdating"> Add Player </AquaButton>
           </form>
         </div>
       </AquaPanel>
@@ -418,7 +420,8 @@ onMounted(() => {
   margin-bottom: 6px;
 }
 
-.add-team-box, .add-player-box {
+.add-team-box,
+.add-player-box {
   background: #fff;
   border: 1px solid #ddd;
   padding: 12px;
@@ -426,14 +429,16 @@ onMounted(() => {
   margin-bottom: 14px;
 }
 
-.inline-form, .player-form {
+.inline-form,
+.player-form {
   display: flex;
   gap: 8px;
   align-items: center;
   flex-wrap: wrap;
 }
 
-input, select {
+input,
+select {
   background: #ffffff;
   border: 1px solid #8e8e8e;
   border-radius: 4px;
@@ -443,9 +448,12 @@ input, select {
   box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.15);
 }
 
-input:focus, select:focus {
+input:focus,
+select:focus {
   border-color: #38a5e8;
-  box-shadow: 0 0 5px #70c3ff, inset 0 1px 2px rgba(0, 0, 0, 0.2);
+  box-shadow:
+    0 0 5px #70c3ff,
+    inset 0 1px 2px rgba(0, 0, 0, 0.2);
 }
 
 .teams-container {
@@ -518,10 +526,27 @@ input:focus, select:focus {
   font-style: italic;
 }
 
-.loading-box, .empty-hint {
+.loading-box,
+.empty-hint {
   font-size: 12px;
   color: #666;
   padding: 16px;
   text-align: center;
+}
+
+.back-link-row {
+  display: flex;
+  align-items: center;
+}
+
+.back-link {
+  color: #0044bb;
+  font-size: 12px;
+  font-weight: bold;
+  text-decoration: none;
+}
+
+.back-link:hover {
+  text-decoration: underline;
 }
 </style>
