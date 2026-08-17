@@ -11,6 +11,8 @@ import MatchesView from "@/views/MatchesView.vue";
 import StandingsView from "@/views/StandingsView.vue";
 import tournamentEditView from '@/views/TournamentEditView.vue'
 import FieldBookingView from '@/views/FieldBookingView.vue'
+import UsersView from '@/views/UsersView.vue'
+import UserTournamentsView from '@/views/UserTournamentsView.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -60,6 +62,16 @@ const router = createRouter({
       name: 'my-bookings',
       component: UserBookingsView,
       meta: { requiresAuth: true }
+    },
+    {
+      path: '/users',
+      name: 'users',
+      component: UsersView
+    },
+    {
+      path: '/users/:id/tournaments',
+      name: 'users-tournaments',
+      component: UserTournamentsView
     },
     {
       path: '/login',

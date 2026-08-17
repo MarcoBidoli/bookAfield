@@ -41,6 +41,9 @@ const authStore = useAuthStore()
           <li v-if="authStore.isAuthenticated">
             <router-link to="/my-bookings" active-class="active"> My Bookings </router-link>
           </li>
+          <li>
+            <router-link to="/users" active-class="active"> Users </router-link>
+          </li>
           <li v-if="!authStore.isAuthenticated">
             <router-link to="/login" active-class="active"> Account Access </router-link>
           </li>
