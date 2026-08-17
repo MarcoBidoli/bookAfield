@@ -105,13 +105,13 @@ export async function generateTournamentSchedule(id) {
   return response.json();
 }
 
-export async function fetchTournamentStandings(id) {
-  const response = await fetch(`/api/tournaments/${id}/standings`);
+export async function fetchTournamentStandings(tournamentId) {
+  const response = await fetch(`/api/tournaments/${tournamentId}/standings`)
   if (!response.ok) {
-    const err = await response.json().catch(() => ({}));
-    throw new Error(err.error || 'Failed to fetch standings');
+    const err = await response.json().catch(() => ({}))
+    throw new Error(err.error || 'Failed to fetch tournament standings')
   }
-  return response.json();
+  return response.json()
 }
 
 export async function fetchTournamentMatches(id) {

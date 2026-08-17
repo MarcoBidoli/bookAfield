@@ -8,6 +8,7 @@ import UserBookingsView from "@/views/UserBookingsView.vue";
 import TournamentsView from "@/views/TournamentsView.vue";
 import TournamentDetailView from "@/views/TournamentDetailView.vue";
 import MatchesView from "@/views/MatchesView.vue";
+import StandingsView from "@/views/StandingsView.vue";
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -36,6 +37,11 @@ const router = createRouter({
       path: '/tournaments/:id/matches',
       name: 'tournament-matches',
       component: MatchesView
+    },
+    {
+      path: '/tournaments/:id/standings',
+      name: 'tournament-standings',
+      component: StandingsView
     },
     {
       path: '/my-bookings',
