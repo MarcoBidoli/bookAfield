@@ -10,6 +10,7 @@ import {
 
 import AquaPanel from '@/components/AquaPanel.vue'
 import AquaButton from '@/components/AquaButton.vue'
+import Breadcrumbs from '@/components/Breadcrumbs.vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -165,9 +166,7 @@ onMounted(() => {
 <template>
   <div class="tournament-detail-view">
     <!-- Back to Tournaments -->
-    <div class="back-link-row">
-      <router-link to="/tournaments" class="back-link"> ← Back to Tournaments </router-link>
-    </div>
+    <Breadcrumbs :tournament="tournament" current="Details" />
 
     <!-- Status Banners -->
     <div v-if="successMessage" class="banner success-banner">✓ {{ successMessage }}</div>

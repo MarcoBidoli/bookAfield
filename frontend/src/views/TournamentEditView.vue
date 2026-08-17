@@ -6,6 +6,7 @@ import { fetchTournamentById, updateTournament } from '@/api/tournaments'
 
 import AquaPanel from '@/components/AquaPanel.vue'
 import AquaButton from '@/components/AquaButton.vue'
+import Breadcrumbs from '@/components/Breadcrumbs.vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -99,6 +100,8 @@ onMounted(() => {
 
 <template>
   <div class="tournament-edit-view">
+    <Breadcrumbs :tournament="tournament" current="Edit Tournament" />
+
     <!-- Feedback -->
     <div v-if="successMessage" class="banner success-banner">✓ {{ successMessage }}</div>
 
@@ -167,9 +170,10 @@ onMounted(() => {
       </div>
 
       <div class="actions">
-        <AquaButton :disabled="isSaving" @click="handleCancel"> Cancel </AquaButton>
+        <AquaButton variant="secondary" :disabled="isSaving" @click="handleCancel"> Cancel </AquaButton>
 
         <AquaButton
+          variant="primary"
           :disabled="isSaving || !form.name.trim() || Number(form.maxTeams) < 2"
           @click="handleSave"
         >

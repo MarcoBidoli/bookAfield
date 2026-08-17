@@ -42,7 +42,7 @@ async function handleCancel(booking) {
   }
 
   const confirmDelete = window.confirm(
-    `Are you sure you want to cancel your booking for ${booking.fieldDetails?.name || 'the field'} on ${booking.date} at ${booking.slot}?`
+    `Are you sure you want to cancel your booking for ${booking.fieldDetails?.name || 'the field'} on ${booking.date} at ${booking.slot}?`,
   )
   if (!confirmDelete) return
 
@@ -54,7 +54,7 @@ async function handleCancel(booking) {
     await cancelBooking(booking.fieldId, booking._id)
     successMessage.value = 'Booking cancelled successfully'
     // Remove from local array
-    bookings.value = bookings.value.filter(b => b._id !== booking._id)
+    bookings.value = bookings.value.filter((b) => b._id !== booking._id)
   } catch (err) {
     errorMessage.value = err.message || 'Failed to cancel booking'
   } finally {
@@ -77,17 +77,11 @@ onMounted(() => {
 <template>
   <div class="user-bookings-view">
     <!-- Status Banners -->
-    <div v-if="successMessage" class="banner success-banner">
-      ✓ {{ successMessage }}
-    </div>
-    <div v-if="errorMessage" class="banner error-banner">
-      ⚠️ {{ errorMessage }}
-    </div>
+    <div v-if="successMessage" class="banner success-banner">✓ {{ successMessage }}</div>
+    <div v-if="errorMessage" class="banner error-banner">⚠️ {{ errorMessage }}</div>
 
     <AquaPanel title="My Court & Field Reservations">
-      <div v-if="isLoading" class="loading-state">
-        Loading your reservations...
-      </div>
+      <div v-if="isLoading" class="loading-state">Loading your reservations...</div>
 
       <div v-else-if="bookings.length === 0" class="empty-state">
         <p>You currently have no booked fields.</p>
@@ -107,7 +101,7 @@ onMounted(() => {
               <th>Time Slot</th>
               <th>Type</th>
               <th>Status</th>
-              <th style="text-align: center;">Actions</th>
+              <th style="text-align: center">Actions</th>
             </tr>
           </thead>
           <tbody>
@@ -126,7 +120,9 @@ onMounted(() => {
                 </div>
               </td>
               <td>{{ booking.date }}</td>
-              <td><strong>{{ booking.slot }}</strong></td>
+              <td>
+                <strong>{{ booking.slot }}</strong>
+              </td>
               <td>
                 <span class="type-badge">{{ booking.type || 'Standard' }}</span>
               </td>
@@ -134,26 +130,22 @@ onMounted(() => {
                 <span
                   :class="[
                     'status-pill',
-                    isBookingPast(booking.date, booking.slot) ? 'status-past' : 'status-upcoming'
+                    isBookingPast(booking.date, booking.slot) ? 'status-past' : 'status-upcoming',
                   ]"
                 >
                   {{ isBookingPast(booking.date, booking.slot) ? 'Completed' : 'Active' }}
                 </span>
               </td>
-              <td style="text-align: center;">
-                <button
+              <td style="text-align: center">
+                <AquaButton
                   v-if="!isBookingPast(booking.date, booking.slot)"
-                  type="button"
-                  class="cancel-btn"
+                  variant="danger"
                   :disabled="cancellingId === booking._id"
                   @click="handleCancel(booking)"
                 >
                   {{ cancellingId === booking._id ? 'Cancelling...' : 'Cancel' }}
-                </button>
-
-                <span v-else class="hint-text">
-                  —
-                </span>
+                </AquaButton>
+                <span v-else class="hint-text"> — </span>
               </td>
             </tr>
           </tbody>
@@ -188,7 +180,8 @@ onMounted(() => {
   color: #990000;
 }
 
-.loading-state, .empty-state {
+.loading-state,
+.empty-state {
   padding: 20px;
   text-align: center;
   font-size: 12px;
@@ -276,37 +269,6 @@ onMounted(() => {
   background: #e2e3e5;
   color: #383d41;
   border: 1px solid #d6d8db;
-}
-
-/* Red Aqua Cancel Button */
-.cancel-btn {
-  background: linear-gradient(
-    180deg,
-    #ff9690 0%,
-    #f24b43 48%,
-    #d6251c 50%,
-    #e2362e 100%
-  );
-  border: 1px solid #991610;
-  border-radius: 10px;
-  color: #ffffff;
-  font-size: 11px;
-  font-weight: bold;
-  padding: 2px 10px;
-  cursor: pointer;
-  text-shadow: 0 -1px 1px rgba(0, 0, 0, 0.4);
-  box-shadow:
-    0 1px 2px rgba(0, 0, 0, 0.2),
-    inset 0 1px 0 rgba(255, 255, 255, 0.6);
-}
-
-.cancel-btn:hover {
-  background: linear-gradient(180deg, #ffa8a2 0%, #d6251c 100%);
-}
-
-.cancel-btn:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
 }
 
 .hint-text {

@@ -6,6 +6,7 @@ import { fetchTournamentById, fetchTournamentStandings } from '@/api/tournaments
 
 import AquaPanel from '@/components/AquaPanel.vue'
 import AquaButton from '@/components/AquaButton.vue'
+import Breadcrumbs from '@/components/Breadcrumbs.vue'
 
 const route = useRoute()
 
@@ -56,6 +57,9 @@ onMounted(() => {
 
 <template>
   <div class="standings-view">
+    <!-- Breadcrumbs link -->
+    <Breadcrumbs :tournament="tournament" current="Standings" />
+
     <!-- Error Banner -->
     <div v-if="errorMessage" class="banner error-banner">⚠️ {{ errorMessage }}</div>
 
@@ -73,10 +77,6 @@ onMounted(() => {
         </div>
 
         <div class="header-actions">
-          <router-link :to="`/tournaments/${tournamentId}`">
-            <AquaButton> ← Details & Teams </AquaButton>
-          </router-link>
-
           <router-link :to="`/tournaments/${tournamentId}/matches`">
             <AquaButton> Fixtures & Scores </AquaButton>
           </router-link>
