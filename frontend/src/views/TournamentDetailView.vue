@@ -166,7 +166,7 @@ onMounted(() => {
 <template>
   <div class="tournament-detail-view">
     <!-- Back to Tournaments -->
-    <Breadcrumbs :tournament="tournament" current="Details" />
+    <Breadcrumbs section="Tournaments" section-to="/tournaments" :current="tournament?.name" />
 
     <!-- Status Banners -->
     <div v-if="successMessage" class="banner success-banner">✓ {{ successMessage }}</div>
@@ -176,7 +176,7 @@ onMounted(() => {
 
     <template v-else-if="tournament">
       <!-- Tournament Header Panel -->
-      <AquaPanel :title="`Tournament: ${tournament.name}`">
+      <AquaPanel :title="`${tournament.name}`">
         <div class="summary-grid">
           <div class="summary-item">
             <span class="summary-label">Sport</span>

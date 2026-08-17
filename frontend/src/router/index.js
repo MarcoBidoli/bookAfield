@@ -10,6 +10,7 @@ import TournamentDetailView from "@/views/TournamentDetailView.vue";
 import MatchesView from "@/views/MatchesView.vue";
 import StandingsView from "@/views/StandingsView.vue";
 import tournamentEditView from '@/views/TournamentEditView.vue'
+import FieldBookingView from '@/views/FieldBookingView.vue'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -23,6 +24,11 @@ const router = createRouter({
       path: '/fields',
       name: 'fields',
       component: FieldsView
+    },
+    {
+      path: '/fields/:id/book',
+      name: 'book',
+      component: FieldBookingView
     },
     {
       path: '/tournaments',

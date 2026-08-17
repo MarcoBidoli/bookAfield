@@ -57,8 +57,16 @@ onMounted(() => {
 
 <template>
   <div class="standings-view">
-    <!-- Breadcrumbs link -->
-    <Breadcrumbs :tournament="tournament" current="Standings" />
+    <!-- Breadcrumbs row  -->
+    <Breadcrumbs
+      section="Tournaments"
+      section-to="/tournaments"
+      :parent="{
+      label: tournament?.name,
+      to: `/tournaments/${tournament?._id}`,
+    }"
+      current="Standings"
+    />
 
     <!-- Error Banner -->
     <div v-if="errorMessage" class="banner error-banner">⚠️ {{ errorMessage }}</div>
@@ -74,12 +82,6 @@ onMounted(() => {
           <span v-if="tournament?.status" :class="['status-pill', `status-${tournament.status}`]">
             {{ tournament.status }}
           </span>
-        </div>
-
-        <div class="header-actions">
-          <router-link :to="`/tournaments/${tournamentId}/matches`">
-            <AquaButton> Fixtures & Scores </AquaButton>
-          </router-link>
         </div>
       </div>
     </AquaPanel>

@@ -100,7 +100,16 @@ onMounted(() => {
 
 <template>
   <div class="tournament-edit-view">
-    <Breadcrumbs :tournament="tournament" current="Edit Tournament" />
+    <!-- Breadcrumbs row  -->
+    <Breadcrumbs
+      section="Tournaments"
+      section-to="/tournaments"
+      :parent="{
+        label: tournament?.name,
+        to: `/tournaments/${tournament?._id}`,
+      }"
+      current="Edit Tournament"
+    />
 
     <!-- Feedback -->
     <div v-if="successMessage" class="banner success-banner">✓ {{ successMessage }}</div>
@@ -170,7 +179,9 @@ onMounted(() => {
       </div>
 
       <div class="actions">
-        <AquaButton variant="secondary" :disabled="isSaving" @click="handleCancel"> Cancel </AquaButton>
+        <AquaButton variant="secondary" :disabled="isSaving" @click="handleCancel">
+          Cancel
+        </AquaButton>
 
         <AquaButton
           variant="primary"

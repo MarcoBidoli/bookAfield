@@ -146,7 +146,15 @@ onMounted(() => {
 <template>
   <div class="matches-view">
     <!-- Breadcrumbs row  -->
-    <Breadcrumbs :tournament="tournament" current="Matches" />
+    <Breadcrumbs
+      section="Tournaments"
+      section-to="/tournaments"
+      :parent="{
+        label: tournament?.name,
+        to: `/tournaments/${tournament?._id}`,
+      }"
+      current="Matches"
+    />
 
     <!-- Feedback Banners -->
     <div v-if="successMessage" class="banner success-banner">✓ {{ successMessage }}</div>
@@ -156,17 +164,13 @@ onMounted(() => {
     <!-- Header Panel -->
     <AquaPanel :title="`Fixtures & Scores — ${tournament?.name || 'Tournament'}`">
       <div class="header-actions">
-        <router-link :to="`/tournaments/${tournamentId}/standings`" style="margin-left: 8px">
-          <AquaButton> Standings Table </AquaButton>
-        </router-link>
-
         <!-- Tournament owner only -->
         <router-link
-          v-if="isOwner"
+          v-if="isOwner && tournament?.status === 'active'"
           :to="`/fields?tournamentId=${tournamentId}`"
           style="margin-left: 8px"
         >
-          <AquaButton> Book a Field </AquaButton>
+          <AquaButton>Book a Field</AquaButton>
         </router-link>
       </div>
     </AquaPanel>
@@ -277,7 +281,7 @@ onMounted(() => {
 
               <!-- Booking Assignment
                    Tournament owner only -->
-              <div v-if="isOwner" class="booking-assignment">
+              <div v-if="isOwner && tournament?.status === 'active'" class="booking-assignment">
                 <label class="booking-label"> Field booking assignment: </label>
 
                 <div class="booking-controls">

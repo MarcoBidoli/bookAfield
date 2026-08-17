@@ -1,6 +1,14 @@
 <script setup>
 defineProps({
-  tournament: {
+  section: {
+    type: String,
+    default: '',
+  },
+  sectionTo: {
+    type: String,
+    default: '/',
+  },
+  parent: {
     type: Object,
     default: null,
   },
@@ -13,14 +21,20 @@ defineProps({
 
 <template>
   <div class="breadcrumbs">
-    <router-link to="/tournaments" class="breadcrumb-link"> Tournaments </router-link>
-
-    <span class="breadcrumb-separator">›</span>
-
-    <router-link v-if="tournament" :to="`/tournaments/${tournament._id}`" class="breadcrumb-link">
-      {{ tournament.name }}
+    <router-link :to="sectionTo" class="breadcrumb-link">
+      {{ section }}
     </router-link>
 
+    <!-- Parent item -->
+    <template v-if="parent">
+      <span class="breadcrumb-separator">›</span>
+
+      <router-link :to="parent.to" class="breadcrumb-link">
+        {{ parent.label }}
+      </router-link>
+    </template>
+
+    <!-- Current page -->
     <template v-if="current">
       <span class="breadcrumb-separator">›</span>
 
