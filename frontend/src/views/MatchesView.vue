@@ -135,7 +135,7 @@ async function handleSaveScore(match) {
 }
 
 function isMatchScheduled(match) {
-  return !!(match.date && match.slot)
+  return !!(match.bookingId && match.date && match.slot)
 }
 
 onMounted(() => {
@@ -319,13 +319,21 @@ onMounted(() => {
               <!-- Match Schedule + Status
                    Everyone can see this -->
               <div class="match-meta">
-                <span v-if="isMatchScheduled(match)" class="meta-item">
-                  📅 {{ match.date }} | ⏱ {{ match.slot }}
-                </span>
+                <div class="match-info">
+                  <template v-if="isMatchScheduled(match)">
+                    <span class="meta-item"> 📅 {{ match.date }} | ⏱ {{ match.slot }} </span>
 
-                <span v-else class="meta-item unscheduled">
-                  Unscheduled (Field booking required)
-                </span>
+                    <span v-if="match.field" class="meta-item"> 🏟️ {{ match.field.name }} </span>
+
+                    <span v-if="match.field?.address" class="meta-item">
+                      📍 {{ match.field.address }}
+                    </span>
+                  </template>
+
+                  <span v-else class="meta-item unscheduled">
+                    Unscheduled (Field booking required)
+                  </span>
+                </div>
 
                 <span :class="['status-pill', `status-${match.status}`]">
                   {{ match.status }}
@@ -401,11 +409,19 @@ onMounted(() => {
   border-color: #b8c8d8;
 }
 
+.match-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
 .teams-versus {
   display: flex;
   justify-content: space-between;
   align-items: center;
   gap: 16px;
+  margin: 10px auto 12px auto;
 }
 
 .team-name {
@@ -428,7 +444,6 @@ onMounted(() => {
   align-items: center;
   justify-content: center;
   min-width: 140px;
-  margin-bottom: 10px;
 }
 
 .score-badge {
@@ -559,7 +574,7 @@ onMounted(() => {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding-top: 6px;
+  padding-top: 15px;
   border-top: 1px solid #eee;
   font-size: 11px;
 }
