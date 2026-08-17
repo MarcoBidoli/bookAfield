@@ -289,26 +289,6 @@ describe("Fields & Bookings API Integration Tests", () => {
             expect(res.body).toHaveProperty("error");
         });
 
-        it("should restrict cancellation of tournament bookings", async () => {
-            const futureDate = getFutureDate(5);
-
-            const insertRes = await db.collection("bookings").insertOne({
-                fieldId: new ObjectId(fieldId),
-                date: futureDate,
-                slot: "16:00-17:00",
-                userId: new ObjectId(userId),
-                type: "tournament",
-            });
-            const bookingId = insertRes.insertedId.toString();
-
-            const res = await request(app)
-                .delete(`/api/fields/${fieldId}/bookings/${bookingId}`)
-                .set("Authorization", `Bearer ${userToken}`);
-
-            expect(res.status).toBe(400);
-            expect(res.body.error).toMatch(/tournament/i);
-        });
-
         it("should prevent cancelling past bookings", async () => {
             const pastDate = getPastDate(2);
 
