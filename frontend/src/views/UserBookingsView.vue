@@ -11,7 +11,7 @@ import PageHeader from '@/components/PageHeader.vue'
 import AppBanner from '@/components/AppBanner.vue'
 import LoadingState from '@/components/LoadingState.vue'
 import EmptyState from '@/components/EmptyState.vue'
-import StatusPill from '@/components/StatusPill.vue'
+import Pill from '@/components/Pill.vue'
 
 const router = useRouter()
 const authStore = useAuthStore()
@@ -74,6 +74,18 @@ function getFieldDescription(booking) {
     : ''
 
   return `${sport} ${address}`.trim()
+}
+
+function getBookingType(booking) {
+  return booking.type === 'tournament'
+    ? 'Tournament'
+    : 'Standard'
+}
+
+function getBookingTypeVariant(booking) {
+  return booking.type === 'tournament'
+    ? 'primary'
+    : 'neutral'
 }
 
 async function handleCancel(booking) {
@@ -205,18 +217,22 @@ onMounted(loadBookings)
 
             <!-- Type -->
             <td>
-                <span class="type-badge">
-                  {{ booking.type || 'Standard' }}
-                </span>
+              <Pill :variant="getBookingTypeVariant(booking)">
+                {{ getBookingType(booking) }}
+              </Pill>
             </td>
 
             <!-- Status -->
             <td>
-              <StatusPill
-                :status="isPast(booking) ? 'completed' : 'active'"
+              <Pill
+                :status="
+                    isPast(booking)
+                      ? 'completed'
+                      : 'active'
+                  "
               >
                 {{ isPast(booking) ? 'Completed' : 'Active' }}
-              </StatusPill>
+              </Pill>
             </td>
 
             <!-- Actions -->
@@ -324,20 +340,6 @@ onMounted(loadBookings)
   font-size: 11px;
   font-weight: 500;
   color: #6e6e73;
-}
-
-.type-badge {
-  display: inline-flex;
-  align-items: center;
-  padding: 4px 9px;
-  border-radius: 980px;
-  background: rgba(0, 0, 0, 0.04);
-  border: 1px solid rgba(0, 0, 0, 0.08);
-  color: #48484a;
-  font-size: 10px;
-  font-weight: 700;
-  text-transform: capitalize;
-  white-space: nowrap;
 }
 
 .actions-column {

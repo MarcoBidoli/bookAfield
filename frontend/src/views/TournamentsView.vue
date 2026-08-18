@@ -1,12 +1,8 @@
 <script setup>
-import { ref, reactive, onMounted } from 'vue'
-import { useRouter } from 'vue-router'
-import { useAuthStore } from '@/stores/auth'
-import {
-  fetchTournaments,
-  createTournament,
-  deleteTournament
-} from '@/api/tournaments'
+import {onMounted, reactive, ref} from 'vue'
+import {useRouter} from 'vue-router'
+import {useAuthStore} from '@/stores/auth'
+import {createTournament, deleteTournament, fetchTournaments} from '@/api/tournaments'
 
 import Panel from '@/components/Panel.vue'
 import Button from '@/components/Button.vue'
@@ -29,8 +25,9 @@ const isSubmitting = ref(false)
 const errorMessage = ref('')
 const successMessage = ref('')
 
-const sportFilters = [
-  { label: 'All Tournaments', value: 'all' },
+const tournamentsFilter = [
+  { label: 'All', value: 'all' },
+  { label: 'My Tournaments', value: 'myTournaments'},
   { label: 'Football', value: 'football' },
   { label: 'Basketball', value: 'basketball' },
   { label: 'Volleyball', value: 'volleyball' }
@@ -54,8 +51,7 @@ async function loadTournaments() {
   errorMessage.value = ''
 
   try {
-    const list = await fetchTournaments(searchQuery.value)
-    tournaments.value = list
+    tournaments.value = await fetchTournaments(searchQuery.value)
   } catch (err) {
     errorMessage.value = err.message || 'Error loading tournaments'
   } finally {
@@ -66,6 +62,12 @@ async function loadTournaments() {
 function filteredTournaments() {
   if (selectedSportFilter.value === 'all') {
     return tournaments.value
+  }
+
+  if (selectedSportFilter.value === 'myTournaments') {
+    return tournaments.value.filter(tournament =>
+      isCreator(tournament)
+    )
   }
 
   return tournaments.value.filter(
@@ -256,8 +258,7 @@ onMounted(() => {
         v-model="searchQuery"
         v-model:modelFilter="selectedSportFilter"
         search-placeholder="Search tournaments..."
-        :filters="sportFilters"
-        @update:model-value="loadTournaments"
+        :filters="tournamentsFilter"
       />
 
       <LoadingState

@@ -1,6 +1,6 @@
 <script setup>
 import { ref, computed, onMounted } from 'vue'
-import { useRoute } from 'vue-router'
+import {useRoute, useRouter} from 'vue-router'
 
 import { fetchUserById } from '@/api/users'
 
@@ -12,6 +12,7 @@ import EmptyState from '@/components/EmptyState.vue'
 import TournamentCard from '@/components/TournamentCard.vue'
 
 const route = useRoute()
+const router = useRouter()
 
 const user = ref(null)
 const tournaments = ref([])
@@ -111,6 +112,7 @@ onMounted(() => {
             v-for="tournament in tournaments"
             :key="tournament._id"
             :tournament="tournament"
+            @click="router.push(`/tournaments/${tournament._id}`)"
           />
         </div>
       </Panel>

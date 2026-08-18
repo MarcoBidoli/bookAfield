@@ -10,6 +10,7 @@ import FilterToolbar from '@/components/FilterToolbar.vue'
 import LoadingState from '@/components/LoadingState.vue'
 import EmptyState from '@/components/EmptyState.vue'
 import AppBanner from '@/components/AppBanner.vue'
+import Pill from '@/components/Pill.vue'
 
 const router = useRouter()
 
@@ -25,7 +26,7 @@ const filteredUsers = computed(() => {
     return users.value
   }
 
-  return users.value.filter(user => {
+  return users.value.filter((user) => {
     const fullName = `${user.name || ''} ${user.surname || ''}`.toLowerCase()
     const username = (user.username || '').toLowerCase()
 
@@ -79,7 +80,12 @@ onMounted(loadUsers)
       <FilterToolbar
         v-model="searchQuery"
         model-filter="all"
-        :filters="[{ label: 'All Users', value: 'all' }]"
+        :filters="[
+          {
+            label: 'All Users',
+            value: 'all',
+          },
+        ]"
         search-placeholder="Filter users by name or username..."
       />
 
@@ -121,9 +127,9 @@ onMounted(loadUsers)
           </div>
 
           <div class="user-meta">
-            <span class="username-tag">
+            <Pill variant="default">
               @{{ user.username }}
-            </span>
+            </Pill>
           </div>
         </article>
       </div>
@@ -156,17 +162,23 @@ onMounted(loadUsers)
   border-radius: 14px;
   padding: 16px 20px;
   cursor: pointer;
+
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02);
+
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 10px;
+
   transition: all 0.1s ease;
 }
 
 .user-item:hover,
 .user-item:focus-visible {
   border-color: rgba(0, 113, 227, 0.3);
-  box-shadow: 0 8px 24px rgba(0, 113, 227, 0.08);
+
+  box-shadow:
+    0 8px 24px rgba(0, 113, 227, 0.08);
+
   outline: none;
 }
 
@@ -195,9 +207,11 @@ onMounted(loadUsers)
 
 .user-chevron {
   flex-shrink: 0;
+
   color: #8e8e93;
   font-size: 16px;
   font-weight: 600;
+
   transition: all 0.1s ease;
 }
 
@@ -209,20 +223,12 @@ onMounted(loadUsers)
 
 .user-meta {
   display: flex;
+  align-items: center;
   gap: 16px;
+
   font-size: 12px;
   color: #48484a;
   font-weight: 500;
-}
-
-.username-tag {
-  background: rgba(0, 0, 0, 0.04);
-  border: 1px solid rgba(0, 0, 0, 0.08);
-  padding: 3px 8px;
-  border-radius: 980px;
-  font-size: 11px;
-  font-weight: 600;
-  color: #48484a;
 }
 
 @media (max-width: 600px) {

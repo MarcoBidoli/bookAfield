@@ -1,6 +1,6 @@
 <script setup>
 import SportBadge from '@/components/SportBadge.vue'
-import StatusPill from '@/components/StatusPill.vue'
+import Pill from '@/components/Pill.vue'
 
 defineProps({
   tournament: {
@@ -12,6 +12,29 @@ defineProps({
     default: false
   }
 })
+
+function getStatusVariant(status) {
+  switch (status) {
+    case 'active':
+      return 'success'
+
+    case 'registration':
+    case 'upcoming':
+      return 'warning'
+
+    case 'completed':
+    case 'played':
+      return 'muted'
+
+    default:
+      return 'default'
+  }
+}
+
+function formatStatus(status) {
+  if (!status) return ''
+  return status.charAt(0).toUpperCase() + status.slice(1)
+}
 
 defineEmits(['click', 'delete'])
 </script>
@@ -38,7 +61,9 @@ defineEmits(['click', 'delete'])
         </div>
       </div>
 
-      <StatusPill :status="tournament.status" />
+      <Pill :variant="getStatusVariant(tournament.status)">
+        {{ formatStatus(tournament.status) }}
+      </Pill>
     </div>
 
     <!-- Metadata -->

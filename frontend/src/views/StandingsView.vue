@@ -8,7 +8,7 @@ import Panel from '@/components/Panel.vue'
 import Breadcrumbs from '@/components/Breadcrumbs.vue'
 import AppBanner from '@/components/AppBanner.vue'
 import SportBadge from '@/components/SportBadge.vue'
-import StatusPill from '@/components/StatusPill.vue'
+import Pill from '@/components/Pill.vue'
 
 const route = useRoute()
 
@@ -52,6 +52,30 @@ function getPositionClass(index) {
   return ''
 }
 
+function getStatusVariant(status) {
+  switch (status) {
+    case 'active':
+      return 'active'
+
+    case 'registration':
+    case 'upcoming':
+      return 'warning'
+
+    case 'completed':
+    case 'played':
+      return 'muted'
+
+    default:
+      return 'default'
+  }
+}
+
+function formatStatus(status) {
+  if (!status) return ''
+
+  return status.charAt(0).toUpperCase() + status.slice(1)
+}
+
 onMounted(() => {
   loadStandings()
 })
@@ -78,7 +102,12 @@ onMounted(() => {
       <div class="header-content">
         <div class="header-info">
           <SportBadge v-if="tournament?.sport" :sport="tournament.sport" />
-          <StatusPill v-if="tournament?.status" :status="tournament.status" />
+          <Pill
+            v-if="tournament?.status"
+            :variant="getStatusVariant(tournament.status)"
+          >
+            {{ formatStatus(tournament.status) }}
+          </Pill>
         </div>
       </div>
     </Panel>

@@ -1,12 +1,8 @@
 <script setup>
-import { computed, onMounted, reactive, ref } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
-import { useAuthStore } from '@/stores/auth'
-import {
-  fetchTournamentById,
-  generateTournamentSchedule,
-  updateTournament,
-} from '@/api/tournaments'
+import {computed, onMounted, reactive, ref} from 'vue'
+import {useRoute, useRouter} from 'vue-router'
+import {useAuthStore} from '@/stores/auth'
+import {fetchTournamentById, generateTournamentSchedule, updateTournament,} from '@/api/tournaments'
 
 import Panel from '@/components/Panel.vue'
 import Button from '@/components/Button.vue'
@@ -24,6 +20,7 @@ import StandingsIcon from '@/components/icons/StandingsIcon.vue'
 import TeamCard from '@/components/TeamCard.vue'
 import PencilIcon from '@/components/icons/PencilIcon.vue'
 import AddIcon from '@/components/icons/AddIcon.vue'
+import BoltIcon from "@/components/icons/BoltIcon.vue";
 
 const route = useRoute()
 const router = useRouter()
@@ -381,9 +378,10 @@ onMounted(loadTournament)
           <div class="overview-spacer"></div>
 
           <Button
-            v-if="canManageTournament"
+            v-if="isOwner"
             variant="secondary"
             class="navigation-button"
+            :disabled="!isRegistrationOpen"
             @click="goToEdit"
           >
             <PencilIcon />
@@ -397,15 +395,7 @@ onMounted(loadTournament)
             :disabled="isUpdating"
             @click="handleGenerateSchedule"
           >
-            <svg viewBox="0 0 24 24" aria-hidden="true">
-              <path
-                d="M13 2L5 13h6l-1 9 8-11h-6z"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="1.8"
-                stroke-linejoin="round"
-              />
-            </svg>
+            <BoltIcon/>
 
             {{ isUpdating ? 'Starting...' : 'Start Tournament' }}
           </Button>
