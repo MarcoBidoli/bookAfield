@@ -1,22 +1,34 @@
 <script setup>
-import { ref, reactive } from 'vue'
+import { ref, reactive, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 
 import Panel from '@/components/Panel.vue'
 import Button from '@/components/Button.vue'
 import AppBanner from '@/components/AppBanner.vue'
+import Switcher from '@/components/Switcher.vue'
 
 const router = useRouter()
 const authStore = useAuthStore()
 
-const activeTab = ref('login') // 'login' | 'register'
+const activeTab = ref('login')
 const errorMessage = ref('')
 const isLoading = ref(false)
 
+const authTabs = [
+  {
+    value: 'login',
+    label: 'Sign In',
+  },
+  {
+    value: 'register',
+    label: 'Register New Account',
+  },
+]
+
 const loginForm = reactive({
   username: '',
-  password: ''
+  password: '',
 })
 
 const registerForm = reactive({
@@ -24,17 +36,23 @@ const registerForm = reactive({
   name: '',
   surname: '',
   password: '',
-  confirmPassword: ''
+  confirmPassword: '',
+})
+
+watch(activeTab, () => {
+  errorMessage.value = ''
 })
 
 async function handleLogin() {
   errorMessage.value = ''
   isLoading.value = true
+
   try {
     await authStore.performLogin({
       username: loginForm.username,
-      password: loginForm.password
+      password: loginForm.password,
     })
+
     router.push('/')
   } catch (err) {
     errorMessage.value = err.message || 'Login failed'
@@ -45,19 +63,22 @@ async function handleLogin() {
 
 async function handleRegister() {
   errorMessage.value = ''
+
   if (registerForm.password !== registerForm.confirmPassword) {
     errorMessage.value = 'Passwords do not match'
     return
   }
 
   isLoading.value = true
+
   try {
     await authStore.performSignup({
       username: registerForm.username,
       name: registerForm.name,
       surname: registerForm.surname,
-      password: registerForm.password
+      password: registerForm.password,
     })
+
     router.push('/')
   } catch (err) {
     errorMessage.value = err.message || 'Registration failed'
@@ -69,32 +90,33 @@ async function handleRegister() {
 
 <template>
   <div class="auth-container">
-    <Panel :title="activeTab === 'login' ? 'System Login' : 'User Registration'">
-      <!-- Segmented Tab Switcher -->
-      <div class="segmented-control">
-        <button
-          type="button"
-          :class="['tab-btn', { active: activeTab === 'login' }]"
-          @click="activeTab = 'login'; errorMessage = ''"
-        >
-          Sign In
-        </button>
-        <button
-          type="button"
-          :class="['tab-btn', { active: activeTab === 'register' }]"
-          @click="activeTab = 'register'; errorMessage = ''"
-        >
-          Register New Account
-        </button>
-      </div>
+    <Panel
+      :title="
+        activeTab === 'login'
+          ? 'System Login'
+          : 'User Registration'
+      "
+    >
+      <Switcher
+        v-model="activeTab"
+        :options="authTabs"
+      />
 
-      <!-- Error Alert -->
-      <AppBanner v-if="errorMessage" type="error" :message="errorMessage" />
+      <AppBanner
+        v-if="errorMessage"
+        type="error"
+        :message="errorMessage"
+      />
 
-      <!-- Login Form -->
-      <form v-if="activeTab === 'login'" @submit.prevent="handleLogin" class="auth-form">
+      <!-- Login -->
+      <form
+        v-if="activeTab === 'login'"
+        class="auth-form"
+        @submit.prevent="handleLogin"
+      >
         <div class="form-group">
           <label for="login-username">Username</label>
+
           <input
             id="login-username"
             v-model="loginForm.username"
@@ -107,6 +129,7 @@ async function handleRegister() {
 
         <div class="form-group">
           <label for="login-password">Password</label>
+
           <input
             id="login-password"
             v-model="loginForm.password"
@@ -118,16 +141,25 @@ async function handleRegister() {
         </div>
 
         <div class="form-actions">
-          <Button type="submit" variant="primary" :disabled="isLoading">
+          <Button
+            type="submit"
+            variant="primary"
+            :disabled="isLoading"
+          >
             {{ isLoading ? 'Signing In...' : 'Sign In' }}
           </Button>
         </div>
       </form>
 
-      <!-- Registration Form -->
-      <form v-else @submit.prevent="handleRegister" class="auth-form">
+      <!-- Registration -->
+      <form
+        v-else
+        class="auth-form"
+        @submit.prevent="handleRegister"
+      >
         <div class="form-group">
           <label for="reg-username">Username</label>
+
           <input
             id="reg-username"
             v-model="registerForm.username"
@@ -141,6 +173,7 @@ async function handleRegister() {
         <div class="form-row">
           <div class="form-group">
             <label for="reg-name">First Name</label>
+
             <input
               id="reg-name"
               v-model="registerForm.name"
@@ -153,6 +186,7 @@ async function handleRegister() {
 
           <div class="form-group">
             <label for="reg-surname">Last Name / Surname</label>
+
             <input
               id="reg-surname"
               v-model="registerForm.surname"
@@ -166,6 +200,7 @@ async function handleRegister() {
 
         <div class="form-group">
           <label for="reg-password">Password</label>
+
           <input
             id="reg-password"
             v-model="registerForm.password"
@@ -177,7 +212,10 @@ async function handleRegister() {
         </div>
 
         <div class="form-group">
-          <label for="reg-confirm-password">Confirm Password</label>
+          <label for="reg-confirm-password">
+            Confirm Password
+          </label>
+
           <input
             id="reg-confirm-password"
             v-model="registerForm.confirmPassword"
@@ -189,8 +227,16 @@ async function handleRegister() {
         </div>
 
         <div class="form-actions">
-          <Button type="submit" variant="primary" :disabled="isLoading">
-            {{ isLoading ? 'Registering...' : 'Register Account' }}
+          <Button
+            type="submit"
+            variant="primary"
+            :disabled="isLoading"
+          >
+            {{
+              isLoading
+                ? 'Registering...'
+                : 'Register Account'
+            }}
           </Button>
         </div>
       </form>
@@ -202,39 +248,6 @@ async function handleRegister() {
 .auth-container {
   max-width: 460px;
   margin: 40px auto;
-}
-
-.segmented-control {
-  display: flex;
-  background: rgba(0, 0, 0, 0.04);
-  border-radius: 12px;
-  padding: 4px;
-  margin-bottom: 20px;
-  border: 1px solid rgba(0, 0, 0, 0.06);
-}
-
-.tab-btn {
-  flex: 1;
-  background: transparent;
-  border: none;
-  font-size: 12px;
-  font-weight: 600;
-  color: #48484a;
-  padding: 8px 0;
-  border-radius: 8px;
-  cursor: pointer;
-  transition: all 0.1s ease;
-}
-
-.tab-btn.active {
-  background: #ffffff;
-  color: #171b1c;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06);
-  font-weight: 700;
-}
-
-.tab-btn:hover:not(.active) {
-  color: #111113;
 }
 
 .auth-form {
@@ -283,5 +296,11 @@ input:focus {
   margin-top: 8px;
   display: flex;
   justify-content: flex-end;
+}
+
+@media (max-width: 500px) {
+  .form-row {
+    flex-direction: column;
+  }
 }
 </style>
