@@ -95,38 +95,38 @@ onMounted(() => {
       <div v-else class="table-container">
         <table class="aqua-table">
           <thead>
-            <tr>
-              <th>Field / Sport</th>
-              <th>Date</th>
-              <th>Time Slot</th>
-              <th>Type</th>
-              <th>Status</th>
-              <th style="text-align: center">Actions</th>
-            </tr>
+          <tr>
+            <th>Field / Sport</th>
+            <th>Date</th>
+            <th>Time Slot</th>
+            <th>Type</th>
+            <th>Status</th>
+            <th style="text-align: center">Actions</th>
+          </tr>
           </thead>
           <tbody>
-            <tr
-              v-for="booking in bookings"
-              :key="booking._id"
-              :class="{ 'past-row': isBookingPast(booking.date, booking.slot) }"
-            >
-              <td>
-                <div class="field-title">
-                  {{ booking.fieldDetails?.name || 'Field ' + booking.fieldId }}
-                </div>
-                <div class="field-sub">
-                  {{ booking.fieldDetails?.sport ? `(${booking.fieldDetails.sport})` : '' }}
-                  {{ booking.fieldDetails?.address ? `— ${booking.fieldDetails.address}` : '' }}
-                </div>
-              </td>
-              <td>{{ booking.date }}</td>
-              <td>
-                <strong>{{ booking.slot }}</strong>
-              </td>
-              <td>
-                <span class="type-badge">{{ booking.type || 'Standard' }}</span>
-              </td>
-              <td>
+          <tr
+            v-for="booking in bookings"
+            :key="booking._id"
+            :class="{ 'past-row': isBookingPast(booking.date, booking.slot) }"
+          >
+            <td>
+              <div class="field-title">
+                {{ booking.fieldDetails?.name || 'Field ' + booking.fieldId }}
+              </div>
+              <div class="field-sub">
+                {{ booking.fieldDetails?.sport ? `(${booking.fieldDetails.sport})` : '' }}
+                {{ booking.fieldDetails?.address ? `— ${booking.fieldDetails.address}` : '' }}
+              </div>
+            </td>
+            <td>{{ booking.date }}</td>
+            <td>
+              <strong>{{ booking.slot }}</strong>
+            </td>
+            <td>
+              <span class="type-badge">{{ booking.type || 'Standard' }}</span>
+            </td>
+            <td>
                 <span
                   :class="[
                     'status-pill',
@@ -135,19 +135,19 @@ onMounted(() => {
                 >
                   {{ isBookingPast(booking.date, booking.slot) ? 'Completed' : 'Active' }}
                 </span>
-              </td>
-              <td style="text-align: center">
-                <AquaButton
-                  v-if="!isBookingPast(booking.date, booking.slot)"
-                  variant="danger"
-                  :disabled="cancellingId === booking._id"
-                  @click="handleCancel(booking)"
-                >
-                  {{ cancellingId === booking._id ? 'Cancelling...' : 'Cancel' }}
-                </AquaButton>
-                <span v-else class="hint-text"> — </span>
-              </td>
-            </tr>
+            </td>
+            <td style="text-align: center">
+              <AquaButton
+                v-if="!isBookingPast(booking.date, booking.slot)"
+                variant="danger"
+                :disabled="cancellingId === booking._id"
+                @click="handleCancel(booking)"
+              >
+                {{ cancellingId === booking._id ? 'Cancelling...' : 'Cancel' }}
+              </AquaButton>
+              <span v-else class="hint-text"> — </span>
+            </td>
+          </tr>
           </tbody>
         </table>
       </div>
@@ -159,33 +159,35 @@ onMounted(() => {
 .user-bookings-view {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 20px;
 }
 
 .banner {
-  padding: 8px 12px;
-  border-radius: 4px;
-  font-size: 12px;
+  padding: 10px 14px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
 }
 
 .success-banner {
-  background-color: #e6f7ec;
-  border: 1px solid #70c995;
+  background: rgba(40, 167, 69, 0.15);
+  border: 1px solid rgba(40, 167, 69, 0.3);
   color: #155724;
 }
 
 .error-banner {
-  background-color: #ffe6e6;
-  border: 1px solid #ff9999;
-  color: #990000;
+  background: rgba(220, 53, 69, 0.15);
+  border: 1px solid rgba(220, 53, 69, 0.3);
+  color: #721c24;
 }
 
 .loading-state,
 .empty-state {
-  padding: 20px;
   text-align: center;
-  font-size: 12px;
-  color: #555;
+  font-size: 13px;
+  font-weight: 600;
+  color: #48484a;
+  padding: 24px;
 }
 
 .empty-action {
@@ -194,85 +196,100 @@ onMounted(() => {
 
 .table-container {
   overflow-x: auto;
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(0, 0, 0, 0.15);
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
 }
 
-/* Zebra Striped Aqua Table */
 .aqua-table {
   width: 100%;
   border-collapse: collapse;
   font-size: 12px;
-  background: #fff;
-  border: 1px solid #b4b4b4;
-  border-radius: 4px;
-  overflow: hidden;
+  background: transparent;
 }
 
 .aqua-table th {
-  background: linear-gradient(180deg, #f0f0f0 0%, #d8d8d8 100%);
-  border-bottom: 1px solid #a6a6a6;
-  border-right: 1px solid #d0d0d0;
-  padding: 6px 10px;
+  background: rgba(0, 0, 0, 0.04);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+  padding: 10px 14px;
   text-align: left;
-  font-weight: bold;
-  color: #333;
-  text-shadow: 0 1px 0 #fff;
+  font-weight: 700;
+  color: #111113;
+  text-transform: uppercase;
+  font-size: 10px;
+  letter-spacing: 0.5px;
 }
 
 .aqua-table td {
-  padding: 8px 10px;
-  border-bottom: 1px solid #e0e0e0;
-  border-right: 1px solid #f0f0f0;
+  padding: 10px 14px;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
   vertical-align: middle;
+  color: #111113;
+}
+
+.aqua-table tr:last-child td {
+  border-bottom: none;
 }
 
 .aqua-table tr:nth-child(even) {
-  background-color: #edf4f9; /* OS X Table Alternating Blue Tint */
+  background-color: rgba(0, 81, 199, 0.02);
 }
 
 .past-row {
-  opacity: 0.65;
+  opacity: 0.6;
 }
 
 .field-title {
-  font-weight: bold;
-  color: #0044bb;
+  font-weight: 700;
+  color: #0051c7;
+  font-size: 13px;
 }
 
 .field-sub {
   font-size: 11px;
-  color: #666;
+  color: #48484a;
+  font-weight: 500;
 }
 
 .type-badge {
-  background: #e8e8e8;
-  border: 1px solid #c0c0c0;
-  padding: 2px 6px;
-  border-radius: 4px;
+  background: rgba(0, 0, 0, 0.04);
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  padding: 2px 8px;
+  border-radius: 980px;
   font-size: 10px;
+  font-weight: 700;
   text-transform: capitalize;
+  color: #48484a;
 }
 
 .status-pill {
-  padding: 2px 8px;
-  border-radius: 10px;
-  font-size: 10px;
-  font-weight: bold;
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 980px;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: capitalize;
 }
 
 .status-upcoming {
-  background: #d4edda;
+  background: rgba(40, 167, 69, 0.15);
   color: #155724;
-  border: 1px solid #c3e6cb;
+  border: 1px solid rgba(40, 167, 69, 0.3);
 }
 
 .status-past {
-  background: #e2e3e5;
-  color: #383d41;
-  border: 1px solid #d6d8db;
+  background: rgba(0, 0, 0, 0.06);
+  color: #48484a;
+  border: 1px solid rgba(0, 0, 0, 0.12);
 }
 
 .hint-text {
   font-size: 11px;
-  color: #888;
+  color: #48484a;
+  font-weight: 500;
 }
 </style>

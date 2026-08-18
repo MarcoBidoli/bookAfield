@@ -52,11 +52,12 @@ defineProps({
   flex-wrap: wrap;
   gap: 6px;
   font-size: 12px;
+  font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Helvetica Neue", Arial, sans-serif;
 }
 
 .breadcrumb-link {
-  color: #0044bb;
-  font-weight: bold;
+  color: #0051c7;
+  font-weight: 700;
   text-decoration: none;
 }
 
@@ -65,12 +66,12 @@ defineProps({
 }
 
 .breadcrumb-separator {
-  color: #888;
-  font-weight: bold;
+  color: #8e8e93;
+  font-weight: 600;
 }
 
 .breadcrumb-current {
-  color: #666;
-  font-weight: bold;
+  color: #48484a;
+  font-weight: 700;
 }
 </style>

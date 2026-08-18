@@ -6,14 +6,14 @@ const authStore = useAuthStore()
 
 <template>
   <div class="app-shell">
-    <!-- Top Aqua Navigation Bar -->
+    <!-- Top High-Contrast Glass Navigation Bar -->
     <header class="app-navbar">
       <div class="app-brand">bookAfield</div>
 
       <div class="user-status">
         <template v-if="authStore.isAuthenticated">
           <span class="user-name">{{ authStore.user?.name || authStore.user?.username }}</span>
-          |
+          <span class="separator">·</span>
           <a href="#" @click.prevent="authStore.logout">logout</a>
         </template>
         <template v-else>
@@ -81,36 +81,46 @@ const authStore = useAuthStore()
 }
 
 .app-navbar {
-  background: linear-gradient(180deg, #e6e6e6 0%, #bcbcbc 100%);
-  border-bottom: 1px solid #777;
-  height: 42px;
-  padding: 0 16px;
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.15);
+  height: 52px;
+  padding: 0 20px;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.7);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
 }
 
 .app-brand {
   font-size: 14px;
-  font-weight: bold;
-  color: #333;
-  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.6);
+  font-weight: 800;
+  color: #111113;
 }
 
 .user-status {
-  font-size: 11px;
-  color: #444;
-  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.5);
+  font-size: 13px;
+  font-weight: 600;
+  color: #48484a;
+  display: flex;
+  align-items: center;
+  gap: 6px;
 }
 
 .user-name {
-  font-weight: bold;
+  font-weight: 700;
+  color: #111113;
+}
+
+.separator {
+  color: #8e8e93;
 }
 
 .user-status a {
-  color: #0044bb;
+  color: #0051c7;
   text-decoration: none;
+  font-weight: 700;
 }
 
 .user-status a:hover {
@@ -122,22 +132,24 @@ const authStore = useAuthStore()
   flex: 1;
 }
 
-/* Aqua Source List Sidebar */
+/* Sidebar */
 .sidebar {
-  width: 220px;
-  background: linear-gradient(180deg, #d6dde5 0%, #c1cbe0 100%);
-  border-right: 1px solid #999;
-  padding: 15px 0;
+  width: 240px;
+  background: rgba(240, 242, 245, 0.9);
+  backdrop-filter: blur(25px);
+  -webkit-backdrop-filter: blur(25px);
+  border-right: 1px solid rgba(0, 0, 0, 0.15);
+  padding: 20px 12px;
   flex-shrink: 0;
 }
 
 .sidebar-group-title {
-  font-size: 11px;
-  font-weight: bold;
-  color: #556677;
-  padding: 8px 16px 4px 16px;
+  color: #3a3a3c;
   text-transform: uppercase;
-  text-shadow: 0 1px 0 rgba(255, 255, 255, 0.7);
+  font-size: 11px;
+  font-weight: 800;
+  padding: 8px 12px 4px;
+  letter-spacing: 0.5px;
 }
 
 .sidebar-menu {
@@ -145,28 +157,26 @@ const authStore = useAuthStore()
   margin-bottom: 15px;
 }
 
+.sidebar-menu li {
+  margin-bottom: 2px;
+}
+
 .sidebar-menu a {
   display: flex;
   align-items: center;
-  padding: 6px 16px;
-  font-size: 12px;
-  color: #111;
+  padding: 8px 12px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #111113;
   text-decoration: none;
-  font-weight: 500;
+  border-radius: 8px;
+  transition: all 0.2s ease;
 }
 
 .sidebar-menu a.active,
 .sidebar-menu a:hover {
-  background: linear-gradient(180deg, #5ca0f2 0%, #1a62d6 100%);
-  color: #fff;
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
-}
-
-.content-area {
-  flex-grow: 1;
-  padding: 24px;
-  background-color: #ededed;
-  overflow-y: auto;
+  background: rgba(0, 81, 199, 0.15);
+  color: #0051c7;
 }
 
 .main-column {
@@ -178,28 +188,25 @@ const authStore = useAuthStore()
 
 .content-area {
   flex: 1;
-  padding: 24px;
-  background-color: #ededed;
+  padding: 32px;
+  background: transparent;
   overflow-y: auto;
 }
 
 .app-footer {
-  min-height: 34px;
+  min-height: 38px;
   padding: 0 16px;
-
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 8px;
-
-  background: linear-gradient(180deg, #e6e6e6 0%, #c8c8c8 100%);
-
-  border-top: 1px solid #999;
-
-  color: #666;
-  font-size: 10px;
+  background: rgba(240, 242, 245, 0.9);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border-top: 1px solid rgba(0, 0, 0, 0.15);
+  color: #48484a;
+  font-size: 11px;
+  font-weight: 600;
   text-align: center;
-
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.7);
 }
 </style>

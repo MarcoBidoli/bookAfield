@@ -56,7 +56,7 @@ import AquaButton from '../components/AquaButton.vue'
 .dashboard {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 20px;
 }
 
 .welcome-section {
@@ -66,20 +66,22 @@ import AquaButton from '../components/AquaButton.vue'
 .welcome-section h2 {
   margin: 0 0 8px;
   font-size: 18px;
-  color: #222;
+  font-weight: 800;
+  color: #111113;
 }
 
 .welcome-section p {
   margin: 0;
-  font-size: 12px;
-  color: #666;
+  font-size: 13px;
+  font-weight: 500;
+  color: #48484a;
   line-height: 1.5;
 }
 
 .quick-actions {
   display: flex;
-  gap: 8px;
-  margin-top: 16px;
+  gap: 10px;
+  margin-top: 18px;
   flex-wrap: wrap;
 }
 
@@ -89,27 +91,38 @@ import AquaButton from '../components/AquaButton.vue'
 
 .features {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-  gap: 12px;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 14px;
 }
 
 .feature {
-  background: #fff;
-  border: 1px solid #ddd;
-  border-radius: 5px;
-  padding: 12px;
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(0, 0, 0, 0.15);
+  border-radius: 12px;
+  padding: 16px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+  transition: all 0.2s ease;
+}
+
+.feature:hover {
+  border-color: #0051c7;
+  background: rgba(255, 255, 255, 0.98);
+  box-shadow: 0 6px 16px rgba(0, 81, 199, 0.15);
 }
 
 .feature-title {
-  font-size: 12px;
-  font-weight: bold;
-  color: #0044bb;
-  margin-bottom: 5px;
+  font-size: 13px;
+  font-weight: 700;
+  color: #0051c7;
+  margin-bottom: 6px;
 }
 
 .feature-text {
-  font-size: 11px;
-  color: #666;
+  font-size: 12px;
+  font-weight: 500;
+  color: #48484a;
   line-height: 1.5;
 }
 </style>

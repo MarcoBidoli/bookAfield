@@ -226,8 +226,7 @@ onMounted(() => {
                 </span>
 
                 <div class="score-container">
-                  <!-- Match already played:
-                       everyone can see the score -->
+                  <!-- Match already played -->
                   <template v-if="match.status === 'played'">
                     <span class="score-badge">
                       {{ match.result?.scoreA }}
@@ -279,8 +278,7 @@ onMounted(() => {
                 </span>
               </div>
 
-              <!-- Match Schedule + Status
-                   Everyone can see this -->
+              <!-- Match Schedule + Status -->
               <div class="match-meta">
                 <div class="match-info">
                   <template v-if="isMatchScheduled(match)">
@@ -303,8 +301,7 @@ onMounted(() => {
                 </span>
               </div>
 
-              <!-- Booking Assignment
-                   Tournament owner only -->
+              <!-- Booking Assignment -->
               <div v-if="isOwner && tournament?.status === 'active'" class="booking-assignment">
                 <label class="booking-label"> Field booking assignment: </label>
 
@@ -351,25 +348,26 @@ onMounted(() => {
 .matches-view {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 20px;
 }
 
 .banner {
-  padding: 8px 12px;
-  border-radius: 4px;
-  font-size: 12px;
+  padding: 10px 14px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
 }
 
 .success-banner {
-  background-color: #e6f7ec;
-  border: 1px solid #70c995;
+  background: rgba(40, 167, 69, 0.15);
+  border: 1px solid rgba(40, 167, 69, 0.3);
   color: #155724;
 }
 
 .error-banner {
-  background-color: #ffe6e6;
-  border: 1px solid #ff9999;
-  color: #990000;
+  background: rgba(220, 53, 69, 0.15);
+  border: 1px solid rgba(220, 53, 69, 0.3);
+  color: #721c24;
 }
 
 .header-actions {
@@ -382,37 +380,42 @@ onMounted(() => {
 .loading-state,
 .empty-state {
   text-align: center;
-  font-size: 12px;
-  color: #666;
-  padding: 16px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #48484a;
+  padding: 24px;
 }
 
+/* Transformed from a single vertical column into a responsive multi-column grid to prevent card clutter */
 .matches-grid {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 14px;
 }
 
 .match-card {
-  background: #ffffff;
-  border: 1px solid #c8c8c8;
-  border-radius: 6px;
-  padding: 14px 16px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(0, 0, 0, 0.15);
+  border-radius: 12px;
+  padding: 16px 20px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 14px;
+  transition: all 0.2s ease;
 }
 
 .match-played {
-  background: #fbfbfb;
-  border-color: #b8c8d8;
+  background: rgba(245, 247, 250, 0.9);
+  border-color: rgba(0, 0, 0, 0.1);
 }
 
 .match-info {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 10px;
   flex-wrap: wrap;
 }
 
@@ -420,15 +423,18 @@ onMounted(() => {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  gap: 16px;
-  margin: 10px auto 12px auto;
+  gap: 12px;
+  margin: 6px auto 10px auto;
 }
 
 .team-name {
   font-size: 13px;
-  font-weight: bold;
-  color: #222;
+  font-weight: 700;
+  color: #111113;
   flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .team-home {
@@ -443,72 +449,74 @@ onMounted(() => {
   display: flex;
   align-items: center;
   justify-content: center;
-  min-width: 140px;
+  min-width: 110px;
 }
 
 .score-badge {
-  background: linear-gradient(180deg, #5ca0f2 0%, #1a62d6 100%);
+  background: linear-gradient(135deg, #0051c7 0%, #003a94 100%);
   color: #ffffff;
-  font-weight: bold;
-  font-size: 13px;
-  padding: 4px 16px;
-  border-radius: 12px;
-  text-shadow: 0 1px 1px rgba(0, 0, 0, 0.4);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.4);
+  font-weight: 700;
+  font-size: 12px;
+  padding: 5px 12px;
+  border-radius: 980px;
+  box-shadow: 0 2px 6px rgba(0, 81, 199, 0.25);
 }
 
 .vs-badge {
-  color: #888;
+  color: #48484a;
   font-size: 11px;
-  font-weight: bold;
-  background: #eaeaea;
-  padding: 2px 8px;
-  border-radius: 10px;
+  font-weight: 700;
+  background: rgba(0, 0, 0, 0.06);
+  padding: 3px 8px;
+  border-radius: 980px;
 }
 
 .score-form {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
+  gap: 4px;
 }
 
 .score-input {
   width: 36px;
-  height: 26px;
+  height: 30px;
   text-align: center;
-  padding: 3px;
+  padding: 2px;
   font-size: 12px;
-  border: 1px solid #8e8e8e;
-  border-radius: 4px;
+  font-weight: 600;
+  border: 1px solid rgba(0, 0, 0, 0.2);
+  border-radius: 6px;
   outline: none;
-  background: #fff;
+  background: rgba(255, 255, 255, 0.95);
+  color: #111113;
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.08);
 }
 
 .score-input:focus {
-  border-color: #38a5e8;
-  box-shadow: 0 0 4px #70c3ff;
+  border-color: #0051c7;
+  box-shadow: 0 0 0 3px rgba(0, 81, 199, 0.25), inset 0 1px 3px rgba(0, 0, 0, 0.08);
 }
 
 .score-colon {
-  font-weight: bold;
-  color: #444;
+  font-weight: 700;
+  color: #48484a;
 }
 
 .btn-enter {
-  background: linear-gradient(180deg, #8bcbfc 0%, #3092f7 48%, #0d6fe3 50%, #1e87f0 100%);
-  border: 1px solid #08489b;
+  background: #0051c7;
+  border: none;
   border-radius: 6px;
   color: #ffffff;
   font-size: 11px;
-  font-weight: bold;
+  font-weight: 700;
   padding: 5px 10px;
   cursor: pointer;
-  height: 26px;
-  text-shadow: 0 -1px 1px rgba(0, 0, 0, 0.4);
+  height: 30px;
+  transition: background 0.2s;
 }
 
 .btn-enter:hover {
-  background: linear-gradient(180deg, #0d6fe3 0%, #3092f7 100%);
+  background: #0040a1;
 }
 
 .btn-enter:disabled {
@@ -518,52 +526,62 @@ onMounted(() => {
 
 /* Isolated Inset Well for Booking Controls */
 .booking-assignment {
-  background: #f0f3f7;
-  border: 1px solid #d0dbe5;
-  border-radius: 5px;
-  padding: 8px 12px;
+  background: rgba(0, 0, 0, 0.03);
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-radius: 10px;
+  padding: 10px 12px;
   display: flex;
   flex-direction: column;
   gap: 6px;
-  margin-top: 15px;
+  margin-top: 12px;
 }
 
 .booking-label {
   font-size: 11px;
-  font-weight: bold;
-  color: #445566;
+  font-weight: 700;
+  color: #111113;
 }
 
 .booking-controls {
   display: flex;
-  gap: 8px;
+  gap: 6px;
   align-items: center;
 }
 
 .booking-select {
   flex: 1;
-  background: #fff;
-  border: 1px solid #8e8e8e;
-  border-radius: 4px;
-  padding: 4px 8px;
-  font-size: 12px;
-  height: 26px;
+  background: rgba(255, 255, 255, 0.95);
+  border: 1px solid rgba(0, 0, 0, 0.2);
+  border-radius: 6px;
+  padding: 5px 8px;
+  font-size: 11px;
+  font-weight: 600;
+  height: 30px;
+  color: #111113;
+  outline: none;
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.08);
+}
+
+.booking-select:focus {
+  border-color: #0051c7;
+  box-shadow: 0 0 0 3px rgba(0, 81, 199, 0.25), inset 0 1px 3px rgba(0, 0, 0, 0.08);
 }
 
 .btn-assign {
-  background: linear-gradient(180deg, #8bcbfc 0%, #3092f7 48%, #0d6fe3 50%, #1e87f0 100%);
-  border: 1px solid #08489b;
+  background: #0051c7;
+  border: none;
   border-radius: 6px;
   color: #fff;
   font-size: 11px;
-  font-weight: bold;
-  padding: 4px 12px;
+  font-weight: 700;
+  padding: 5px 10px;
   cursor: pointer;
-  height: 26px;
+  height: 30px;
+  transition: background 0.2s;
 }
 
 .btn-assign:hover {
-  background: linear-gradient(180deg, #0d6fe3 0%, #3092f7 100%);
+  background: #0040a1;
 }
 
 .btn-assign:disabled {
@@ -575,38 +593,39 @@ onMounted(() => {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding-top: 15px;
-  border-top: 1px solid #eee;
+  padding-top: 12px;
+  border-top: 1px solid rgba(0, 0, 0, 0.08);
   font-size: 11px;
+  font-weight: 500;
 }
 
 .meta-item {
-  color: #666;
+  color: #48484a;
 }
 
 .unscheduled {
-  color: #b06000;
-  font-weight: 500;
+  color: #b25000;
+  font-weight: 600;
 }
 
 .status-pill {
   padding: 2px 8px;
-  border-radius: 10px;
+  border-radius: 980px;
   font-size: 10px;
-  font-weight: bold;
+  font-weight: 700;
   text-transform: capitalize;
 }
 
 .status-upcoming {
-  background: #fff3cd;
+  background: rgba(255, 193, 7, 0.15);
   color: #856404;
-  border: 1px solid #ffeeba;
+  border: 1px solid rgba(255, 193, 7, 0.3);
 }
 
 .status-played {
-  background: #d4edda;
+  background: rgba(40, 167, 69, 0.15);
   color: #155724;
-  border: 1px solid #c3e6cb;
+  border: 1px solid rgba(40, 167, 69, 0.3);
 }
 
 .bye-row {
@@ -617,17 +636,18 @@ onMounted(() => {
 }
 
 .bye-team {
-  font-weight: bold;
-  color: #555;
+  font-weight: 700;
+  color: #111113;
 }
 
 .bye-badge {
-  background: #e8e8e8;
-  border: 1px solid #ccc;
+  background: rgba(0, 0, 0, 0.06);
+  border: 1px solid rgba(0, 0, 0, 0.1);
   padding: 2px 8px;
-  border-radius: 8px;
-  font-size: 11px;
-  color: #666;
+  border-radius: 980px;
+  font-size: 10px;
+  font-weight: 600;
+  color: #48484a;
 }
 
 .back-link-row {
@@ -636,9 +656,9 @@ onMounted(() => {
 }
 
 .back-link {
-  color: #0044bb;
+  color: #0051c7;
   font-size: 12px;
-  font-weight: bold;
+  font-weight: 700;
   text-decoration: none;
 }
 

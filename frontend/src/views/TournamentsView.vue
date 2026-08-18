@@ -118,25 +118,25 @@ onMounted(() => {
   <div class="tournaments-view">
     <!-- Feedback Alerts -->
     <div v-if="successMessage" class="banner success-banner">
-      ✓ {{ successMessage }}
+      <span class="banner-icon">✓</span> {{ successMessage }}
     </div>
     <div v-if="errorMessage" class="banner error-banner">
-      ⚠️ {{ errorMessage }}
+      <span class="banner-icon">⚠️</span> {{ errorMessage }}
     </div>
 
-    <!-- Create Tournament Panel (Authenticated users) -->
+    <!-- Create Tournament Panel -->
     <AquaPanel title="Create New Tournament">
       <div v-if="!authStore.isAuthenticated" class="auth-notice">
         <span>Sign in to host and manage sports tournaments.</span>
         <router-link to="/login">
-          <AquaButton style="margin-left: 10px;">Sign In</AquaButton>
+          <AquaButton class="auth-btn">Sign In</AquaButton>
         </router-link>
       </div>
 
       <form v-else @submit.prevent="handleCreateTournament" class="create-form">
         <div class="form-row">
           <div class="form-group flex-2">
-            <label for="t-name">Tournament Name:</label>
+            <label for="t-name">Tournament Name</label>
             <input
               id="t-name"
               v-model="newTournament.name"
@@ -147,7 +147,7 @@ onMounted(() => {
           </div>
 
           <div class="form-group flex-1">
-            <label for="t-sport">Sport:</label>
+            <label for="t-sport">Sport</label>
             <select id="t-sport" v-model="newTournament.sport">
               <option value="football">Football</option>
               <option value="volleyball">Volleyball</option>
@@ -156,7 +156,7 @@ onMounted(() => {
           </div>
 
           <div class="form-group flex-1">
-            <label for="t-teams">Max Teams:</label>
+            <label for="t-teams">Max Teams</label>
             <input
               id="t-teams"
               v-model.number="newTournament.maxTeams"
@@ -168,7 +168,7 @@ onMounted(() => {
           </div>
 
           <div class="form-group flex-1">
-            <label for="t-date">Start Date:</label>
+            <label for="t-date">Start Date</label>
             <input
               id="t-date"
               v-model="newTournament.startDate"
@@ -180,13 +180,13 @@ onMounted(() => {
 
         <div class="actions-right">
           <AquaButton type="submit" :disabled="isSubmitting || !newTournament.name">
-            {{ isSubmitting ? 'Creating...' : 'Create Tournament' }}
+            {{ isSubmitting ? 'Creating...' : 'Post Tournament' }}
           </AquaButton>
         </div>
       </form>
     </AquaPanel>
 
-    <!-- Tournaments Directory & Management -->
+    <!-- Tournaments Directory & Feed -->
     <AquaPanel title="Tournaments & League Cups">
       <!-- Search & Filter Bar -->
       <div class="filter-bar">
@@ -230,56 +230,72 @@ onMounted(() => {
         </div>
       </div>
 
-      <div v-if="isLoading" class="hint-state">
-        Loading tournaments...
+      <!-- Loading State -->
+      <div v-if="isLoading" class="loading-state">
+        <div class="spinner"></div>
+        <span>Loading tournaments feed...</span>
       </div>
 
-      <div v-else-if="filteredTournaments().length === 0" class="hint-state">
-        No tournaments found.
+      <!-- Empty State -->
+      <div v-else-if="filteredTournaments().length === 0" class="empty-state">
+        <div class="empty-icon">🏆</div>
+        <h3>No Tournaments Found</h3>
+        <p>Try adjusting your search criteria or filters.</p>
       </div>
 
-      <!-- Tournament Cards Grid -->
-      <div v-else class="tournament-list">
+      <!-- Tournament Feed (Tweet Style) -->
+      <div v-else class="tweet-feed">
         <div
           v-for="t in filteredTournaments()"
           :key="t._id"
-          class="tournament-card"
+          class="tweet-card"
         >
-          <div class="card-main">
-            <div class="card-title-row">
-              <router-link :to="`/tournaments/${t._id}`" class="card-title">
-                {{ t.name }}
-              </router-link>
-              <span class="sport-badge">{{ t.sport }}</span>
-              <span :class="['status-badge', `status-${t.status}`]">
-                {{ t.status }}
-              </span>
+          <!-- Tweet Header -->
+          <div class="tweet-header">
+            <div class="tweet-author">
+              <div class="author-avatar">
+                {{ t.sport === 'football' ? '⚽' : t.sport === 'basketball' ? '🏀' : '🏐' }}
+              </div>
+              <div class="author-details">
+                <router-link :to="`/tournaments/${t._id}`" class="tweet-title">
+                  {{ t.name }}
+                </router-link>
+                <div class="tweet-meta-tags">
+                  <span class="sport-badge">{{ t.sport }}</span>
+                  <span class="date-tag">📅 {{ t.startDate }}</span>
+                </div>
+              </div>
             </div>
+            <span :class="['status-pill', `status-${t.status}`]">
+              {{ t.status }}
+            </span>
+          </div>
 
-            <div class="card-meta">
-              <span>📅 Starts: <strong>{{ t.startDate }}</strong></span>
-              <span>👥 Teams: <strong>{{ t.teams ? t.teams.length : 0 }} / {{ t.maxTeams }}</strong></span>
+          <!-- Tweet Content / Metrics -->
+          <div class="tweet-content">
+            <div class="tournament-stats-bar">
+              👥 <strong>{{ t.teams ? t.teams.length : 0 }}</strong> / {{ t.maxTeams }} Teams Registered
             </div>
           </div>
 
-          <!-- Action Links -->
-          <div class="card-actions">
-            <router-link :to="`/tournaments/${t._id}`" class="action-link">
-              Details & Teams
-            </router-link>
-            <span class="divider">|</span>
-            <router-link :to="`/tournaments/${t._id}/matches`" class="action-link">
-              Matches
-            </router-link>
-            <span class="divider">|</span>
-            <router-link :to="`/tournaments/${t._id}/standings`" class="action-link">
-              Standings
-            </router-link>
+          <!-- Tweet Footer / Action Buttons -->
+          <div class="tweet-footer">
+            <div class="tweet-actions-group">
+              <router-link :to="`/tournaments/${t._id}`" class="tweet-action-btn">
+                Details & Teams
+              </router-link>
+              <router-link :to="`/tournaments/${t._id}/matches`" class="tweet-action-btn">
+                Matches
+              </router-link>
+              <router-link :to="`/tournaments/${t._id}/standings`" class="tweet-action-btn">
+                Standings
+              </router-link>
+            </div>
+
             <template v-if="isCreator(t)">
-              <span class="divider">|</span>
               <button
                 type="button"
-                class="btn-delete"
+                class="btn-delete-tweet"
                 @click="handleDelete(t)"
               >
                 Delete
@@ -296,74 +312,97 @@ onMounted(() => {
 .tournaments-view {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 20px;
+  max-width: 760px;
+  margin: 0 auto;
+  width: 100%;
 }
 
 .banner {
-  padding: 8px 12px;
-  border-radius: 4px;
-  font-size: 12px;
+  padding: 12px 16px;
+  border-radius: 12px;
+  font-size: 13px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.04);
 }
 
 .success-banner {
-  background-color: #e6f7ec;
-  border: 1px solid #70c995;
-  color: #155724;
+  background: rgba(52, 199, 89, 0.12);
+  border: 1px solid rgba(52, 199, 89, 0.25);
+  color: #1b5e20;
 }
 
 .error-banner {
-  background-color: #ffe6e6;
-  border: 1px solid #ff9999;
-  color: #990000;
+  background: rgba(255, 59, 48, 0.12);
+  border: 1px solid rgba(255, 59, 48, 0.25);
+  color: #b71c1c;
 }
 
 .auth-notice {
-  font-size: 12px;
-  color: #555;
+  font-size: 13px;
+  color: #48484a;
+  font-weight: 600;
   display: flex;
   align-items: center;
+  justify-content: space-between;
+  padding: 8px 0;
+}
+
+.auth-btn {
+  margin-left: 10px;
 }
 
 .create-form {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 16px;
 }
 
 .form-row {
   display: flex;
-  gap: 12px;
+  gap: 14px;
   flex-wrap: wrap;
 }
 
 .form-group {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 6px;
 }
 
-.flex-1 { flex: 1; min-width: 130px; }
-.flex-2 { flex: 2; min-width: 200px; }
+.flex-1 { flex: 1; min-width: 140px; }
+.flex-2 { flex: 2; min-width: 220px; }
 
 label {
   font-size: 11px;
-  font-weight: bold;
-  color: #333;
+  font-weight: 700;
+  color: #111113;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
 input, select {
-  background: #ffffff;
-  border: 1px solid #8e8e8e;
-  border-radius: 4px;
-  padding: 5px 8px;
+  background: rgba(255, 255, 255, 0.95);
+  border: 1px solid rgba(0, 0, 0, 0.15);
+  border-radius: 8px;
+  padding: 0 12px;
   font-size: 12px;
+  font-weight: 600;
   outline: none;
-  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.15);
+  color: #111113;
+  height: 38px;
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.04);
+  transition: all 0.2s ease;
 }
 
 input:focus, select:focus {
-  border-color: #38a5e8;
-  box-shadow: 0 0 5px #70c3ff, inset 0 1px 2px rgba(0, 0, 0, 0.2);
+  border-color: #0071e3;
+  box-shadow: 0 0 0 3px rgba(0, 113, 227, 0.2), inset 0 1px 3px rgba(0, 0, 0, 0.04);
 }
 
 .actions-right {
@@ -371,166 +410,282 @@ input:focus, select:focus {
   justify-content: flex-end;
 }
 
+/* Filter Bar */
 .filter-bar {
   display: flex;
-  gap: 12px;
-  margin-bottom: 14px;
+  gap: 14px;
+  margin-bottom: 20px;
   align-items: center;
   flex-wrap: wrap;
 }
 
 .search-pill {
   flex: 1;
-  min-width: 220px;
-  border-radius: 14px !important;
-  padding-left: 26px !important;
-  background: #ffffff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23888' stroke-width='3'%3E%3Ccircle cx='11' cy='11' r='8'/%3E%3Cline x1='21' y1='21' x2='16.65' y2='16.65'/%3E%3C/svg%3E") 8px center no-repeat !important;
+  min-width: 240px;
+  border-radius: 980px !important;
+  padding-left: 36px !important;
+  background: rgba(255, 255, 255, 0.95) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2348484a' stroke-width='3'%3E%3Ccircle cx='11' cy='11' r='8'/%3E%3Cline x1='21' y1='21' x2='16.65' y2='16.65'/%3E%3C/svg%3E") 14px center no-repeat !important;
+  height: 38px !important;
 }
 
 .sport-filters {
   display: flex;
   gap: 4px;
-  background: #d8d8d8;
-  border: 1px solid #b2b2b2;
-  border-radius: 6px;
-  padding: 2px;
+  background: rgba(0, 0, 0, 0.04);
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-radius: 10px;
+  padding: 4px;
 }
 
 .filter-btn {
   background: transparent;
   border: none;
   font-size: 11px;
-  font-weight: bold;
-  color: #444;
-  padding: 4px 10px;
-  border-radius: 4px;
+  font-weight: 700;
+  color: #48484a;
+  padding: 6px 14px;
+  border-radius: 8px;
   cursor: pointer;
+  transition: all 0.2s ease;
 }
 
 .filter-btn.active {
-  background: linear-gradient(180deg, #ffffff 0%, #e2e2e2 100%);
-  color: #111;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+  background: #ffffff;
+  color: #0071e3;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
 }
 
-.tournament-list {
+/* Tweet Feed & Cards */
+.tweet-feed {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 16px;
 }
 
-.tournament-card {
-  background: #fff;
-  border: 1px solid #ccc;
-  border-radius: 5px;
-  padding: 10px 14px;
+.tweet-card {
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-radius: 16px;
+  padding: 18px 20px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04);
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  transition: all 0.25s cubic-bezier(0.25, 1, 0.5, 1);
+}
+
+.tweet-card:hover {
+  border-color: rgba(0, 113, 227, 0.3);
+  box-shadow: 0 6px 24px rgba(0, 113, 227, 0.08);
+  background: rgba(255, 255, 255, 0.96);
+  transform: translateY(-1px);
+}
+
+.tweet-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.tweet-author {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  flex: 1;
+  min-width: 0;
+}
+
+.author-avatar {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  background: rgba(0, 113, 227, 0.1);
+  font-size: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  border: 1px solid rgba(0, 113, 227, 0.15);
+}
+
+.author-details {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+  flex: 1;
+}
+
+.tweet-title {
+  color: #0071e3;
+  font-weight: 700;
+  font-size: 15px;
+  text-decoration: none;
+  letter-spacing: -0.2px;
+  transition: color 0.15s ease;
+}
+
+.tweet-title:hover {
+  text-decoration: underline;
+}
+
+.tweet-meta-tags {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.sport-badge {
+  background: rgba(0, 113, 227, 0.1);
+  border: 1px solid rgba(0, 113, 227, 0.2);
+  color: #0071e3;
+  padding: 2px 10px;
+  border-radius: 980px;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: capitalize;
+  letter-spacing: 0.2px;
+}
+
+.date-tag {
+  font-size: 12px;
+  color: #48484a;
+  font-weight: 500;
+}
+
+/* Status Badges */
+.status-pill {
+  padding: 4px 10px;
+  border-radius: 980px;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: capitalize;
+  letter-spacing: 0.2px;
+  flex-shrink: 0;
+}
+
+.status-registration {
+  background: rgba(255, 193, 7, 0.15);
+  color: #856404;
+  border: 1px solid rgba(255, 193, 7, 0.3);
+}
+
+.status-active {
+  background: rgba(52, 199, 89, 0.15);
+  color: #1b5e20;
+  border: 1px solid rgba(52, 199, 89, 0.3);
+}
+
+.status-completed {
+  background: rgba(142, 142, 147, 0.15);
+  color: #48484a;
+  border: 1px solid rgba(142, 142, 147, 0.3);
+}
+
+/* Tweet Content */
+.tweet-content {
+  font-size: 13px;
+  color: #111113;
+}
+
+.tournament-stats-bar {
+  font-size: 12px;
+  color: #48484a;
+  font-weight: 500;
+}
+
+/* Tweet Footer & Action Buttons */
+.tweet-footer {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+  padding-top: 12px;
+  border-top: 1px solid rgba(0, 0, 0, 0.06);
   flex-wrap: wrap;
   gap: 10px;
 }
 
-.card-title-row {
+.tweet-actions-group {
   display: flex;
-  align-items: center;
   gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.tweet-action-btn {
+  background: rgba(0, 113, 227, 0.06);
+  border: 1px solid rgba(0, 113, 227, 0.15);
+  color: #0071e3;
+  padding: 5px 12px;
+  border-radius: 980px;
+  font-size: 11px;
+  font-weight: 700;
+  text-decoration: none;
+  transition: all 0.2s ease;
+}
+
+.tweet-action-btn:hover {
+  background: rgba(0, 113, 227, 0.12);
+  border-color: rgba(0, 113, 227, 0.3);
+}
+
+.btn-delete-tweet {
+  background: rgba(255, 59, 48, 0.08);
+  border: 1px solid rgba(255, 59, 48, 0.2);
+  color: #b71c1c;
+  cursor: pointer;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 5px 12px;
+  border-radius: 980px;
+  transition: all 0.2s ease;
+}
+
+.btn-delete-tweet:hover {
+  background: rgba(255, 59, 48, 0.15);
+}
+
+/* States */
+.loading-state,
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  padding: 48px 20px;
+  gap: 12px;
+  color: #48484a;
+}
+
+.empty-state h3 {
+  font-size: 16px;
+  font-weight: 700;
+  color: #111113;
+  margin: 0;
+}
+
+.empty-icon {
+  font-size: 32px;
   margin-bottom: 4px;
 }
 
-.card-title {
-  color: #0044bb;
-  font-weight: bold;
-  font-size: 13px;
-  text-decoration: none;
+.spinner {
+  width: 24px;
+  height: 24px;
+  border: 3px solid rgba(0, 113, 227, 0.15);
+  border-top-color: #0071e3;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
 }
 
-.card-title:hover {
-  text-decoration: underline;
-}
-
-.sport-badge {
-  background: #f0f0f0;
-  border: 1px solid #c0c0c0;
-  border-radius: 8px;
-  padding: 1px 6px;
-  font-size: 10px;
-  text-transform: capitalize;
-}
-
-.status-badge {
-  padding: 1px 8px;
-  border-radius: 8px;
-  font-size: 10px;
-  font-weight: bold;
-  text-transform: capitalize;
-}
-
-.status-registration {
-  background: #fff3cd;
-  color: #856404;
-  border: 1px solid #ffeeba;
-}
-
-.status-active {
-  background: #d4edda;
-  color: #155724;
-  border: 1px solid #c3e6cb;
-}
-
-.status-completed {
-  background: #e2e3e5;
-  color: #383d41;
-  border: 1px solid #d6d8db;
-}
-
-.card-meta {
-  display: flex;
-  gap: 16px;
-  font-size: 11px;
-  color: #666;
-}
-
-.card-actions {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 11px;
-}
-
-.action-link {
-  color: #0044bb;
-  text-decoration: none;
-  font-weight: 500;
-}
-
-.action-link:hover {
-  text-decoration: underline;
-}
-
-.divider {
-  color: #aaa;
-}
-
-.btn-delete {
-  background: none;
-  border: none;
-  color: #c02020;
-  cursor: pointer;
-  font-size: 11px;
-  font-weight: bold;
-  padding: 0;
-}
-
-.btn-delete:hover {
-  text-decoration: underline;
-}
-
-.hint-state {
-  text-align: center;
-  font-size: 12px;
-  color: #666;
-  padding: 16px;
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
 }
 </style>

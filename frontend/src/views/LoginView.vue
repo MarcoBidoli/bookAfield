@@ -207,11 +207,12 @@ async function handleRegister() {
 
 .segmented-control {
   display: flex;
-  background: #d8d8d8;
-  border-radius: 6px;
-  padding: 2px;
+  background: rgba(0, 0, 0, 0.08);
+  backdrop-filter: blur(10px);
+  border-radius: 980px;
+  padding: 3px;
   margin-bottom: 16px;
-  border: 1px solid #b2b2b2;
+  border: 1px solid rgba(0, 0, 0, 0.05);
 }
 
 .tab-btn {
@@ -219,68 +220,75 @@ async function handleRegister() {
   background: transparent;
   border: none;
   font-size: 11px;
-  font-weight: bold;
-  color: #555;
-  padding: 5px 0;
-  border-radius: 4px;
+  font-weight: 700;
+  color: #48484a;
+  padding: 6px 0;
+  border-radius: 980px;
   cursor: pointer;
-  transition: all 0.15s ease;
+  transition: all 0.2s cubic-bezier(0.25, 1, 0.5, 1);
 }
 
 .tab-btn.active {
-  background: linear-gradient(180deg, #ffffff 0%, #e2e2e2 100%);
-  color: #111;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+  background: #ffffff;
+  color: #111113;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+}
+
+.tab-btn:hover:not(.active) {
+  color: #111113;
 }
 
 .error-banner {
-  background-color: #ffe6e6;
-  border: 1px solid #ff9999;
-  color: #990000;
-  padding: 6px 10px;
-  border-radius: 4px;
-  font-size: 11px;
-  margin-bottom: 14px;
+  background: rgba(220, 53, 69, 0.2);
+  border: 1px solid rgba(220, 53, 69, 0.4);
+  color: #721c24;
+  padding: 10px 14px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  margin-bottom: 16px;
 }
 
 .auth-form {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 16px;
 }
 
 .form-group {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 6px;
   flex: 1;
 }
 
 .form-row {
   display: flex;
-  gap: 10px;
+  gap: 12px;
 }
 
 label {
-  font-size: 11px;
-  font-weight: bold;
-  color: #333;
+  font-size: 12px;
+  font-weight: 700;
+  color: #111113;
 }
 
 input {
   width: 100%;
-  border: 1px solid #8e8e8e;
-  padding: 5px 8px;
-  border-radius: 4px;
-  font-size: 12px;
-  background: #ffffff;
+  border: 1px solid rgba(0, 0, 0, 0.2);
+  padding: 8px 14px;
+  border-radius: 980px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #111113;
+  background: rgba(255, 255, 255, 0.95);
   outline: none;
-  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.15);
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.08);
 }
 
 input:focus {
-  border-color: #38a5e8;
-  box-shadow: 0 0 5px #70c3ff, inset 0 1px 2px rgba(0, 0, 0, 0.2);
+  border-color: #0051c7;
+  box-shadow: 0 0 0 3px rgba(0, 81, 199, 0.25), inset 0 1px 3px rgba(0, 0, 0, 0.08);
 }
 
 .form-actions {

@@ -428,93 +428,101 @@ onMounted(async () => {
 }
 
 .banner {
-  padding: 8px 12px;
-  border-radius: 4px;
-  font-size: 12px;
+  padding: 10px 14px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
 }
 
 .success-banner {
-  background-color: #e6f7ec;
-  border: 1px solid #70c995;
+  background: rgba(40, 167, 69, 0.2);
+  border: 1px solid rgba(40, 167, 69, 0.4);
   color: #155724;
 }
 
 .error-banner {
-  background-color: #ffe6e6;
-  border: 1px solid #ff9999;
-  color: #990000;
+  background: rgba(220, 53, 69, 0.2);
+  border: 1px solid rgba(220, 53, 69, 0.4);
+  color: #721c24;
 }
 
 .loading-state,
 .empty-state {
   text-align: center;
-  font-size: 12px;
-  color: #666;
-  padding: 16px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #48484a;
+  padding: 24px;
 }
 
 /* Selected field */
 
 .selected-field {
-  background: #f4f8fe;
-  border: 1px solid #c0d4ec;
-  border-radius: 5px;
-  padding: 10px 12px;
-  margin-bottom: 14px;
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(0, 0, 0, 0.15);
+  border-radius: 12px;
+  padding: 14px 18px;
+  margin-bottom: 16px;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.06);
 }
 
 .selected-field-main {
   display: flex;
   align-items: center;
-  gap: 8px;
-  margin-bottom: 5px;
+  gap: 10px;
+  margin-bottom: 6px;
 }
 
 .field-name {
-  color: #0044bb;
-  font-size: 13px;
-  font-weight: bold;
+  color: #0051c7;
+  font-size: 14px;
+  font-weight: 800;
 }
 
 .field-sport-badge {
-  background: linear-gradient(180deg, #f0f0f0 0%, #d8d8d8 100%);
-  border: 1px solid #b2b2b2;
-  border-radius: 10px;
-  padding: 2px 8px;
-  font-size: 10px;
-  font-weight: bold;
+  background: rgba(0, 0, 0, 0.06);
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  border-radius: 980px;
+  padding: 2px 10px;
+  font-size: 11px;
+  font-weight: 700;
   text-transform: capitalize;
+  color: #111113;
 }
 
 .field-meta {
   display: flex;
   gap: 16px;
   flex-wrap: wrap;
-  font-size: 11px;
-  color: #666;
+  font-size: 12px;
+  font-weight: 500;
+  color: #48484a;
 }
 
 /* Booking type */
 
 .type-switcher-container {
-  margin-bottom: 14px;
+  margin-bottom: 16px;
 }
 
 .section-label,
 .form-group label {
-  font-size: 11px;
-  font-weight: bold;
-  color: #333;
+  font-size: 12px;
+  font-weight: 700;
+  color: #111113;
 }
 
 .segmented-control {
   display: flex;
-  background: #d8d8d8;
-  border-radius: 6px;
-  padding: 2px;
-  margin-top: 4px;
-  border: 1px solid #b2b2b2;
-  max-width: 420px;
+  background: rgba(0, 0, 0, 0.08);
+  backdrop-filter: blur(10px);
+  border-radius: 980px;
+  padding: 3px;
+  margin-top: 6px;
+  border: 1px solid rgba(0, 0, 0, 0.05);
+  max-width: 440px;
 }
 
 .tab-btn {
@@ -522,53 +530,55 @@ onMounted(async () => {
   background: transparent;
   border: none;
   font-size: 11px;
-  font-weight: bold;
-  color: #555;
-  padding: 5px 10px;
-  border-radius: 4px;
+  font-weight: 700;
+  color: #48484a;
+  padding: 6px 14px;
+  border-radius: 980px;
   cursor: pointer;
-  transition: all 0.15s ease;
+  transition: all 0.2s cubic-bezier(0.25, 1, 0.5, 1);
 }
 
 .tab-btn.active {
-  background: linear-gradient(180deg, #ffffff 0%, #e2e2e2 100%);
-  color: #111;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+  background: #ffffff;
+  color: #111113;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
 }
 
 .tab-btn:hover:not(.active) {
-  background: #c8c8c8;
+  color: #111113;
 }
 
 /* Tournament */
 
 .tournament-select-box {
-  background: #fff;
-  border: 1px solid #c0d4ec;
-  padding: 10px 12px;
-  border-radius: 5px;
-  margin-bottom: 14px;
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(0, 0, 0, 0.15);
+  padding: 14px 18px;
+  border-radius: 12px;
+  margin-bottom: 16px;
   display: flex;
   flex-direction: column;
-  gap: 5px;
+  gap: 6px;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.06);
 }
 
 .tournament-select-box label {
-  font-size: 11px;
-  font-weight: bold;
-  color: #333;
+  font-size: 12px;
+  font-weight: 700;
+  color: #111113;
 }
 
 .no-tournaments-warn {
-  font-size: 11px;
-  color: #a05000;
-  font-style: italic;
+  font-size: 12px;
+  font-weight: 600;
+  color: #856404;
 }
 
 .no-tournaments-warn a {
-  color: #0044bb;
-  font-style: normal;
-  font-weight: bold;
+  color: #0051c7;
+  font-weight: 700;
 }
 
 /* Form */
@@ -576,7 +586,7 @@ onMounted(async () => {
 .booking-form {
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 16px;
 }
 
 .form-grid {
@@ -588,32 +598,32 @@ onMounted(async () => {
 .form-group {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 6px;
 }
 
 select,
 input[type='date'] {
-  background: #ffffff;
-  border: 1px solid #8e8e8e;
-  border-radius: 4px;
-  padding: 5px 8px;
-  font-size: 12px;
+  background: rgba(255, 255, 255, 0.95);
+  border: 1px solid rgba(0, 0, 0, 0.2);
+  border-radius: 980px;
+  padding: 8px 14px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #111113;
   outline: none;
-  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.15);
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.08);
 }
 
 select:focus,
 input[type='date']:focus {
-  border-color: #38a5e8;
-  box-shadow:
-    0 0 5px #70c3ff,
-    inset 0 1px 2px rgba(0, 0, 0, 0.2);
+  border-color: #0051c7;
+  box-shadow: 0 0 0 3px rgba(0, 81, 199, 0.25), inset 0 1px 3px rgba(0, 0, 0, 0.08);
 }
 
 select:disabled,
 input[type='date']:disabled {
-  background: #f2f2f2;
-  color: #777;
+  background: rgba(240, 240, 242, 0.8);
+  color: #8e8e93;
 }
 
 /* Slots */
@@ -626,59 +636,70 @@ input[type='date']:disabled {
 
 .slots-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
-  gap: 8px;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 10px;
 }
 
 .slot-card {
   display: flex;
   align-items: center;
-  gap: 6px;
-  background: #fff;
-  border: 1px solid #ccc;
-  padding: 6px 10px;
-  border-radius: 5px;
+  gap: 8px;
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(0, 0, 0, 0.15);
+  padding: 10px 14px;
+  border-radius: 12px;
   cursor: pointer;
   font-size: 12px;
-  transition: all 0.15s ease;
+  font-weight: 600;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
 }
 
 .slot-card:hover:not(.slot-disabled) {
-  border-color: #38a5e8;
-  background-color: #f2f8fc;
+  border-color: #0051c7;
+  background: rgba(255, 255, 255, 0.98);
+  box-shadow: 0 4px 12px rgba(0, 81, 199, 0.15);
 }
 
 .slot-selected {
-  border-color: #1a62d6 !important;
-  background-color: #e9f2ff !important;
-  font-weight: bold;
+  border-color: #0051c7 !important;
+  background: rgba(0, 81, 199, 0.1) !important;
+  font-weight: 700;
+  box-shadow: 0 4px 12px rgba(0, 81, 199, 0.2) !important;
 }
 
 .slot-disabled {
-  background: #eaeaea;
-  border-color: #d0d0d0;
+  background: rgba(240, 240, 242, 0.6);
+  border-color: rgba(0, 0, 0, 0.1);
   opacity: 0.6;
   cursor: not-allowed;
+  box-shadow: none;
 }
 
 .slot-time {
   flex-grow: 1;
+  color: #111113;
 }
 
 .slot-status {
   font-size: 10px;
-  padding: 2px 6px;
-  border-radius: 8px;
+  font-weight: 700;
+  padding: 3px 8px;
+  border-radius: 980px;
 }
 
 .status-free {
-  background: #d4edda;
+  background: rgba(40, 167, 69, 0.2);
   color: #155724;
+  border: 1px solid rgba(40, 167, 69, 0.4);
 }
 
 .status-booked {
-  background: #f8d7da;
+  background: rgba(220, 53, 69, 0.2);
   color: #721c24;
+  border: 1px solid rgba(220, 53, 69, 0.4);
 }
 
 /* Actions */
@@ -687,8 +708,8 @@ input[type='date']:disabled {
   display: flex;
   justify-content: flex-end;
   align-items: center;
-  gap: 8px;
-  margin-top: 6px;
+  gap: 10px;
+  margin-top: 8px;
   flex-wrap: wrap;
 }
 

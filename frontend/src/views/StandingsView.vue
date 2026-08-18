@@ -62,9 +62,9 @@ onMounted(() => {
       section="Tournaments"
       section-to="/tournaments"
       :parent="{
-      label: tournament?.name,
-      to: `/tournaments/${tournament?._id}`,
-    }"
+        label: tournament?.name,
+        to: `/tournaments/${tournament?._id}`,
+      }"
       current="Standings"
     />
 
@@ -101,93 +101,93 @@ onMounted(() => {
       <div class="table-wrapper">
         <table class="standings-table">
           <thead>
-            <tr>
-              <th class="position-column">#</th>
+          <tr>
+            <th class="position-column">#</th>
 
-              <th class="team-column">Team</th>
+            <th class="team-column">Team</th>
 
-              <th>P</th>
+            <th>P</th>
 
-              <th>W</th>
+            <th>W</th>
 
-              <th>D</th>
+            <th>D</th>
 
-              <th>L</th>
+            <th>L</th>
 
-              <th>GF</th>
+            <th>GF</th>
 
-              <th>GA</th>
+            <th>GA</th>
 
-              <th>GD</th>
+            <th>GD</th>
 
-              <th class="points-column">Pts</th>
-            </tr>
+            <th class="points-column">Pts</th>
+          </tr>
           </thead>
 
           <tbody>
-            <tr
-              v-for="(team, index) in standings"
-              :key="team.teamId"
-              :class="['standing-row', getPositionClass(index)]"
-            >
-              <!-- Position -->
-              <td class="position-cell">
-                {{ index + 1 }}
-              </td>
+          <tr
+            v-for="(team, index) in standings"
+            :key="team.teamId"
+            :class="['standing-row', getPositionClass(index)]"
+          >
+            <!-- Position -->
+            <td class="position-cell">
+              <span class="pos-badge">{{ index + 1 }}</span>
+            </td>
 
-              <!-- Team -->
-              <td class="team-cell">
-                {{ team.name }}
-              </td>
+            <!-- Team -->
+            <td class="team-cell">
+              {{ team.name }}
+            </td>
 
-              <!-- Played -->
-              <td>
-                {{ team.played }}
-              </td>
+            <!-- Played -->
+            <td>
+              {{ team.played }}
+            </td>
 
-              <!-- Won -->
-              <td>
-                {{ team.won }}
-              </td>
+            <!-- Won -->
+            <td>
+              {{ team.won }}
+            </td>
 
-              <!-- Drawn -->
-              <td>
-                {{ team.drawn }}
-              </td>
+            <!-- Drawn -->
+            <td>
+              {{ team.drawn }}
+            </td>
 
-              <!-- Lost -->
-              <td>
-                {{ team.lost }}
-              </td>
+            <!-- Lost -->
+            <td>
+              {{ team.lost }}
+            </td>
 
-              <!-- Goals / Points scored -->
-              <td>
-                {{ team.scored }}
-              </td>
+            <!-- Goals / Points scored -->
+            <td>
+              {{ team.scored }}
+            </td>
 
-              <!-- Goals / Points conceded -->
-              <td>
-                {{ team.conceded }}
-              </td>
+            <!-- Goals / Points conceded -->
+            <td>
+              {{ team.conceded }}
+            </td>
 
-              <!-- Difference -->
-              <td
-                :class="[
+            <!-- Difference -->
+            <td
+              :class="[
                   'difference-cell',
                   {
                     positive: team.diff > 0,
                     negative: team.diff < 0,
                   },
                 ]"
-              >
-                {{ formatDifference(team.diff) }}
-              </td>
+            >
+              {{ formatDifference(team.diff) }}
+            </td>
 
-              <!-- Points -->
-              <td class="points-cell">
-                {{ team.points }}
-              </td>
-            </tr>
+            <!-- Points -->
+            <td class="points-cell">
+              {{ team.points }}
+            </td>
+          </tr>
           </tbody>
         </table>
       </div>
@@ -218,7 +218,7 @@ onMounted(() => {
 .standings-view {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 20px;
 }
 
 /* --------------------------------------------------
@@ -226,15 +226,16 @@ onMounted(() => {
 -------------------------------------------------- */
 
 .banner {
-  padding: 8px 12px;
-  border-radius: 4px;
-  font-size: 12px;
+  padding: 10px 14px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
 }
 
 .error-banner {
-  background-color: #ffe6e6;
-  border: 1px solid #ff9999;
-  color: #990000;
+  background: rgba(220, 53, 69, 0.15);
+  border: 1px solid rgba(220, 53, 69, 0.3);
+  color: #721c24;
 }
 
 /* --------------------------------------------------
@@ -251,7 +252,7 @@ onMounted(() => {
 .header-info {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
 }
 
 .header-actions {
@@ -262,15 +263,15 @@ onMounted(() => {
 
 .sport-badge {
   display: inline-block;
-  padding: 3px 9px;
-  border-radius: 10px;
+  padding: 4px 12px;
+  border-radius: 980px;
 
-  background: #e7f2ff;
-  border: 1px solid #a9ccef;
+  background: rgba(0, 81, 199, 0.1);
+  border: 1px solid rgba(0, 81, 199, 0.2);
 
-  color: #245b8d;
-  font-size: 10px;
-  font-weight: bold;
+  color: #0051c7;
+  font-size: 11px;
+  font-weight: 700;
 
   text-transform: capitalize;
 }
@@ -280,31 +281,31 @@ onMounted(() => {
 -------------------------------------------------- */
 
 .status-pill {
-  padding: 3px 9px;
-  border-radius: 10px;
+  padding: 4px 12px;
+  border-radius: 980px;
 
-  font-size: 10px;
-  font-weight: bold;
+  font-size: 11px;
+  font-weight: 700;
 
   text-transform: capitalize;
 }
 
 .status-registration {
-  background: #fff3cd;
+  background: rgba(255, 193, 7, 0.15);
   color: #856404;
-  border: 1px solid #ffeeba;
+  border: 1px solid rgba(255, 193, 7, 0.3);
 }
 
 .status-active {
-  background: #d4edda;
+  background: rgba(40, 167, 69, 0.15);
   color: #155724;
-  border: 1px solid #c3e6cb;
+  border: 1px solid rgba(40, 167, 69, 0.3);
 }
 
 .status-completed {
-  background: #e8e8e8;
-  color: #666;
-  border: 1px solid #ccc;
+  background: rgba(0, 0, 0, 0.06);
+  color: #48484a;
+  border: 1px solid rgba(0, 0, 0, 0.12);
 }
 
 /* --------------------------------------------------
@@ -314,9 +315,10 @@ onMounted(() => {
 .loading-state,
 .empty-state {
   text-align: center;
-  font-size: 12px;
-  color: #666;
-  padding: 16px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #48484a;
+  padding: 24px;
 }
 
 /* --------------------------------------------------
@@ -333,28 +335,31 @@ onMounted(() => {
   border-collapse: separate;
   border-spacing: 0;
 
-  font-size: 12px;
+  font-size: 13px;
 
-  border: 1px solid #c8c8c8;
-  border-radius: 6px;
+  border: 1px solid rgba(0, 0, 0, 0.15);
+  border-radius: 12px;
   overflow: hidden;
 
-  background: #ffffff;
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
 }
 
 /* Header */
 
 .standings-table thead th {
-  padding: 8px 7px;
+  padding: 10px 10px;
 
-  background: linear-gradient(180deg, #f7f7f7 0%, #dedede 100%);
+  background: rgba(0, 0, 0, 0.04);
 
-  border-bottom: 1px solid #bcbcbc;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
 
-  color: #444;
+  color: #48484a;
 
-  font-size: 10px;
-  font-weight: bold;
+  font-size: 11px;
+  font-weight: 700;
 
   text-align: center;
 
@@ -362,43 +367,44 @@ onMounted(() => {
 }
 
 .standings-table thead th:first-child {
-  border-top-left-radius: 5px;
+  border-top-left-radius: 11px;
 }
 
 .standings-table thead th:last-child {
-  border-top-right-radius: 5px;
+  border-top-right-radius: 11px;
 }
 
 /* Body */
 
 .standing-row td {
-  padding: 9px 7px;
+  padding: 12px 10px;
 
-  border-bottom: 1px solid #e6e6e6;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
 
-  color: #444;
+  color: #111113;
 
   text-align: center;
 
   white-space: nowrap;
+  font-weight: 500;
 }
 
 .standing-row:last-child td {
   border-bottom: none;
 }
 
-/* Zebra striping */
+/* Zebra striping & hover */
 
 .standing-row:nth-child(even) {
-  background: #f7f9fb;
+  background: rgba(0, 0, 0, 0.015);
 }
 
 .standing-row:nth-child(odd) {
-  background: #ffffff;
+  background: transparent;
 }
 
 .standing-row:hover {
-  background: #edf6ff;
+  background: rgba(0, 81, 199, 0.06);
 }
 
 /* --------------------------------------------------
@@ -406,59 +412,69 @@ onMounted(() => {
 -------------------------------------------------- */
 
 .position-column {
-  width: 42px;
+  width: 48px;
 }
 
 .position-cell {
-  width: 42px;
+  width: 48px;
+  font-weight: 700;
+}
 
-  font-weight: bold;
-  color: #666;
+.pos-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.06);
+  font-size: 11px;
+  color: #48484a;
 }
 
 .team-column {
-  min-width: 180px;
+  min-width: 200px;
   text-align: left !important;
 }
 
 .team-cell {
-  min-width: 180px;
-
-  font-weight: bold;
-  color: #222;
-
+  min-width: 200px;
+  font-weight: 700;
+  color: #111113;
   text-align: left !important;
 }
 
 .points-column {
-  width: 60px;
+  width: 70px;
 }
 
 .points-cell {
-  width: 60px;
-
-  color: #174f9c !important;
-  font-size: 13px;
-  font-weight: bold;
+  width: 70px;
+  color: #0051c7 !important;
+  font-size: 14px;
+  font-weight: 800;
 }
 
 /* --------------------------------------------------
    Positions
 -------------------------------------------------- */
 
-.position-first .position-cell {
-  color: #c28a00;
-  font-size: 13px;
+.position-first .pos-badge {
+  background: linear-gradient(135deg, #ffd700 0%, #ffaa00 100%);
+  color: #ffffff;
+  box-shadow: 0 2px 4px rgba(255, 170, 0, 0.3);
 }
 
-.position-second .position-cell {
-  color: #777;
-  font-size: 13px;
+.position-second .pos-badge {
+  background: linear-gradient(135deg, #e0e0e0 0%, #b0b0b0 100%);
+  color: #ffffff;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
 }
 
-.position-third .position-cell {
-  color: #a15c32;
-  font-size: 13px;
+.position-third .pos-badge {
+  background: linear-gradient(135deg, #cd7f32 0%, #a0522d 100%);
+  color: #ffffff;
+  box-shadow: 0 2px 4px rgba(205, 127, 50, 0.3);
 }
 
 /* --------------------------------------------------
@@ -466,15 +482,15 @@ onMounted(() => {
 -------------------------------------------------- */
 
 .difference-cell {
-  font-weight: bold;
+  font-weight: 700;
 }
 
 .difference-cell.positive {
-  color: #287a45;
+  color: #28a745;
 }
 
 .difference-cell.negative {
-  color: #b33a3a;
+  color: #dc3545;
 }
 
 /* --------------------------------------------------
@@ -485,14 +501,15 @@ onMounted(() => {
   display: flex;
   flex-wrap: wrap;
 
-  gap: 5px 14px;
+  gap: 6px 16px;
 
-  margin-top: 10px;
-  padding-top: 8px;
+  margin-top: 12px;
+  padding-top: 10px;
 
-  border-top: 1px solid #e5e5e5;
+  border-top: 1px solid rgba(0, 0, 0, 0.08);
 
-  color: #777;
-  font-size: 10px;
+  color: #48484a;
+  font-size: 11px;
+  font-weight: 600;
 }
 </style>

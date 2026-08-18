@@ -16,23 +16,22 @@ defineProps({
 
 <style scoped>
 .aqua-group {
-  background: #f6f6f6;
-  border: 1px solid #b4b4b4;
-  border-radius: 6px;
-  padding: 16px;
+  background: rgba(255, 255, 255, 0.90);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(0, 0, 0, 0.15);
+  border-radius: 14px;
+  padding: 18px 22px;
   margin-bottom: 20px;
-  box-shadow:
-    0 1px 3px rgba(0, 0, 0, 0.06),
-    inset 0 1px 0 #ffffff;
+  box-shadow: 0 12px 36px rgba(0, 0, 0, 0.12), inset 0 1px 0 rgba(255, 255, 255, 1);
 }
 
 .group-title {
-  font-size: 13px;
-  font-weight: bold;
-  color: #222;
-  margin-bottom: 12px;
-  padding-bottom: 6px;
-  border-bottom: 1px solid #d9d9d9;
-  text-shadow: 0 1px 0 #fff;
+  font-size: 15px;
+  font-weight: 700;
+  color: #111113;
+  margin-bottom: 14px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.12);
 }
 </style>
