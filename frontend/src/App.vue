@@ -26,8 +26,9 @@ import AppFooter from '@/components/layout/AppFooter.vue'
 .app-shell {
   display: flex;
   flex-direction: column;
-  height: 100vh;
+
   width: 100%;
+  height: 100vh;
   overflow: hidden;
 }
 
@@ -39,20 +40,21 @@ import AppFooter from '@/components/layout/AppFooter.vue'
 }
 
 .main-column {
-  flex: 1;
-  min-width: 0;
-  min-height: 0;
-
   display: flex;
+  flex: 1;
   flex-direction: column;
 
-  overflow-y: auto;
-  overflow-x: hidden;
+  min-width: 0;
+  min-height: 0;
 }
 
 .content-area {
   flex: 1;
+  min-height: 0;
+
   padding: 32px;
-  background: transparent;
+
+  overflow-y: auto;
+  overflow-x: hidden;
 }
 </style>

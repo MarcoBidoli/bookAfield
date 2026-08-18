@@ -12,12 +12,7 @@ const authStore = useAuthStore()
 
     <div class="user-status">
       <template v-if="authStore.isAuthenticated">
-        <span class="user-name">{{ authStore.user?.name || authStore.user?.username }}</span>
-        <span class="separator">·</span>
-        <a href="#" @click.prevent="authStore.logout">logout</a>
-      </template>
-      <template v-else>
-        <router-link to="/login">Sign In</router-link>
+        <span class="user-name">{{ authStore.user?.name || '@' + authStore.user?.username }}</span>
       </template>
     </div>
   </header>
