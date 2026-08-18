@@ -1,6 +1,6 @@
 <script setup>
 import { ref, reactive, computed, onMounted } from 'vue'
-import { useRoute } from 'vue-router'
+import { useRoute, useRouter} from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import {
   assignMatchBooking,
@@ -21,6 +21,7 @@ import ClockIcon from '@/components/icons/ClockIcon.vue'
 import TrophyIcon from '@/components/icons/TrophyIcon.vue'
 import PinPointIcon from '@/components/icons/PinPointIcon.vue'
 import BookArrowIcon from "@/components/icons/BookArrowIcon.vue";
+import StandingsIcon from "@/components/icons/StandingsIcon.vue";
 
 const route = useRoute()
 const authStore = useAuthStore()
@@ -189,6 +190,16 @@ function isMatchScheduled(match) {
   )
 }
 
+const router = useRouter()
+
+function goToStandings() {
+  router.push(`/tournaments/${route.params.id}/standings`)
+}
+
+function goToBookField() {
+  router.push(`/fields?tournamentId=${tournamentId}`)
+}
+
 onMounted(loadMatches)
 </script>
 
@@ -228,17 +239,21 @@ onMounted(loadMatches)
       "
     >
       <div class="header-actions">
-        <router-link
-          v-if="
-            isOwner &&
-            tournament?.status === 'active'
-          "
-          :to="`/fields?tournamentId=${tournamentId}`"
+        <Button
+          v-if="isOwner && tournament?.status === 'active'"
+          variant="primary"
+          @click="goToBookField"
         >
-          <Button variant="primary">
-            Book a Field
-          </Button>
-        </router-link>
+          Book a Field
+        </Button>
+        <Button
+          variant="secondary"
+          class="navigation-button"
+          @click="goToStandings"
+        >
+          <StandingsIcon />
+          Standings
+        </Button>
       </div>
     </Panel>
 
@@ -568,6 +583,14 @@ onMounted(loadMatches)
 </template>
 
 <style scoped>
+
+.navigation-button,
+.start-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+}
+
 .matches-view {
   display: flex;
   flex-direction: column;

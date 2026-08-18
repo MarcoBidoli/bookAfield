@@ -55,7 +55,7 @@ function getPositionClass(index) {
 function getStatusVariant(status) {
   switch (status) {
     case 'active':
-      return 'active'
+      return 'success'
 
     case 'registration':
     case 'upcoming':

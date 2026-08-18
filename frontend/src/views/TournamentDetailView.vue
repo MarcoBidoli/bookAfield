@@ -412,10 +412,6 @@ onMounted(loadTournament)
               tournament.
             </p>
           </div>
-
-          <div class="capacity-badge">
-            {{ numberOfTeams }} / {{ tournament.maxTeams }}
-          </div>
         </div>
 
         <!-- Add Team -->
@@ -635,6 +631,8 @@ onMounted(loadTournament)
 }
 
 .stat-muted {
+  font-size: 12px;
+  vertical-align: central;
   color: #8e8e93;
   font-weight: 600;
 }
@@ -689,16 +687,6 @@ onMounted(loadTournament)
   color: #8e8e93;
   font-size: 12px;
   font-weight: 500;
-}
-
-.capacity-badge {
-  padding: 7px 12px;
-  border-radius: 999px;
-  color: #48484a;
-  background: rgba(0, 0, 0, 0.05);
-  font-size: 12px;
-  font-weight: 700;
-  white-space: nowrap;
 }
 
 /* Management panels */

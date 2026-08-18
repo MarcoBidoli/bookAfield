@@ -37,6 +37,7 @@ const emit = defineEmits(['update:modelValue'])
   border-radius: 12px;
   padding: 4px;
   border: 1px solid rgba(0, 0, 0, 0.06);
+  margin-bottom: 20px;
 }
 
 .tab-btn {
