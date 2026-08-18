@@ -4,12 +4,12 @@ import { useRouter, useRoute } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 
 import { fetchFieldById, fetchFieldSlots, bookFieldSlot } from '@/api/fields'
-
 import { fetchTournaments } from '@/api/tournaments'
 
-import AquaPanel from '@/components/AquaPanel.vue'
-import AquaButton from '@/components/AquaButton.vue'
+import Panel from '@/components/Panel.vue'
+import Button from '@/components/Button.vue'
 import Breadcrumbs from '@/components/Breadcrumbs.vue'
+import AppBanner from '@/components/AppBanner.vue'
 
 const router = useRouter()
 const route = useRoute()
@@ -88,11 +88,8 @@ async function loadField() {
 
   try {
     const fieldData = await fetchFieldById(fieldId)
-
     field.value = fieldData
 
-    // Tournaments are only needed for authenticated users
-    // because only tournament creators can make tournament bookings.
     if (authStore.isAuthenticated) {
       tournaments.value = await fetchTournaments()
     }
@@ -156,7 +153,6 @@ async function handleBooking() {
       `${selectedDate.value} at ${selectedSlot.value}.`
 
     selectedSlot.value = ''
-
     await loadSlots()
   } catch (err) {
     errorMessage.value = err.message || 'Booking failed'
@@ -222,26 +218,25 @@ onMounted(async () => {
     <!-- Breadcrumb -->
     <Breadcrumbs section="Fields" section-to="/fields" current="Book a Field" />
 
-    <!-- Feedback -->
-    <div v-if="successMessage" class="banner success-banner">✓ {{ successMessage }}</div>
-
-    <div v-if="errorMessage" class="banner error-banner">⚠️ {{ errorMessage }}</div>
+    <!-- Feedback Banners -->
+    <AppBanner v-if="successMessage" type="success" :message="successMessage" />
+    <AppBanner v-if="errorMessage" type="error" :message="errorMessage" />
 
     <!-- Loading -->
     <div v-if="isLoading" class="loading-state">Loading field...</div>
 
     <!-- Field not found -->
-    <AquaPanel v-else-if="!field" title="Field Booking">
+    <Panel v-else-if="!field" title="Field Booking">
       <div class="empty-state">The requested field could not be found.</div>
 
       <div class="actions-row">
-        <AquaButton variant="secondary" @click="goBackToFields"> ← Back to Fields </AquaButton>
+        <Button variant="secondary" @click="goBackToFields"> ← Back to Fields </Button>
       </div>
-    </AquaPanel>
+    </Panel>
 
     <!-- Booking -->
     <template v-else>
-      <AquaPanel :title="`Book ${field.name}`">
+      <Panel :title="`Book ${field.name}`">
         <!-- Selected field -->
         <div class="selected-field">
           <div class="selected-field-main">
@@ -256,7 +251,6 @@ onMounted(async () => {
 
           <div class="field-meta">
             <span> 📍 {{ field.address || 'Main Sports Complex' }} </span>
-
             <span> ⏱ {{ field.slots?.length || 0 }} Daily Slots </span>
           </div>
         </div>
@@ -300,9 +294,7 @@ onMounted(async () => {
 
           <div v-if="myActiveTournaments.length === 0" class="no-tournaments-warn">
             You have no active tournaments created.
-
-            <router-link to="/tournaments"> Create or manage a tournament </router-link>
-            .
+            <router-link to="/tournaments"> Create or manage a tournament </router-link>.
           </div>
 
           <select
@@ -357,7 +349,6 @@ onMounted(async () => {
                   'slot-card',
                   {
                     'slot-selected': selectedSlot === slotInfo.slot,
-
                     'slot-disabled': !slotInfo.available,
                   },
                 ]"
@@ -385,16 +376,16 @@ onMounted(async () => {
 
           <!-- Actions -->
           <div class="actions-row">
-            <AquaButton
+            <Button
               type="button"
               variant="secondary"
               :disabled="isSubmitting"
               @click="goBackToFields"
             >
               ← Back to Fields
-            </AquaButton>
+            </Button>
 
-            <AquaButton
+            <Button
               type="submit"
               variant="primary"
               :disabled="
@@ -412,10 +403,10 @@ onMounted(async () => {
                       : 'Confirm Standard Booking'
                     : 'Sign In to Book'
               }}
-            </AquaButton>
+            </Button>
           </div>
         </form>
-      </AquaPanel>
+      </Panel>
     </template>
   </div>
 </template>
@@ -424,26 +415,10 @@ onMounted(async () => {
 .field-booking-view {
   display: flex;
   flex-direction: column;
-  gap: 16px;
-}
-
-.banner {
-  padding: 10px 14px;
-  border-radius: 8px;
-  font-size: 13px;
-  font-weight: 600;
-}
-
-.success-banner {
-  background: rgba(40, 167, 69, 0.2);
-  border: 1px solid rgba(40, 167, 69, 0.4);
-  color: #155724;
-}
-
-.error-banner {
-  background: rgba(220, 53, 69, 0.2);
-  border: 1px solid rgba(220, 53, 69, 0.4);
-  color: #721c24;
+  gap: 24px;
+  max-width: 1200px;
+  margin: 0 auto;
+  width: 100%;
 }
 
 .loading-state,
@@ -451,21 +426,18 @@ onMounted(async () => {
   text-align: center;
   font-size: 13px;
   font-weight: 600;
-  color: #48484a;
-  padding: 24px;
+  color: #6e6e73;
+  padding: 32px;
 }
 
 /* Selected field */
-
 .selected-field {
-  background: rgba(255, 255, 255, 0.85);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(0, 0, 0, 0.15);
+  background: #ffffff;
+  border: 1px solid rgba(0, 0, 0, 0.08);
   border-radius: 12px;
-  padding: 14px 18px;
-  margin-bottom: 16px;
-  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.06);
+  padding: 16px 20px;
+  margin-bottom: 20px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02);
 }
 
 .selected-field-main {
@@ -476,20 +448,21 @@ onMounted(async () => {
 }
 
 .field-name {
-  color: #0051c7;
-  font-size: 14px;
-  font-weight: 800;
+  color: #0071e3;
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: -0.2px;
 }
 
 .field-sport-badge {
-  background: rgba(0, 0, 0, 0.06);
-  border: 1px solid rgba(0, 0, 0, 0.12);
+  background: rgba(0, 113, 227, 0.08);
+  border: 1px solid rgba(0, 113, 227, 0.12);
   border-radius: 980px;
   padding: 2px 10px;
   font-size: 11px;
-  font-weight: 700;
+  font-weight: 600;
   text-transform: capitalize;
-  color: #111113;
+  color: #0071e3;
 }
 
 .field-meta {
@@ -498,30 +471,28 @@ onMounted(async () => {
   flex-wrap: wrap;
   font-size: 12px;
   font-weight: 500;
-  color: #48484a;
+  color: #6e6e73;
 }
 
 /* Booking type */
-
 .type-switcher-container {
-  margin-bottom: 16px;
+  margin-bottom: 20px;
 }
 
 .section-label,
 .form-group label {
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 700;
   color: #111113;
 }
 
 .segmented-control {
   display: flex;
-  background: rgba(0, 0, 0, 0.08);
-  backdrop-filter: blur(10px);
-  border-radius: 980px;
-  padding: 3px;
-  margin-top: 6px;
-  border: 1px solid rgba(0, 0, 0, 0.05);
+  background: rgba(0, 0, 0, 0.04);
+  border-radius: 12px;
+  padding: 4px;
+  margin-top: 8px;
+  border: 1px solid rgba(0, 0, 0, 0.06);
   max-width: 440px;
 }
 
@@ -529,19 +500,20 @@ onMounted(async () => {
   flex: 1;
   background: transparent;
   border: none;
-  font-size: 11px;
-  font-weight: 700;
+  font-size: 12px;
+  font-weight: 600;
   color: #48484a;
   padding: 6px 14px;
-  border-radius: 980px;
+  border-radius: 8px;
   cursor: pointer;
-  transition: all 0.2s cubic-bezier(0.25, 1, 0.5, 1);
+  transition: all 0.1s ease;
 }
 
 .tab-btn.active {
   background: #ffffff;
-  color: #111113;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+  color: #0071e3;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06);
+  font-weight: 700;
 }
 
 .tab-btn:hover:not(.active) {
@@ -549,23 +521,20 @@ onMounted(async () => {
 }
 
 /* Tournament */
-
 .tournament-select-box {
-  background: rgba(255, 255, 255, 0.85);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(0, 0, 0, 0.15);
-  padding: 14px 18px;
+  background: #ffffff;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  padding: 16px 20px;
   border-radius: 12px;
-  margin-bottom: 16px;
+  margin-bottom: 20px;
   display: flex;
   flex-direction: column;
-  gap: 6px;
-  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.06);
+  gap: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02);
 }
 
 .tournament-select-box label {
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 700;
   color: #111113;
 }
@@ -573,20 +542,19 @@ onMounted(async () => {
 .no-tournaments-warn {
   font-size: 12px;
   font-weight: 600;
-  color: #856404;
+  color: #b71c1c;
 }
 
 .no-tournaments-warn a {
-  color: #0051c7;
+  color: #0071e3;
   font-weight: 700;
 }
 
 /* Form */
-
 .booking-form {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 20px;
 }
 
 .form-grid {
@@ -603,76 +571,78 @@ onMounted(async () => {
 
 select,
 input[type='date'] {
-  background: rgba(255, 255, 255, 0.95);
-  border: 1px solid rgba(0, 0, 0, 0.2);
-  border-radius: 980px;
-  padding: 8px 14px;
+  background: #ffffff;
+  border: 1px solid rgba(0, 0, 0, 0.15);
+  border-radius: 8px;
+  padding: 10px 14px;
   font-size: 13px;
-  font-weight: 600;
+  font-weight: 500;
   color: #111113;
   outline: none;
-  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.08);
+  transition: all 0.1s ease;
 }
 
 select:focus,
 input[type='date']:focus {
-  border-color: #0051c7;
-  box-shadow: 0 0 0 3px rgba(0, 81, 199, 0.25), inset 0 1px 3px rgba(0, 0, 0, 0.08);
+  border-color: #0071e3;
+  box-shadow: 0 0 0 3px rgba(0, 113, 227, 0.15);
 }
 
 select:disabled,
 input[type='date']:disabled {
-  background: rgba(240, 240, 242, 0.8);
+  background: rgba(0, 0, 0, 0.04);
   color: #8e8e93;
+  cursor: not-allowed;
 }
 
 /* Slots */
-
 .slots-section {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 10px;
+}
+
+.slots-hint {
+  font-size: 13px;
+  color: #6e6e73;
 }
 
 .slots-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-  gap: 10px;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 12px;
 }
 
 .slot-card {
   display: flex;
   align-items: center;
-  gap: 8px;
-  background: rgba(255, 255, 255, 0.85);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(0, 0, 0, 0.15);
-  padding: 10px 14px;
+  gap: 10px;
+  background: #ffffff;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  padding: 12px 16px;
   border-radius: 12px;
   cursor: pointer;
-  font-size: 12px;
-  font-weight: 600;
-  transition: all 0.2s ease;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+  font-size: 13px;
+  font-weight: 500;
+  transition: all 0.1s ease;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.02);
 }
 
 .slot-card:hover:not(.slot-disabled) {
-  border-color: #0051c7;
-  background: rgba(255, 255, 255, 0.98);
-  box-shadow: 0 4px 12px rgba(0, 81, 199, 0.15);
+  border-color: rgba(0, 113, 227, 0.4);
+  box-shadow: 0 4px 12px rgba(0, 113, 227, 0.08);
 }
 
 .slot-selected {
-  border-color: #0051c7 !important;
-  background: rgba(0, 81, 199, 0.1) !important;
-  font-weight: 700;
-  box-shadow: 0 4px 12px rgba(0, 81, 199, 0.2) !important;
+  border-color: #0071e3 !important;
+  background: rgba(0, 113, 227, 0.04) !important;
+  font-weight: 600;
+  box-shadow: 0 4px 12px rgba(0, 113, 227, 0.1) !important;
 }
 
 .slot-disabled {
-  background: rgba(240, 240, 242, 0.6);
-  border-color: rgba(0, 0, 0, 0.1);
+  background: rgba(0, 0, 0, 0.02);
+  border-color: rgba(0, 0, 0, 0.06);
   opacity: 0.6;
   cursor: not-allowed;
   box-shadow: none;
@@ -681,35 +651,35 @@ input[type='date']:disabled {
 .slot-time {
   flex-grow: 1;
   color: #111113;
+  font-weight: 600;
 }
 
 .slot-status {
-  font-size: 10px;
-  font-weight: 700;
-  padding: 3px 8px;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 2px 8px;
   border-radius: 980px;
 }
 
 .status-free {
-  background: rgba(40, 167, 69, 0.2);
-  color: #155724;
-  border: 1px solid rgba(40, 167, 69, 0.4);
+  background: rgba(52, 199, 89, 0.12);
+  color: #1b5e20;
+  border: 1px solid rgba(52, 199, 89, 0.25);
 }
 
 .status-booked {
-  background: rgba(220, 53, 69, 0.2);
-  color: #721c24;
-  border: 1px solid rgba(220, 53, 69, 0.4);
+  background: rgba(255, 59, 48, 0.12);
+  color: #b71c1c;
+  border: 1px solid rgba(255, 59, 48, 0.25);
 }
 
 /* Actions */
-
 .actions-row {
   display: flex;
   justify-content: flex-end;
   align-items: center;
-  gap: 10px;
-  margin-top: 8px;
+  gap: 12px;
+  margin-top: 12px;
   flex-wrap: wrap;
 }
 
@@ -732,7 +702,7 @@ input[type='date']:disabled {
     justify-content: stretch;
   }
 
-  .actions-row :deep(.aqua-btn) {
+  .actions-row :deep(.btn) {
     flex: 1;
   }
 }

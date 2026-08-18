@@ -4,8 +4,8 @@ import { useRoute, useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import { fetchTournamentById, updateTournament } from '@/api/tournaments'
 
-import AquaPanel from '@/components/AquaPanel.vue'
-import AquaButton from '@/components/AquaButton.vue'
+import Panel from '@/components/Panel.vue'
+import Button from '@/components/Button.vue'
 import Breadcrumbs from '@/components/Breadcrumbs.vue'
 
 const route = useRoute()
@@ -20,6 +20,10 @@ const isSaving = ref(false)
 
 const errorMessage = ref('')
 const successMessage = ref('')
+
+const numberOfTeams = computed(() => {
+  return tournament.value?.teams?.length ?? 0
+})
 
 const form = reactive({
   name: '',
@@ -120,27 +124,27 @@ onMounted(() => {
     <div v-if="isLoading" class="loading-state">Loading tournament...</div>
 
     <!-- Not owner -->
-    <AquaPanel v-else-if="!isOwner" title="Edit Tournament">
+    <Panel v-else-if="!isOwner" title="Edit Tournament">
       <div class="access-denied">You are not allowed to edit this tournament.</div>
 
       <div class="actions">
-        <AquaButton @click="handleCancel"> ← Back to Tournament </AquaButton>
+        <Button @click="handleCancel"> ← Back to Tournament </Button>
       </div>
-    </AquaPanel>
+    </Panel>
 
     <!-- Tournament already active -->
-    <AquaPanel v-else-if="tournament.status !== 'registration'" title="Edit Tournament">
+    <Panel v-else-if="tournament.status !== 'registration'" title="Edit Tournament">
       <div class="access-denied">
         Tournament details can only be edited while registration is open.
       </div>
 
       <div class="actions">
-        <AquaButton @click="handleCancel"> ← Back to Tournament </AquaButton>
+        <Button @click="handleCancel"> ← Back to Tournament </Button>
       </div>
-    </AquaPanel>
+    </Panel>
 
     <!-- Edit form -->
-    <AquaPanel v-else title="Edit Tournament">
+    <Panel v-else title="Edit Tournament">
       <div class="form-container">
         <div class="form-row">
           <label for="name">Tournament Name</label>
@@ -168,8 +172,7 @@ onMounted(() => {
           />
 
           <span class="field-hint">
-            Current teams:
-            {{ tournament.teams?.length || 0 }}
+            Current teams: {{ numberOfTeams }}
           </span>
         </div>
 
@@ -187,19 +190,19 @@ onMounted(() => {
       </div>
 
       <div class="actions">
-        <AquaButton variant="secondary" :disabled="isSaving" @click="handleCancel">
+        <Button variant="secondary" :disabled="isSaving" @click="handleCancel">
           Cancel
-        </AquaButton>
+        </Button>
 
-        <AquaButton
+        <Button
           variant="primary"
           :disabled="isSaving || !form.name.trim() || Number(form.maxTeams) < 2"
           @click="handleSave"
         >
           {{ isSaving ? 'Saving...' : 'Save Changes' }}
-        </AquaButton>
+        </Button>
       </div>
-    </AquaPanel>
+    </Panel>
   </div>
 </template>
 
@@ -251,13 +254,6 @@ onMounted(() => {
   display: flex;
   flex-direction: column;
   gap: 16px;
-  background: rgba(255, 255, 255, 0.85);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(0, 0, 0, 0.15);
-  border-radius: 12px;
-  padding: 16px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
 }
 
 .form-row {

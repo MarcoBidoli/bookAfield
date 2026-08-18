@@ -10,9 +10,10 @@ import {
   recordMatchScore,
 } from '@/api/tournaments'
 
-import AquaPanel from '@/components/AquaPanel.vue'
-import AquaButton from '@/components/AquaButton.vue'
+import Panel from '@/components/Panel.vue'
+import Button from '@/components/Button.vue'
 import Breadcrumbs from '@/components/Breadcrumbs.vue'
+import AppBanner from '@/components/AppBanner.vue'
 
 const route = useRoute()
 const authStore = useAuthStore()
@@ -60,8 +61,6 @@ async function loadMatches() {
     tournament.value = tData
     matches.value = mData
 
-    // Only the tournament owner needs booking data.
-    // /:id/bookings is protected by JWT + requireOwner().
     if (isOwner.value) {
       bookings.value = await fetchTournamentBookings(tournamentId)
     } else {
@@ -145,7 +144,7 @@ onMounted(() => {
 
 <template>
   <div class="matches-view">
-    <!-- Breadcrumbs row  -->
+    <!-- Breadcrumbs row -->
     <Breadcrumbs
       section="Tournaments"
       section-to="/tournaments"
@@ -157,42 +156,40 @@ onMounted(() => {
     />
 
     <!-- Feedback Banners -->
-    <div v-if="successMessage" class="banner success-banner">✓ {{ successMessage }}</div>
-
-    <div v-if="errorMessage" class="banner error-banner">⚠️ {{ errorMessage }}</div>
+    <AppBanner v-if="successMessage" type="success" :message="successMessage" />
+    <AppBanner v-if="errorMessage" type="error" :message="errorMessage" />
 
     <!-- Header Panel -->
-    <AquaPanel :title="`Fixtures & Scores — ${tournament?.name || 'Tournament'}`">
+    <Panel :title="`Fixtures & Scores — ${tournament?.name || 'Tournament'}`">
       <div class="header-actions">
         <!-- Tournament owner only -->
         <router-link
           v-if="isOwner && tournament?.status === 'active'"
           :to="`/fields?tournamentId=${tournamentId}`"
-          style="margin-left: 8px"
         >
-          <AquaButton>Book a Field</AquaButton>
+          <Button variant="primary">Book a Field</Button>
         </router-link>
       </div>
-    </AquaPanel>
+    </Panel>
 
     <!-- Loading -->
     <div v-if="isLoading" class="loading-state">Loading tournament match fixtures...</div>
 
     <!-- No Matches -->
     <div v-else-if="matches.length === 0" class="empty-state">
-      <AquaPanel title="Schedule">
+      <Panel title="Schedule">
         <p>No matches generated yet.</p>
 
         <p v-if="isOwner" style="margin-top: 8px">
           Once all teams are registered in the tournament details page, generate the match fixtures
           to start the tournament.
         </p>
-      </AquaPanel>
+      </Panel>
     </div>
 
     <!-- Matches -->
     <template v-else>
-      <AquaPanel
+      <Panel
         v-for="(roundMatches, roundNum) in matchesByRound"
         :key="roundNum"
         :title="`Round ${roundNum} Fixtures`"
@@ -256,14 +253,15 @@ onMounted(() => {
                         placeholder="0"
                       />
 
-                      <button
+                      <Button
                         type="button"
+                        variant="primary"
                         class="btn-enter"
                         :disabled="isSubmitting"
                         @click="handleSaveScore(match)"
                       >
                         Enter
-                      </button>
+                      </Button>
                     </div>
                   </template>
 
@@ -282,12 +280,86 @@ onMounted(() => {
               <div class="match-meta">
                 <div class="match-info">
                   <template v-if="isMatchScheduled(match)">
-                    <span class="meta-item"> 📅 {{ match.date }} | ⏱ {{ match.slot }} </span>
+                    <span class="meta-item">
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="13"
+                        height="13"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        class="meta-icon"
+                      >
+                        <rect width="18" height="18" x="3" y="4" rx="2" ry="2" />
+                        <line x1="16" x2="16" y1="2" y2="6" />
+                        <line x1="8" x2="8" y1="2" y2="6" />
+                        <line x1="3" x2="21" y1="10" y2="10" />
+                      </svg>
+                      {{ match.date }}
+                    </span>
 
-                    <span v-if="match.field" class="meta-item"> 🏟️ {{ match.field.name }} </span>
+                    <span class="meta-item">
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="13"
+                        height="13"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        class="meta-icon"
+                      >
+                        <circle cx="12" cy="12" r="10" />
+                        <polyline points="12 6 12 12 16 14" />
+                      </svg>
+                      {{ match.slot }}
+                    </span>
+
+                    <span v-if="match.field" class="meta-item">
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="13"
+                        height="13"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        class="meta-icon"
+                      >
+                        <path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6" />
+                        <path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18" />
+                        <path d="M4 22h16" />
+                        <path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22" />
+                        <path d="M14 14.66V17c0 .55-.47.98-.97 1.21C16.15 18.75 17 20.24 17 22" />
+                        <path d="M18 2H6v7a6 6 0 0 0 12 0V2Z" />
+                      </svg>
+                      {{ match.field.name }}
+                    </span>
 
                     <span v-if="match.field?.address" class="meta-item">
-                      📍 {{ match.field.address }}
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        width="13"
+                        height="13"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        stroke-width="2"
+                        stroke-linecap="round"
+                        stroke-linejoin="round"
+                        class="meta-icon"
+                      >
+                        <path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z" />
+                        <circle cx="12" cy="10" r="3" />
+                      </svg>
+                      {{ match.field.address }}
                     </span>
                   </template>
 
@@ -326,20 +398,21 @@ onMounted(() => {
                     </option>
                   </select>
 
-                  <button
+                  <Button
                     type="button"
+                    variant="primary"
                     class="btn-assign"
                     :disabled="isSubmitting || !selectedBookings[match._id]"
                     @click="handleAssignBooking(match)"
                   >
                     Assign
-                  </button>
+                  </Button>
                 </div>
               </div>
             </div>
           </div>
         </div>
-      </AquaPanel>
+      </Panel>
     </template>
   </div>
 </template>
@@ -349,25 +422,9 @@ onMounted(() => {
   display: flex;
   flex-direction: column;
   gap: 20px;
-}
-
-.banner {
-  padding: 10px 14px;
-  border-radius: 8px;
-  font-size: 13px;
-  font-weight: 600;
-}
-
-.success-banner {
-  background: rgba(40, 167, 69, 0.15);
-  border: 1px solid rgba(40, 167, 69, 0.3);
-  color: #155724;
-}
-
-.error-banner {
-  background: rgba(220, 53, 69, 0.15);
-  border: 1px solid rgba(220, 53, 69, 0.3);
-  color: #721c24;
+  max-width: 1200px;
+  margin: 0 auto;
+  width: 100%;
 }
 
 .header-actions {
@@ -382,41 +439,53 @@ onMounted(() => {
   text-align: center;
   font-size: 13px;
   font-weight: 600;
-  color: #48484a;
-  padding: 24px;
+  color: #6e6e73;
+  padding: 32px;
 }
 
-/* Transformed from a single vertical column into a responsive multi-column grid to prevent card clutter */
 .matches-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-  gap: 14px;
+  gap: 16px;
 }
 
 .match-card {
-  background: rgba(255, 255, 255, 0.85);
-  backdrop-filter: blur(12px);
-  -webkit-backdrop-filter: blur(12px);
-  border: 1px solid rgba(0, 0, 0, 0.15);
-  border-radius: 12px;
-  padding: 16px 20px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+  background: #ffffff;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-radius: 16px;
+  padding: 20px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02);
   display: flex;
   flex-direction: column;
-  gap: 14px;
-  transition: all 0.2s ease;
+  gap: 16px;
+  transition: all 0.1s ease;
+}
+
+.match-card:hover {
+  border-color: rgba(0, 113, 227, 0.3);
+  box-shadow: 0 6px 16px rgba(0, 113, 227, 0.08);
 }
 
 .match-played {
-  background: rgba(245, 247, 250, 0.9);
-  border-color: rgba(0, 0, 0, 0.1);
+  background: rgba(0, 0, 0, 0.01);
+  border-color: rgba(0, 0, 0, 0.06);
 }
 
 .match-info {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
   flex-wrap: wrap;
+}
+
+.meta-icon {
+  color: #0071e3;
+  flex-shrink: 0;
+}
+
+.meta-separator {
+  color: #c7c7cc;
+  font-size: 10px;
 }
 
 .teams-versus {
@@ -424,7 +493,7 @@ onMounted(() => {
   justify-content: space-between;
   align-items: center;
   gap: 12px;
-  margin: 6px auto 10px auto;
+  margin: 4px 0;
 }
 
 .team-name {
@@ -450,143 +519,113 @@ onMounted(() => {
   align-items: center;
   justify-content: center;
   min-width: 110px;
+  margin-bottom: 10px;
 }
 
 .score-badge {
-  background: linear-gradient(135deg, #0051c7 0%, #003a94 100%);
+  background: #0071e3;
   color: #ffffff;
   font-weight: 700;
-  font-size: 12px;
-  padding: 5px 12px;
+  font-size: 14px;
+  padding: 4px 12px;
   border-radius: 980px;
-  box-shadow: 0 2px 6px rgba(0, 81, 199, 0.25);
+  box-shadow: 0 2px 6px rgba(0, 113, 227, 0.2);
 }
 
 .vs-badge {
-  color: #48484a;
+  color: #6e6e73;
   font-size: 11px;
   font-weight: 700;
-  background: rgba(0, 0, 0, 0.06);
-  padding: 3px 8px;
+  background: rgba(0, 0, 0, 0.04);
+  padding: 3px 10px;
   border-radius: 980px;
+  border: 1px solid rgba(0, 0, 0, 0.06);
 }
 
 .score-form {
   display: inline-flex;
   align-items: center;
-  gap: 4px;
+  gap: 6px;
 }
 
 .score-input {
-  width: 36px;
-  height: 30px;
+  width: 40px;
+  height: 32px;
   text-align: center;
   padding: 2px;
-  font-size: 12px;
+  font-size: 13px;
   font-weight: 600;
-  border: 1px solid rgba(0, 0, 0, 0.2);
-  border-radius: 6px;
+  border: 1px solid rgba(0, 0, 0, 0.15);
+  border-radius: 8px;
   outline: none;
-  background: rgba(255, 255, 255, 0.95);
+  background: #ffffff;
   color: #111113;
-  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.08);
+  transition: all 0.1s ease;
 }
 
 .score-input:focus {
-  border-color: #0051c7;
-  box-shadow: 0 0 0 3px rgba(0, 81, 199, 0.25), inset 0 1px 3px rgba(0, 0, 0, 0.08);
+  border-color: #0071e3;
+  box-shadow: 0 0 0 3px rgba(0, 113, 227, 0.15);
 }
 
 .score-colon {
   font-weight: 700;
-  color: #48484a;
+  color: #6e6e73;
 }
 
 .btn-enter {
-  background: #0051c7;
-  border: none;
-  border-radius: 6px;
-  color: #ffffff;
   font-size: 11px;
-  font-weight: 700;
-  padding: 5px 10px;
-  cursor: pointer;
-  height: 30px;
-  transition: background 0.2s;
-}
-
-.btn-enter:hover {
-  background: #0040a1;
-}
-
-.btn-enter:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
+  padding: 4px 10px;
+  height: 32px;
 }
 
 /* Isolated Inset Well for Booking Controls */
 .booking-assignment {
-  background: rgba(0, 0, 0, 0.03);
-  border: 1px solid rgba(0, 0, 0, 0.08);
-  border-radius: 10px;
-  padding: 10px 12px;
+  background: rgba(0, 0, 0, 0.02);
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  border-radius: 12px;
+  padding: 12px;
   display: flex;
   flex-direction: column;
-  gap: 6px;
-  margin-top: 12px;
+  gap: 8px;
+  margin-top: 4px;
 }
 
 .booking-label {
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 700;
   color: #111113;
 }
 
 .booking-controls {
   display: flex;
-  gap: 6px;
+  gap: 8px;
   align-items: center;
 }
 
 .booking-select {
   flex: 1;
-  background: rgba(255, 255, 255, 0.95);
-  border: 1px solid rgba(0, 0, 0, 0.2);
-  border-radius: 6px;
-  padding: 5px 8px;
-  font-size: 11px;
-  font-weight: 600;
-  height: 30px;
+  background: #ffffff;
+  border: 1px solid rgba(0, 0, 0, 0.15);
+  border-radius: 8px;
+  padding: 6px 10px;
+  font-size: 12px;
+  font-weight: 500;
+  height: 32px;
   color: #111113;
   outline: none;
-  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.08);
+  transition: all 0.1s ease;
 }
 
 .booking-select:focus {
-  border-color: #0051c7;
-  box-shadow: 0 0 0 3px rgba(0, 81, 199, 0.25), inset 0 1px 3px rgba(0, 0, 0, 0.08);
+  border-color: #0071e3;
+  box-shadow: 0 0 0 3px rgba(0, 113, 227, 0.15);
 }
 
 .btn-assign {
-  background: #0051c7;
-  border: none;
-  border-radius: 6px;
-  color: #fff;
   font-size: 11px;
-  font-weight: 700;
-  padding: 5px 10px;
-  cursor: pointer;
-  height: 30px;
-  transition: background 0.2s;
-}
-
-.btn-assign:hover {
-  background: #0040a1;
-}
-
-.btn-assign:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
+  padding: 4px 10px;
+  height: 32px;
 }
 
 .match-meta {
@@ -594,45 +633,48 @@ onMounted(() => {
   justify-content: space-between;
   align-items: center;
   padding-top: 12px;
-  border-top: 1px solid rgba(0, 0, 0, 0.08);
-  font-size: 11px;
+  border-top: 1px solid rgba(0, 0, 0, 0.06);
+  font-size: 12px;
   font-weight: 500;
 }
 
 .meta-item {
-  color: #48484a;
+  color: #6e6e73;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
 }
 
 .unscheduled {
-  color: #b25000;
+  color: #b71c1c;
   font-weight: 600;
 }
 
 .status-pill {
-  padding: 2px 8px;
+  padding: 2px 10px;
   border-radius: 980px;
-  font-size: 10px;
-  font-weight: 700;
+  font-size: 11px;
+  font-weight: 600;
   text-transform: capitalize;
 }
 
 .status-upcoming {
-  background: rgba(255, 193, 7, 0.15);
-  color: #856404;
-  border: 1px solid rgba(255, 193, 7, 0.3);
+  background: rgba(255, 149, 0, 0.12);
+  color: #b25000;
+  border: 1px solid rgba(255, 149, 0, 0.25);
 }
 
 .status-played {
-  background: rgba(40, 167, 69, 0.15);
-  color: #155724;
-  border: 1px solid rgba(40, 167, 69, 0.3);
+  background: rgba(52, 199, 89, 0.12);
+  color: #1b5e20;
+  border: 1px solid rgba(52, 199, 89, 0.25);
 }
 
 .bye-row {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  font-size: 12px;
+  font-size: 13px;
 }
 
 .bye-team {
@@ -641,28 +683,12 @@ onMounted(() => {
 }
 
 .bye-badge {
-  background: rgba(0, 0, 0, 0.06);
-  border: 1px solid rgba(0, 0, 0, 0.1);
-  padding: 2px 8px;
+  background: rgba(0, 0, 0, 0.04);
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  padding: 3px 10px;
   border-radius: 980px;
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 600;
-  color: #48484a;
-}
-
-.back-link-row {
-  display: flex;
-  align-items: center;
-}
-
-.back-link {
-  color: #0051c7;
-  font-size: 12px;
-  font-weight: 700;
-  text-decoration: none;
-}
-
-.back-link:hover {
-  text-decoration: underline;
+  color: #6e6e73;
 }
 </style>
