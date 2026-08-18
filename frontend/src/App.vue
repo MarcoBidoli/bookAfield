@@ -6,14 +6,11 @@ import AppFooter from '@/components/layout/AppFooter.vue'
 
 <template>
   <div class="app-shell">
-    <!-- Top High-Contrast Glass Navigation Bar -->
     <AppNavbar />
 
-    <!-- Main Layout: Full screen Body with Sidebar and Content -->
     <div class="app-body">
       <AppSidebar />
 
-      <!-- Right side: content + footer -->
       <div class="main-column">
         <main class="content-area">
           <router-view />
@@ -29,26 +26,33 @@ import AppFooter from '@/components/layout/AppFooter.vue'
 .app-shell {
   display: flex;
   flex-direction: column;
-  min-height: 100vh;
+  height: 100vh;
   width: 100%;
+  overflow: hidden;
 }
 
 .app-body {
   display: flex;
   flex: 1;
+  min-height: 0;
+  overflow: hidden;
 }
 
 .main-column {
   flex: 1;
+  min-width: 0;
+  min-height: 0;
+
   display: flex;
   flex-direction: column;
-  min-width: 0;
+
+  overflow-y: auto;
+  overflow-x: hidden;
 }
 
 .content-area {
   flex: 1;
   padding: 32px;
   background: transparent;
-  overflow-y: auto;
 }
 </style>

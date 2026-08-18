@@ -228,7 +228,7 @@ async function handleRegister() {
 
 .tab-btn.active {
   background: #ffffff;
-  color: #0071e3;
+  color: #171b1c;
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06);
   font-weight: 700;
 }

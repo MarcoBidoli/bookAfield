@@ -16,10 +16,6 @@
   align-items: center;
   justify-content: center;
   gap: 8px;
-  background: rgba(240, 242, 245, 0.9);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-  border-top: 1px solid rgba(0, 0, 0, 0.15);
   color: #48484a;
   font-size: 11px;
   font-weight: 600;
