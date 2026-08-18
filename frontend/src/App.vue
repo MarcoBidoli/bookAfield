@@ -46,15 +46,12 @@ import AppFooter from '@/components/layout/AppFooter.vue'
 
   min-width: 0;
   min-height: 0;
-}
-
-.content-area {
-  flex: 1;
-  min-height: 0;
-
-  padding: 32px;
 
   overflow-y: auto;
   overflow-x: hidden;
+}
+
+.content-area {
+  padding: 32px;
 }
 </style>
