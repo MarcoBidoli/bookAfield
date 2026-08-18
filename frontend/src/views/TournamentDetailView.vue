@@ -1,4 +1,3 @@
-<!-- TODO: huge view - split in components -->
 <script setup>
 import { computed, onMounted, reactive, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
@@ -16,6 +15,15 @@ import PageHeader from '@/components/PageHeader.vue'
 import EmptyState from '@/components/EmptyState.vue'
 import LoadingState from '@/components/LoadingState.vue'
 import AppBanner from '@/components/AppBanner.vue'
+import SportBadge from '@/components/SportBadge.vue'
+import UserIcon from '@/components/icons/UserIcon.vue'
+import UsersIcon from '@/components/icons/UsersIcon.vue'
+import CalendarIcon from '@/components/icons/CalendarIcon.vue'
+import MatchesIcon from '@/components/icons/MatchesIcon.vue'
+import StandingsIcon from '@/components/icons/StandingsIcon.vue'
+import TeamCard from '@/components/TeamCard.vue'
+import PencilIcon from '@/components/icons/PencilIcon.vue'
+import AddIcon from '@/components/icons/AddIcon.vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -31,7 +39,7 @@ const errorMessage = ref('')
 const successMessage = ref('')
 
 const newTeamName = ref('')
-const selectedTeamIndex = ref(0)
+const selectedTeamId = ref(null);
 
 const newPlayer = reactive({
   name: '',
@@ -63,46 +71,36 @@ const numberOfPlayers = computed(() => {
   }, 0)
 })
 
+const isRegistrationOpen = computed(() => {
+  return tournament.value?.status === 'registration'
+})
+
+const canManageTournament = computed(() => {
+  return isOwner.value && isRegistrationOpen.value
+})
+
 const canAddTeams = computed(() => {
   return (
-    isOwner.value &&
-    tournament.value?.status === 'registration' &&
+    canManageTournament.value &&
     numberOfTeams.value < tournament.value.maxTeams
   )
 })
 
 const canManagePlayers = computed(() => {
-  return (
-    isOwner.value &&
-    tournament.value?.status === 'registration' &&
-    numberOfTeams.value > 0
-  )
+  return canManageTournament.value && numberOfTeams.value > 0
 })
 
 const canStartTournament = computed(() => {
   return (
-    isOwner.value &&
-    tournament.value?.status === 'registration' &&
+    canManageTournament.value &&
     numberOfTeams.value === tournament.value.maxTeams
   )
 })
 
-const statusLabel = computed(() => {
-  const status = tournament.value?.status
-
-  if (status === 'registration') return 'Registration Open'
-  if (status === 'active') return 'Active'
-  if (status === 'completed') return 'Completed'
-
-  return status || ''
-})
-
-const sportLabel = computed(() => {
-  const sport = tournament.value?.sport
-
-  if (!sport) return ''
-
-  return sport.charAt(0).toUpperCase() + sport.slice(1)
+const selectedTeam = computed(() => {
+  return teams.value.find(
+    (team) => String(team._id) === String(selectedTeamId.value),
+  )
 })
 
 async function loadTournament() {
@@ -111,6 +109,9 @@ async function loadTournament() {
 
   try {
     tournament.value = await fetchTournamentById(tournamentId)
+    if(!selectedTeam.value && teams.value.length) {
+      selectedTeamId.value = teams.value[0]._id
+    }
   } catch (err) {
     errorMessage.value = err.message || 'Tournament not found'
   } finally {
@@ -121,20 +122,17 @@ async function loadTournament() {
 async function handleAddTeam() {
   const teamName = newTeamName.value.trim()
 
-  if (!teamName) {
+  if (!teamName || !canAddTeams.value) {
     return
   }
 
-  if (!canAddTeams.value) {
-    return
-  }
-
-  const updatedTeams = [...teams.value]
-
-  updatedTeams.push({
-    name: teamName,
-    players: [],
-  })
+  const updatedTeams = [
+    ...teams.value,
+    {
+      name: teamName,
+      players: [],
+    },
+  ]
 
   isUpdating.value = true
   errorMessage.value = ''
@@ -146,7 +144,6 @@ async function handleAddTeam() {
     })
 
     newTeamName.value = ''
-
     successMessage.value = 'Team registered successfully.'
   } catch (err) {
     errorMessage.value = err.message || 'Failed to add team'
@@ -155,14 +152,8 @@ async function handleAddTeam() {
   }
 }
 
-async function handleRemoveTeam(index) {
-  if (!isOwner.value || tournament.value?.status !== 'registration') {
-    return
-  }
-
-  const team = teams.value[index]
-
-  if (!team) {
+async function handleRemoveTeam(team) {
+  if (!canManageTournament.value || !team) {
     return
   }
 
@@ -174,8 +165,9 @@ async function handleRemoveTeam(index) {
     return
   }
 
-  const updatedTeams = [...teams.value]
-  updatedTeams.splice(index, 1)
+  const updatedTeams = teams.value.filter(
+    (currentTeam) => String(currentTeam._id) !== String(team._id),
+  )
 
   isUpdating.value = true
   errorMessage.value = ''
@@ -186,8 +178,8 @@ async function handleRemoveTeam(index) {
       teams: updatedTeams,
     })
 
-    if (selectedTeamIndex.value >= updatedTeams.length) {
-      selectedTeamIndex.value = Math.max(0, updatedTeams.length - 1)
+    if (String(selectedTeamId.value) === String(team._id)) {
+      selectedTeamId.value = updatedTeams[0]?._id ?? null
     }
 
     successMessage.value = 'Team removed successfully.'
@@ -199,32 +191,29 @@ async function handleRemoveTeam(index) {
 }
 
 async function handleAddPlayer() {
-  if (!canManagePlayers.value) {
-    return
-  }
+  if (!canManagePlayers.value) return
 
-  if (!newPlayer.name.trim() || !newPlayer.surname.trim()) {
-    return
-  }
+  const name = newPlayer.name.trim()
+  const surname = newPlayer.surname.trim()
 
-  const currentTeams = teams.value.map(team => ({
+  if (!name || !surname || !selectedTeamId.value) return
+
+  const teamsToUpdate = teams.value.map((team) => ({
     ...team,
-    players: Array.isArray(team.players) ? [...team.players] : [],
+    players: [...(team.players || [])],
   }))
 
-  const team = currentTeams[selectedTeamIndex.value]
+  const team = teamsToUpdate.find(
+    (team) => String(team._id) === String(selectedTeamId.value),
+  )
 
-  if (!team) {
-    return
-  }
+  if (!team) return
 
   team.players.push({
     userId: authStore.user?._id || authStore.user?.id || null,
-    name: newPlayer.name.trim(),
-    surname: newPlayer.surname.trim(),
-    jerseyNumber: newPlayer.jerseyNumber
-      ? String(newPlayer.jerseyNumber).trim()
-      : null,
+    name,
+    surname,
+    jerseyNumber: newPlayer.jerseyNumber.trim() || null,
   })
 
   isUpdating.value = true
@@ -233,12 +222,10 @@ async function handleAddPlayer() {
 
   try {
     tournament.value = await updateTournament(tournamentId, {
-      teams: currentTeams,
+      teams: teamsToUpdate,
     })
 
-    newPlayer.name = ''
-    newPlayer.surname = ''
-    newPlayer.jerseyNumber = ''
+    resetPlayerForm()
 
     successMessage.value = `Player added to ${team.name}.`
   } catch (err) {
@@ -246,6 +233,12 @@ async function handleAddPlayer() {
   } finally {
     isUpdating.value = false
   }
+}
+
+function resetPlayerForm() {
+  newPlayer.name = ''
+  newPlayer.surname = ''
+  newPlayer.jerseyNumber = ''
 }
 
 async function handleGenerateSchedule() {
@@ -263,7 +256,6 @@ async function handleGenerateSchedule() {
 
   try {
     await generateTournamentSchedule(tournamentId)
-
     await loadTournament()
 
     router.push(`/tournaments/${tournamentId}/matches`)
@@ -287,27 +279,22 @@ function goToStandings() {
   router.push(`/tournaments/${tournamentId}/standings`)
 }
 
-onMounted(() => {
-  loadTournament()
-})
+onMounted(loadTournament)
 </script>
 
 <template>
   <div class="tournament-view">
-    <!-- Breadcrumbs -->
     <Breadcrumbs
       section="Tournaments"
       section-to="/tournaments"
       :current="tournament?.name || 'Tournament'"
     />
 
-    <!-- Header -->
     <PageHeader
       v-if="!isLoading && tournament"
       :title="tournament.name"
     />
 
-    <!-- Feedback -->
     <AppBanner
       v-if="errorMessage"
       type="error"
@@ -320,123 +307,22 @@ onMounted(() => {
       :message="successMessage"
     />
 
-    <!-- Loading -->
     <LoadingState
       v-if="isLoading"
       message="Loading tournament..."
     />
 
-    <!-- Tournament -->
     <template v-else-if="tournament">
       <!-- Overview -->
       <Panel class="overview-panel">
         <div class="overview-header">
-          <div class="sport-badge">
-            <!-- Volleyball icon -->
-            <svg
-              v-if="tournament.sport === 'volleyball'"
-              viewBox="0 0 24 24"
-              aria-hidden="true"
-            >
-              <circle
-                cx="12"
-                cy="12"
-                r="9"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="1.8"
-              />
-              <path
-                d="M7 5.5c2.8 1.2 4.7 3.2 5.6 5.8M16.8 5.7c-2.5 1.8-3.9 4-4.2 6.7M5 15.4c3 .2 5.4-.6 7.3-2.6M19 14.7c-2.3-.4-4.4.2-6.2 1.9"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="1.5"
-                stroke-linecap="round"
-              />
-            </svg>
-
-            <!-- Football icon -->
-            <svg
-              v-else-if="tournament.sport === 'football'"
-              viewBox="0 0 24 24"
-              aria-hidden="true"
-            >
-              <path
-                d="M12 3.5l4.8 3.5-1.8 5.7h-6L7.2 7z"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="1.7"
-                stroke-linejoin="round"
-              />
-              <path
-                d="M12 3.5v5M7.2 7l4.8 1.5M16.8 7L12 8.5M9 12.7l-3.7 3M15 12.7l3.7 3M9 12.7l-1.5 5.2M15 12.7l1.5 5.2"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="1.5"
-                stroke-linecap="round"
-              />
-            </svg>
-
-            <!-- Basketball icon -->
-            <svg
-              v-else
-              viewBox="0 0 24 24"
-              aria-hidden="true"
-            >
-              <circle
-                cx="12"
-                cy="12"
-                r="9"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="1.8"
-              />
-              <path
-                d="M5.5 7.2c3.2.8 5.8 2.8 7.3 5.8M18.5 7.2c-3.2.8-5.8 2.8-7.3 5.8M5 15.8c2.5-.4 4.8-1.6 6.5-3.8M19 15.8c-2.5-.4-4.8-1.6-6.5-3.8"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="1.4"
-                stroke-linecap="round"
-              />
-            </svg>
-
-            <span>{{ sportLabel }}</span>
-          </div>
-
-          <span
-            :class="[
-              'status-badge',
-              `status-${tournament.status}`,
-            ]"
-          >
-            <span class="status-dot"></span>
-            {{ statusLabel }}
-          </span>
+          <SportBadge :sport="tournament.sport" />
         </div>
 
         <div class="overview-stats">
-          <!-- Date -->
           <div class="stat">
             <div class="stat-icon">
-              <svg viewBox="0 0 24 24" aria-hidden="true">
-                <rect
-                  x="4"
-                  y="5"
-                  width="16"
-                  height="15"
-                  rx="2"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="1.7"
-                />
-                <path
-                  d="M8 3.5v3M16 3.5v3M4 9h16"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="1.7"
-                  stroke-linecap="round"
-                />
-              </svg>
+              <CalendarIcon />
             </div>
 
             <div>
@@ -445,34 +331,9 @@ onMounted(() => {
             </div>
           </div>
 
-          <!-- Teams -->
           <div class="stat">
             <div class="stat-icon">
-              <svg viewBox="0 0 24 24" aria-hidden="true">
-                <circle
-                  cx="9"
-                  cy="8"
-                  r="3"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="1.7"
-                />
-                <circle
-                  cx="16.5"
-                  cy="9"
-                  r="2.3"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="1.5"
-                />
-                <path
-                  d="M3.8 19c.5-3 2.2-5 5.2-5s4.7 2 5.2 5M14.5 14.5c2.7-.2 4.7 1.3 5.3 4.5"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="1.7"
-                  stroke-linecap="round"
-                />
-              </svg>
+              <UsersIcon />
             </div>
 
             <div>
@@ -486,26 +347,9 @@ onMounted(() => {
             </div>
           </div>
 
-          <!-- Players -->
           <div class="stat">
             <div class="stat-icon">
-              <svg viewBox="0 0 24 24" aria-hidden="true">
-                <circle
-                  cx="12"
-                  cy="8"
-                  r="3"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="1.7"
-                />
-                <path
-                  d="M5.5 20c.6-4.1 2.7-6.2 6.5-6.2s5.9 2.1 6.5 6.2"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="1.7"
-                  stroke-linecap="round"
-                />
-              </svg>
+              <UserIcon />
             </div>
 
             <div>
@@ -515,32 +359,13 @@ onMounted(() => {
           </div>
         </div>
 
-        <!-- Navigation -->
         <div class="overview-actions">
           <Button
             variant="secondary"
             class="navigation-button"
             @click="goToMatches"
           >
-            <svg viewBox="0 0 24 24" aria-hidden="true">
-              <rect
-                x="4"
-                y="5"
-                width="16"
-                height="14"
-                rx="2"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="1.7"
-              />
-              <path
-                d="M8 9h8M8 13h5M8 17h3"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="1.7"
-                stroke-linecap="round"
-              />
-            </svg>
+            <MatchesIcon />
             Matches
           </Button>
 
@@ -549,35 +374,19 @@ onMounted(() => {
             class="navigation-button"
             @click="goToStandings"
           >
-            <svg viewBox="0 0 24 24" aria-hidden="true">
-              <path
-                d="M5 19V10M12 19V5M19 19v-7"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="2"
-                stroke-linecap="round"
-              />
-            </svg>
+            <StandingsIcon />
             Standings
           </Button>
 
           <div class="overview-spacer"></div>
 
           <Button
-            v-if="isOwner && tournament.status === 'registration'"
+            v-if="canManageTournament"
             variant="secondary"
             class="navigation-button"
             @click="goToEdit"
           >
-            <svg viewBox="0 0 24 24" aria-hidden="true">
-              <path
-                d="M14.5 5.5l4 4M5 19l3.5-.8L18.5 8.2a2.1 2.1 0 000-3l-.7-.7a2.1 2.1 0 00-3 0L4.8 14.5z"
-                fill="none"
-                stroke="currentColor"
-                stroke-width="1.7"
-                stroke-linejoin="round"
-              />
-            </svg>
+            <PencilIcon />
             Edit
           </Button>
 
@@ -597,6 +406,7 @@ onMounted(() => {
                 stroke-linejoin="round"
               />
             </svg>
+
             {{ isUpdating ? 'Starting...' : 'Start Tournament' }}
           </Button>
         </div>
@@ -607,7 +417,10 @@ onMounted(() => {
         <div class="section-heading">
           <div>
             <h2>Teams</h2>
-            <p>Manage the teams and player rosters registered for this tournament.</p>
+            <p>
+              Manage the teams and player rosters registered for this
+              tournament.
+            </p>
           </div>
 
           <div class="capacity-badge">
@@ -622,15 +435,7 @@ onMounted(() => {
         >
           <div class="panel-heading">
             <div class="heading-icon">
-              <svg viewBox="0 0 24 24" aria-hidden="true">
-                <path
-                  d="M12 5v14M5 12h14"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="2"
-                  stroke-linecap="round"
-                />
-              </svg>
+              <AddIcon />
             </div>
 
             <div>
@@ -672,23 +477,7 @@ onMounted(() => {
         >
           <div class="panel-heading">
             <div class="heading-icon">
-              <svg viewBox="0 0 24 24" aria-hidden="true">
-                <circle
-                  cx="12"
-                  cy="8"
-                  r="3"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="1.7"
-                />
-                <path
-                  d="M6 20c.6-3.7 2.6-5.5 6-5.5s5.4 1.8 6 5.5"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="1.7"
-                  stroke-linecap="round"
-                />
-              </svg>
+              <UserIcon />
             </div>
 
             <div>
@@ -702,14 +491,14 @@ onMounted(() => {
             @submit.prevent="handleAddPlayer"
           >
             <select
-              v-model.number="selectedTeamIndex"
+              v-model="selectedTeamId"
               class="form-input"
               :disabled="isUpdating"
             >
               <option
-                v-for="(team, index) in teams"
-                :key="team._id || index"
-                :value="index"
+                v-for="team in teams"
+                :key="team._id"
+                :value="team._id"
               >
                 {{ team.name }}
               </option>
@@ -756,117 +545,19 @@ onMounted(() => {
 
       <!-- Teams -->
       <div
-        v-if="teams.length > 0"
+        v-if="teams.length"
         class="teams-grid"
       >
-        <Panel
-          v-for="(team, index) in teams"
-          :key="team._id || index"
-          class="team-card"
-        >
-          <div class="team-header">
-            <!--
-            <div class="team-number">
-              {{ String(index + 1).padStart(2, '0') }}
-            </div>
-            -->
-
-            <div class="team-title">
-              <h3>{{ team.name }}</h3>
-              <span>
-                {{ team.players?.length || 0 }}
-                {{ team.players?.length === 1 ? 'player' : 'players' }}
-              </span>
-            </div>
-
-            <button
-              v-if="isOwner && tournament.status === 'registration'"
-              type="button"
-              class="remove-button"
-              :disabled="isUpdating"
-              title="Remove team"
-              @click="handleRemoveTeam(index)"
-            >
-              <svg viewBox="0 0 24 24" aria-hidden="true">
-                <path
-                  d="M5 7h14M10 11v6M14 11v6M9 7l1-2h4l1 2M7 7l1 14h8l1-14"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="1.7"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                />
-              </svg>
-            </button>
-          </div>
-
-          <div class="roster">
-            <div class="roster-header">
-              <span>Roster</span>
-
-              <span class="roster-count">
-                {{ team.players?.length || 0 }}
-              </span>
-            </div>
-
-            <div
-              v-if="team.players?.length"
-              class="player-list"
-            >
-              <div
-                v-for="(player, playerIndex) in team.players"
-                :key="player.userId || playerIndex"
-                class="player-row"
-              >
-
-                <div class="player-avatar">
-                  {{ player.name?.charAt(0) }}{{ player.surname?.charAt(0) }}
-                </div>
-
-                <div class="player-info">
-                  <strong>
-                    {{ player.name }} {{ player.surname }}
-                  </strong>
-                </div>
-
-                <span
-                  v-if="player.jerseyNumber"
-                  class="jersey"
-                >
-                  #{{ player.jerseyNumber }}
-                </span>
-              </div>
-            </div>
-
-            <div
-              v-else
-              class="empty-roster"
-            >
-              <svg viewBox="0 0 24 24" aria-hidden="true">
-                <circle
-                  cx="12"
-                  cy="8"
-                  r="3"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="1.6"
-                />
-                <path
-                  d="M6 20c.6-3.7 2.6-5.5 6-5.5s5.4 1.8 6 5.5"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="1.6"
-                  stroke-linecap="round"
-                />
-              </svg>
-
-              <span>No players registered</span>
-            </div>
-          </div>
-        </Panel>
+        <TeamCard
+          v-for="team in teams"
+          :key="team._id"
+          :team="team"
+          :can-remove="canManageTournament"
+          :disabled="isUpdating"
+          @remove="handleRemoveTeam(team)"
+        />
       </div>
 
-      <!-- Empty teams -->
       <EmptyState
         v-else
         title="No Teams Registered"
@@ -881,15 +572,13 @@ onMounted(() => {
   display: flex;
   flex-direction: column;
   gap: 24px;
-  max-width: 1200px;
   width: 100%;
+  max-width: 1200px;
   margin: 0 auto;
   box-sizing: border-box;
 }
 
-/* -------------------------------------------------------------------------- */
-/* Overview                                                                   */
-/* -------------------------------------------------------------------------- */
+/* Overview */
 
 .overview-panel {
   padding: 28px;
@@ -898,74 +587,9 @@ onMounted(() => {
 
 .overview-header {
   display: flex;
+  align-items: center;
   justify-content: space-between;
-  align-items: center;
   gap: 16px;
-}
-
-.sport-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 9px;
-  padding: 7px 12px;
-  border-radius: 999px;
-  color: #0071e3;
-  background: rgba(0, 113, 227, 0.08);
-  border: 1px solid rgba(0, 113, 227, 0.15);
-  font-size: 12px;
-  font-weight: 700;
-  text-transform: capitalize;
-}
-
-.sport-badge svg {
-  width: 18px;
-  height: 18px;
-}
-
-.status-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 7px;
-  padding: 7px 12px;
-  border-radius: 999px;
-  font-size: 12px;
-  font-weight: 700;
-}
-
-.status-dot {
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-}
-
-.status-registration {
-  color: #856404;
-  background: rgba(255, 193, 7, 0.12);
-  border: 1px solid rgba(255, 193, 7, 0.25);
-}
-
-.status-registration .status-dot {
-  background: #d99f00;
-}
-
-.status-active {
-  color: #1b5e20;
-  background: rgba(52, 199, 89, 0.12);
-  border: 1px solid rgba(52, 199, 89, 0.25);
-}
-
-.status-active .status-dot {
-  background: #34c759;
-}
-
-.status-completed {
-  color: #48484a;
-  background: rgba(142, 142, 147, 0.12);
-  border: 1px solid rgba(142, 142, 147, 0.2);
-}
-
-.status-completed .status-dot {
-  background: #8e8e93;
 }
 
 .overview-stats {
@@ -980,17 +604,16 @@ onMounted(() => {
   align-items: center;
   gap: 12px;
   padding: 15px;
-  background: rgba(0, 0, 0, 0.025);
   border: 1px solid rgba(0, 0, 0, 0.05);
   border-radius: 12px;
 }
 
 .stat-icon {
-  width: 38px;
-  height: 38px;
   display: flex;
   align-items: center;
   justify-content: center;
+  width: 38px;
+  height: 38px;
   flex-shrink: 0;
   border-radius: 10px;
   color: #0071e3;
@@ -1009,16 +632,16 @@ onMounted(() => {
 }
 
 .stat-label {
+  color: #8e8e93;
   font-size: 10px;
   font-weight: 700;
-  color: #8e8e93;
-  text-transform: uppercase;
   letter-spacing: 0.5px;
+  text-transform: uppercase;
 }
 
 .stat strong {
-  font-size: 14px;
   color: #111113;
+  font-size: 14px;
 }
 
 .stat-muted {
@@ -1029,11 +652,11 @@ onMounted(() => {
 .overview-actions {
   display: flex;
   align-items: center;
+  flex-wrap: wrap;
   gap: 10px;
   margin-top: 24px;
   padding-top: 20px;
   border-top: 1px solid rgba(0, 0, 0, 0.06);
-  flex-wrap: wrap;
 }
 
 .overview-spacer {
@@ -1053,23 +676,21 @@ onMounted(() => {
   height: 16px;
 }
 
-/* -------------------------------------------------------------------------- */
-/* Section heading                                                            */
-/* -------------------------------------------------------------------------- */
+/* Section heading */
 
 .section-heading {
   display: flex;
-  justify-content: space-between;
   align-items: center;
+  justify-content: space-between;
   gap: 20px;
   padding: 0 4px;
 }
 
 .section-heading h2 {
   margin: 0;
+  color: #111113;
   font-size: 20px;
   font-weight: 750;
-  color: #111113;
   letter-spacing: -0.3px;
 }
 
@@ -1083,16 +704,14 @@ onMounted(() => {
 .capacity-badge {
   padding: 7px 12px;
   border-radius: 999px;
-  background: rgba(0, 0, 0, 0.05);
   color: #48484a;
+  background: rgba(0, 0, 0, 0.05);
   font-size: 12px;
   font-weight: 700;
   white-space: nowrap;
 }
 
-/* -------------------------------------------------------------------------- */
-/* Management panels                                                          */
-/* -------------------------------------------------------------------------- */
+/* Management panels */
 
 .management-panel {
   padding: 22px 24px;
@@ -1107,12 +726,12 @@ onMounted(() => {
 }
 
 .heading-icon {
-  width: 38px;
-  height: 38px;
-  flex-shrink: 0;
   display: flex;
   align-items: center;
   justify-content: center;
+  width: 38px;
+  height: 38px;
+  flex-shrink: 0;
   border-radius: 10px;
   color: #0071e3;
   background: rgba(0, 113, 227, 0.08);
@@ -1136,9 +755,7 @@ onMounted(() => {
   font-size: 11px;
 }
 
-/* -------------------------------------------------------------------------- */
-/* Forms                                                                      */
-/* -------------------------------------------------------------------------- */
+/* Forms */
 
 .team-form {
   display: flex;
@@ -1161,8 +778,8 @@ onMounted(() => {
   border: 1px solid rgba(0, 0, 0, 0.14);
   border-radius: 9px;
   outline: none;
-  background: rgba(255, 255, 255, 0.95);
   color: #111113;
+  background: rgba(255, 255, 255, 0.95);
   font-size: 12px;
   font-weight: 600;
   box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.03);
@@ -1182,9 +799,7 @@ onMounted(() => {
   flex: 1;
 }
 
-/* -------------------------------------------------------------------------- */
-/* Teams                                                                      */
-/* -------------------------------------------------------------------------- */
+/* Teams */
 
 .teams-grid {
   display: grid;
@@ -1192,233 +807,7 @@ onMounted(() => {
   gap: 18px;
 }
 
-.team-card {
-  padding: 22px;
-  border-radius: 16px;
-}
-
-.team-header {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding-bottom: 16px;
-  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
-}
-
-.team-number {
-  width: 34px;
-  height: 34px;
-  flex-shrink: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 9px;
-  background: rgba(0, 113, 227, 0.08);
-  color: #0071e3;
-  font-size: 11px;
-  font-weight: 800;
-}
-
-.team-title {
-  min-width: 0;
-  flex: 1;
-}
-
-.team-title h3 {
-  margin: 0;
-  color: #111113;
-  font-size: 15px;
-  font-weight: 750;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.team-title span {
-  display: block;
-  margin-top: 3px;
-  color: #8e8e93;
-  font-size: 11px;
-  font-weight: 500;
-}
-
-.remove-button {
-  width: 32px;
-  height: 32px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border: 0;
-  border-radius: 8px;
-  color: #b71c1c;
-  background: rgba(255, 59, 48, 0.08);
-  cursor: pointer;
-}
-
-.remove-button:hover {
-  background: rgba(255, 59, 48, 0.14);
-}
-
-.remove-button:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-.remove-button svg {
-  width: 17px;
-  height: 17px;
-}
-
-.roster {
-  margin-top: 18px;
-}
-
-.roster-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 10px;
-}
-
-.roster-header > span:first-child {
-  font-size: 10px;
-  font-weight: 750;
-  color: #8e8e93;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-
-.roster-count {
-  min-width: 22px;
-  height: 22px;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  padding: 0 7px;
-  border-radius: 999px;
-  color: #48484a;
-  background: rgba(0, 0, 0, 0.05);
-  font-size: 10px;
-  font-weight: 700;
-}
-
-.player-list {
-  display: flex;
-  flex-direction: column;
-  gap: 7px;
-}
-
-.player-row {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 9px;
-  border: 1px solid rgba(0, 0, 0, 0.05);
-  border-radius: 10px;
-  background: rgba(0, 0, 0, 0.018);
-}
-
-.player-avatar {
-  width: 30px;
-  height: 30px;
-  flex-shrink: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  border-radius: 50%;
-  background: rgba(0, 113, 227, 0.1);
-  color: #0071e3;
-  font-size: 9px;
-  font-weight: 800;
-  text-transform: uppercase;
-}
-
-.player-info {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  flex: 1;
-  min-width: 0;
-}
-
-.player-info strong {
-  color: #111113;
-  font-size: 12px;
-  font-weight: 650;
-}
-
-.player-info span {
-  color: #8e8e93;
-  font-size: 9px;
-  font-weight: 500;
-}
-
-.jersey {
-  padding: 4px 8px;
-  border-radius: 999px;
-  color: #0071e3;
-  background: rgba(0, 113, 227, 0.08);
-  font-size: 10px;
-  font-weight: 750;
-}
-
-.empty-roster {
-  min-height: 90px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 7px;
-  border: 1px dashed rgba(0, 0, 0, 0.1);
-  border-radius: 10px;
-  color: #8e8e93;
-  background: rgba(0, 0, 0, 0.015);
-  font-size: 11px;
-}
-
-.empty-roster svg {
-  width: 22px;
-  height: 22px;
-}
-
-/* -------------------------------------------------------------------------- */
-/* Registration footer                                                        */
-/* -------------------------------------------------------------------------- */
-
-.registration-footer {
-  padding: 20px 22px;
-  border-radius: 14px;
-}
-
-.registration-progress {
-  display: flex;
-  flex-direction: column;
-  gap: 9px;
-}
-
-.ready-message {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin-top: 16px;
-  padding: 10px 12px;
-  border-radius: 9px;
-  color: #1b5e20;
-  background: rgba(52, 199, 89, 0.09);
-  border: 1px solid rgba(52, 199, 89, 0.18);
-  font-size: 11px;
-  font-weight: 600;
-}
-
-.ready-message svg {
-  width: 17px;
-  height: 17px;
-  flex-shrink: 0;
-}
-
-/* -------------------------------------------------------------------------- */
-/* Responsive                                                                 */
-/* -------------------------------------------------------------------------- */
+/* Responsive */
 
 @media (max-width: 800px) {
   .overview-stats {
