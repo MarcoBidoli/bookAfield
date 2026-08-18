@@ -1,7 +1,7 @@
 <script setup>
-import { ref, reactive, computed, onMounted } from 'vue'
-import { useRoute, useRouter} from 'vue-router'
-import { useAuthStore } from '@/stores/auth'
+import {computed, onMounted, reactive, ref} from 'vue'
+import {useRoute, useRouter} from 'vue-router'
+import {useAuthStore} from '@/stores/auth'
 import {
   assignMatchBooking,
   fetchTournamentBookings,
@@ -20,7 +20,6 @@ import CalendarIcon from '@/components/icons/CalendarIcon.vue'
 import ClockIcon from '@/components/icons/ClockIcon.vue'
 import TrophyIcon from '@/components/icons/TrophyIcon.vue'
 import PinPointIcon from '@/components/icons/PinPointIcon.vue'
-import BookArrowIcon from "@/components/icons/BookArrowIcon.vue";
 import StandingsIcon from "@/components/icons/StandingsIcon.vue";
 
 const route = useRoute()

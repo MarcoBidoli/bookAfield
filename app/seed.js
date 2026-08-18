@@ -1,5 +1,5 @@
-import { closeDB, connectDB } from "./db.js";
-import { ObjectId } from "mongodb";
+import {closeDB, connectDB} from "./db.js";
+import {ObjectId} from "mongodb";
 import bcrypt from "bcryptjs";
 
 async function seedDatabase() {

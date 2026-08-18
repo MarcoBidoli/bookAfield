@@ -1,8 +1,8 @@
 <script setup>
-import { ref, onMounted } from 'vue'
-import { useRouter } from 'vue-router'
-import { useAuthStore } from '@/stores/auth'
-import { fetchUserBookings, cancelBooking } from '@/api/fields'
+import {onMounted, ref} from 'vue'
+import {useRouter} from 'vue-router'
+import {useAuthStore} from '@/stores/auth'
+import {cancelBooking, fetchUserBookings} from '@/api/fields'
 
 import Panel from '@/components/Panel.vue'
 import Button from '@/components/Button.vue'

@@ -1,7 +1,7 @@
 <script setup>
-import { ref, onMounted } from 'vue'
-import { useRouter } from 'vue-router'
-import { fetchFields } from '@/api/fields'
+import {onMounted, ref} from 'vue'
+import {useRouter} from 'vue-router'
+import {fetchFields} from '@/api/fields'
 
 import Panel from '@/components/Panel.vue'
 import Breadcrumbs from '@/components/Breadcrumbs.vue'

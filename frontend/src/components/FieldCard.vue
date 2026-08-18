@@ -1,5 +1,5 @@
 <script setup>
-import { computed } from 'vue'
+import {computed} from 'vue'
 
 import FootballIcon from '@/components/icons/FootballIcon.vue'
 import BasketIcon from '@/components/icons/BasketIcon.vue'

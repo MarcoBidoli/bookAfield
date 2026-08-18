@@ -1,8 +1,8 @@
 <script setup>
-import { ref, onMounted } from 'vue'
-import { useRoute } from 'vue-router'
+import {onMounted, ref} from 'vue'
+import {useRoute} from 'vue-router'
 
-import { fetchTournamentById, fetchTournamentStandings } from '@/api/tournaments'
+import {fetchTournamentById, fetchTournamentStandings} from '@/api/tournaments'
 
 import Panel from '@/components/Panel.vue'
 import Breadcrumbs from '@/components/Breadcrumbs.vue'

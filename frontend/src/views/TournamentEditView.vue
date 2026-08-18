@@ -1,8 +1,8 @@
 <script setup>
-import { computed, onMounted, reactive, ref } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
-import { useAuthStore } from '@/stores/auth'
-import { fetchTournamentById, updateTournament } from '@/api/tournaments'
+import {computed, onMounted, reactive, ref} from 'vue'
+import {useRoute, useRouter} from 'vue-router'
+import {useAuthStore} from '@/stores/auth'
+import {fetchTournamentById, updateTournament} from '@/api/tournaments'
 
 import Panel from '@/components/Panel.vue'
 import Button from '@/components/Button.vue'

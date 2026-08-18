@@ -1,9 +1,9 @@
 <script setup>
-import { ref, onMounted } from 'vue'
+import {onMounted, ref} from 'vue'
 import Panel from '@/components/Panel.vue'
 import Button from '@/components/Button.vue'
-import { fetchFields } from '@/api/fields'
-import { fetchTournaments } from '@/api/tournaments'
+import {fetchFields} from '@/api/fields'
+import {fetchTournaments} from '@/api/tournaments'
 import {fetchUsers} from "@/api/users.js";
 
 const stats = ref({

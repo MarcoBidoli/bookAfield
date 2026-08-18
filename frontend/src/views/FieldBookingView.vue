@@ -1,14 +1,10 @@
 <script setup>
-import { ref, computed, onMounted, watch } from 'vue'
-import { useRouter, useRoute } from 'vue-router'
-import { useAuthStore } from '@/stores/auth'
+import {computed, onMounted, ref, watch} from 'vue'
+import {useRoute, useRouter} from 'vue-router'
+import {useAuthStore} from '@/stores/auth'
 
-import {
-  fetchFieldById,
-  fetchFieldSlots,
-  bookFieldSlot,
-} from '@/api/fields'
-import { fetchTournaments } from '@/api/tournaments'
+import {bookFieldSlot, fetchFieldById, fetchFieldSlots,} from '@/api/fields'
+import {fetchTournaments} from '@/api/tournaments'
 
 import Panel from '@/components/Panel.vue'
 import Button from '@/components/Button.vue'

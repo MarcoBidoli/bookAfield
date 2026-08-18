@@ -1,7 +1,7 @@
 import express from "express";
 import passport from "passport";
 import path from "path";
-import { fileURLToPath } from "url";
+import {fileURLToPath} from "url";
 import compression from "compression";
 import helmet from "helmet";
 import "./config/passport.js";
