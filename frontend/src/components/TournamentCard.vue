@@ -160,19 +160,6 @@ defineEmits(['click', 'delete'])
   min-width: 0;
 }
 
-.tournament-sport-avatar {
-  width: 40px;
-  height: 40px;
-  border-radius: 12px;
-  background: rgba(0, 113, 227, 0.08);
-  color: #0071e3;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-  border: 1px solid rgba(0, 113, 227, 0.12);
-}
-
 .tournament-titles {
   display: flex;
   flex-direction: column;
