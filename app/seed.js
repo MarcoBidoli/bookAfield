@@ -324,6 +324,7 @@ async function seedDatabase() {
       },
     ];
 
+    fieldsData.sort(() => Math.random() - 0.5); // to avoid ordered fields type
     await db.collection("fields").insertMany(fieldsData);
 
     const [
