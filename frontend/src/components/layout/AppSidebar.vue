@@ -293,6 +293,7 @@ const navigation = [
 .sidebar-link.active,
 .sidebar-link:hover {
   background: rgba(82, 82, 82, 0.15);
+  color: var(--color-primary);
 }
 
 .sidebar-spacer {

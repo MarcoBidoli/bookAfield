@@ -154,7 +154,7 @@ onMounted(async () => {
 }
 
 .stat-card {
-  background: #ffffff;
+  background: var(--color-white);
   border: 1px solid rgba(0, 0, 0, 0.08);
   border-radius: 16px;
   padding: 20px;
@@ -166,21 +166,20 @@ onMounted(async () => {
 }
 
 .stat-card:hover {
-  border-color: rgba(0, 113, 227, 0.3);
   box-shadow: 0 6px 16px rgba(0, 113, 227, 0.08);
 }
 
 .stat-value {
   font-size: 24px;
   font-weight: 800;
-  color: #111113;
+  color: var(--color-black);
   letter-spacing: -0.4px;
 }
 
 .stat-label {
   font-size: 12px;
   font-weight: 600;
-  color: #6e6e73;
+  color: var(--color-gray-text);
   margin-top: 2px;
 }
 
@@ -200,22 +199,17 @@ onMounted(async () => {
   transition: all 0.1s ease;
 }
 
-.feature:hover {
-  border-color: rgba(0, 113, 227, 0.4);
-  box-shadow: 0 6px 16px rgba(0, 113, 227, 0.08);
-}
-
 .feature-title {
   font-size: 13px;
   font-weight: 700;
-  color: #0071e3;
+  color: var(--color-primary);
   margin-bottom: 6px;
 }
 
 .feature-text {
   font-size: 12px;
   font-weight: 500;
-  color: #6e6e73;
+  color: var(--color-gray-text);
   line-height: 1.5;
 }
 </style>

@@ -21,64 +21,78 @@ defineProps({
 <style scoped>
 .btn {
   display: inline-flex;
-  flex-direction: row;
   align-items: center;
   justify-content: center;
-  border: none;
-  outline: none;
+
   box-sizing: border-box;
-  box-shadow: none;
-  text-decoration: none;
-  -webkit-appearance: none;
-  transition-property: background-color, opacity;
-  transition-duration: 200ms;
-  transition-timing-function: cubic-bezier(0, 0, 1, 1);
-  cursor: pointer;
   margin: 0;
-  font-family: system-ui, -apple-system, "Helvetica Neue", Helvetica, Arial, sans-serif;
+  padding: 12px 16px;
+
+  border: none;
+  border-radius: 12px;
+  outline: none;
+  box-shadow: none;
+
+  background: none;
+  text-decoration: none;
+  -webkit-appearance: none;;
   font-size: 14px;
   font-weight: 500;
   line-height: 16px;
-  border-radius: 35px;
-  padding: 12px 16px;
+
   white-space: nowrap;
   user-select: none;
+  cursor: pointer;
+
+  transition:
+    background-color 200ms cubic-bezier(0, 0, 1, 1),
+    opacity 200ms cubic-bezier(0, 0, 1, 1);
 }
 
-/* Primary: Black background with white text */
+/* Primary */
 .btn-primary {
-  background-color: #000000;
-  color: #ffffff;
+  background: linear-gradient(
+    180deg,
+    var(--color-primary-light) 0%,
+    var(--color-primary) 50%,
+    var(--color-primary-dark) 100%
+  );
+  color: var(--color-white);
 }
 
 .btn-primary:hover:not(:disabled) {
-  background-color: #333333;
+  background: linear-gradient(
+    180deg,
+    var(--color-primary-hover-light) 0%,
+    var(--color-primary-hover) 50%,
+    var(--color-primary-hover-dark) 100%
+  );
 }
 
-/* Secondary / Light: White background with black text */
+/* Secondary / Light */
 .btn-secondary,
 .btn-light {
-  background-color: #ffffff;
-  color: #000000;
-  border: 1px solid #e5e7eb;
+  background-color: var(--color-white);
+  color: var(--color-black);
+  border: 1px solid var(--color-border);
 }
 
 .btn-secondary:hover:not(:disabled),
 .btn-light:hover:not(:disabled) {
-  background-color: #f6f6f6;
+  background-color: var(--color-background-light);
 }
 
-/* Danger Variant */
+/* Danger */
 .btn-danger {
-  background-color: #ef4444;
-  color: #ffffff;
+  background-color: var(--color-danger);
+  color: var(--color-white);
 }
 
 .btn-danger:hover:not(:disabled) {
-  background-color: #dc2626;
+  background-color: var(--color-danger-hover);
 }
 
-/* Active / Pressed state */
+/* Active / Pressed */
 .btn:active:not(:disabled) {
   opacity: 0.8;
 }
