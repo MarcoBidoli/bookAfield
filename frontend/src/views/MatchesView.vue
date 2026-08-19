@@ -611,13 +611,13 @@ onMounted(loadMatches)
   text-align: center;
   font-size: 13px;
   font-weight: 600;
-  color: #6e6e73;
+  color: var(--color-lightgray-text);
   padding: 32px;
 }
 
 .empty-description {
   margin-top: 8px;
-  color: #6e6e73;
+  color: var(--color-lightgray-text);
   line-height: 1.5;
 }
 
@@ -635,7 +635,7 @@ onMounted(loadMatches)
 }
 
 .match-card {
-  background: #ffffff;
+  background: var(--color-white);
   border: 1px solid rgba(0, 0, 0, 0.08);
   border-radius: 16px;
   padding: 20px;
@@ -674,7 +674,7 @@ onMounted(loadMatches)
   text-overflow: ellipsis;
   white-space: nowrap;
 
-  color: #111113;
+  color: var(--color-black);
   font-size: 13px;
   font-weight: 700;
 }
@@ -701,8 +701,8 @@ onMounted(loadMatches)
 }
 
 .score-badge {
-  background: #0071e3;
-  color: #ffffff;
+  background: var(--color-primary);
+  color: var(--color-white);
 
   font-size: 14px;
   font-weight: 700;
@@ -736,12 +736,12 @@ onMounted(loadMatches)
 
   outline: none;
 
-  background: #ffffff;
-  color: #111113;
+  background: var(--color-white);
+  color: var(--color-black);
 }
 
 .score-input:focus {
-  border-color: #0071e3;
+  border-color: var(--color-primary);
   box-shadow:
     0 0 0 3px
     rgba(0, 113, 227, 0.15);
@@ -749,7 +749,7 @@ onMounted(loadMatches)
 
 .score-colon {
   font-weight: 700;
-  color: #6e6e73;
+  color: var(--color-lightgray-text);
 }
 
 .btn-enter {
@@ -790,7 +790,7 @@ onMounted(loadMatches)
   align-items: center;
   gap: 4px;
 
-  color: #6e6e73;
+  color: var(--color-lightgray-text);
 }
 
 .meta-item :deep(svg) {
@@ -800,7 +800,7 @@ onMounted(loadMatches)
 }
 
 .unscheduled {
-  color: #b71c1c;
+  color: var(--color-lightgray-text);
   font-weight: 600;
 }
 
@@ -823,7 +823,7 @@ onMounted(loadMatches)
 }
 
 .booking-label {
-  color: #111113;
+  color: var(--color-lightgray-text);
   font-size: 12px;
   font-weight: 700;
 }
@@ -842,8 +842,8 @@ onMounted(loadMatches)
 
   padding: 6px 10px;
 
-  background: #ffffff;
-  color: #111113;
+  background: var(--color-white);
+  color: var(--color-black);
 
   border: 1px solid
   rgba(0, 0, 0, 0.15);
@@ -857,7 +857,7 @@ onMounted(loadMatches)
 }
 
 .booking-select:focus {
-  border-color: #0071e3;
+  border-color: var(--color-primary);
   box-shadow:
     0 0 0 3px
     rgba(0, 113, 227, 0.15);
@@ -881,7 +881,7 @@ onMounted(loadMatches)
 }
 
 .bye-team {
-  color: #111113;
+  color: var(--color-black);
   font-size: 13px;
   font-weight: 700;
 }

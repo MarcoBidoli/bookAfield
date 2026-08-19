@@ -34,7 +34,8 @@ async function loadBookings() {
   try {
     const userId = authStore.user?._id || authStore.user?.id
 
-    bookings.value = await fetchUserBookings(userId)
+    // reversed to show new bookings on top
+    bookings.value = (await fetchUserBookings(userId)).reverse()
   } catch (err) {
     errorMessage.value = err.message || 'Failed to load bookings'
   } finally {
@@ -299,10 +300,10 @@ onMounted(loadBookings)
   padding: 10px 14px;
   text-align: left;
   font-weight: 700;
-  color: #111113;
+  color: var(--color-black);
   text-transform: uppercase;
   font-size: 10px;
-  letter-spacing: 0.5px;
+  letter-spacing: 1px;
   white-space: nowrap;
 }
 
@@ -310,7 +311,7 @@ onMounted(loadBookings)
   padding: 12px 14px;
   border-bottom: 1px solid rgba(0, 0, 0, 0.06);
   vertical-align: middle;
-  color: #111113;
+  color: var(--color-black);
 }
 
 .bookings-table tbody tr:last-child td {
@@ -332,14 +333,14 @@ onMounted(loadBookings)
 .field-title {
   font-size: 13px;
   font-weight: 700;
-  color: #111113;
+  color: var(--color-black);
 }
 
 .field-sub {
   margin-top: 3px;
   font-size: 11px;
   font-weight: 500;
-  color: #6e6e73;
+  color: var(--color-lightgray-text);
 }
 
 .actions-column {
@@ -349,7 +350,7 @@ onMounted(loadBookings)
 
 .hint-text {
   font-size: 11px;
-  color: #6e6e73;
+  color: var(--color-lightgray-text);
   font-weight: 500;
 }
 

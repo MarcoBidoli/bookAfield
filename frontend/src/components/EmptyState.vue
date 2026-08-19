@@ -28,7 +28,7 @@ defineProps({
   text-align: center;
   padding: 64px 20px;
   gap: 12px;
-  color: #6e6e73;
+  color: var(--color-lightgray-text);
 }
 .empty-icon-wrapper {
   width: 56px;
@@ -38,14 +38,14 @@ defineProps({
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #48484a;
+  color: var(--color-darkgray);
   margin-bottom: 4px;
   border: 1px solid rgba(0, 0, 0, 0.06);
 }
 .empty-state h3 {
   font-size: 16px;
   font-weight: 700;
-  color: #111113;
+  color: var(--color-black);
   margin: 0;
 }
 .empty-state p {

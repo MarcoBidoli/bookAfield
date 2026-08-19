@@ -32,8 +32,7 @@ async function loadFields() {
   errorMessage.value = ''
 
   try {
-    const list = await fetchFields(searchQuery.value)
-    fields.value = list
+    fields.value = await fetchFields(searchQuery.value)
   } catch (err) {
     errorMessage.value = err.message || 'Error loading fields'
   } finally {

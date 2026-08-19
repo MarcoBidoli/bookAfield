@@ -35,7 +35,7 @@ const authStore = useAuthStore()
 .app-brand {
   font-size: 14px;
   font-weight: 800;
-  color: #111113;
+  color: var(--color-black);
   text-decoration: none;
 }
 
@@ -58,7 +58,7 @@ const authStore = useAuthStore()
 }
 
 .user-status a {
-  color: #0051c7;
+  color: var(--color-primary-dark)7;
   text-decoration: none;
   font-weight: 700;
 }

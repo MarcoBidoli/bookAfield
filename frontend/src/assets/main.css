@@ -19,7 +19,7 @@
 
   /* Neutral */
   --color-white: #ffffff;
-  --color-black: #000000;
+  --color-black: #111113;
   --color-border: #e5e7eb;
   --color-background-light: #f6f6f6;
 
@@ -27,7 +27,12 @@
   --color-danger: #ef4444;
   --color-danger-hover: #dc2626;
 
-  --color-gray-text: #6e6e73;
+  --color-danger-banner: #b71c1c;
+
+  --color-lightgray-text: #6e6e73;
+  --color-darkgray: #48484a;
+  --unused-gray: #8e8e93;
+
 }
 
 * {

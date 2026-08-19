@@ -43,7 +43,7 @@ const variantClass = computed(() => `pill-${props.variant}`)
 
 .pill-danger {
   background: rgba(255, 59, 48, 0.12);
-  color: #b71c1c;
+  color: var(--color-danger-banner);
   border: 1px solid rgba(255, 59, 48, 0.25);
 }
 
@@ -55,7 +55,7 @@ const variantClass = computed(() => `pill-${props.variant}`)
 
 .pill-primary {
   background: rgba(0, 113, 227, 0.08);
-  color: #0071e3;
+  color: var(--color-primary);
   border: 1px solid rgba(0, 113, 227, 0.2);
 }
 

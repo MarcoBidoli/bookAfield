@@ -123,7 +123,7 @@ onMounted(async () => {
   margin: 0 0 8px;
   font-size: 18px;
   font-weight: 800;
-  color: #111113;
+  color: var(--color-black);
   letter-spacing: -0.3px;
 }
 
@@ -131,7 +131,7 @@ onMounted(async () => {
   margin: 0;
   font-size: 13px;
   font-weight: 500;
-  color: #6e6e73;
+  color: var(--color-lightgray-text);
   line-height: 1.5;
 }
 
@@ -179,7 +179,7 @@ onMounted(async () => {
 .stat-label {
   font-size: 12px;
   font-weight: 600;
-  color: var(--color-gray-text);
+  color: var(--color-lightgray-text);
   margin-top: 2px;
 }
 
@@ -191,7 +191,7 @@ onMounted(async () => {
 }
 
 .feature {
-  background: #ffffff;
+  background: var(--color-white);
   border: 1px solid rgba(0, 0, 0, 0.08);
   border-radius: 12px;
   padding: 18px;
@@ -209,7 +209,7 @@ onMounted(async () => {
 .feature-text {
   font-size: 12px;
   font-weight: 500;
-  color: var(--color-gray-text);
+  color: var(--color-lightgray-text);
   line-height: 1.5;
 }
 </style>

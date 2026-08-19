@@ -20,15 +20,7 @@ const sportClass = computed(() => {
   const sport = normalizedSport.value
 
   if (sport.includes('basket')) return 'sport-basketball'
-
-  if (
-    sport.includes('football') ||
-    sport.includes('soccer') ||
-    sport.includes('calcio')
-  ) {
-    return 'sport-football'
-  }
-
+  if (sport.includes('football'))  return 'sport-football'
   if (sport.includes('volley')) return 'sport-volleyball'
 
   return 'sport-default'
@@ -49,9 +41,7 @@ const displaySport = computed(() => {
 
     <FootballIcon
       v-else-if="
-        normalizedSport.includes('football') ||
-        normalizedSport.includes('soccer') ||
-        normalizedSport.includes('calcio')
+        normalizedSport.includes('football')
       "
     />
 
@@ -71,7 +61,7 @@ const displaySport = computed(() => {
   padding: 4px 12px;
   border-radius: 980px;
 
-  color: #111113;
+  color: var(--color-black);
   background: transparent;
 
   font-size: 11px;
@@ -83,15 +73,15 @@ const displaySport = computed(() => {
 }
 
 .sport-basketball {
-  border-color: rgb(237 132 0);
+  border-color: rgb(209 116 0);
 }
 
 .sport-football {
-  border-color: rgb(0 145 33);
+  border-color: rgb(0 89 23);
 }
 
 .sport-volleyball {
-  border-color: rgb(0 113 227);
+  border-color: rgb(36 90 147);
 }
 
 .sport-default {

@@ -98,21 +98,21 @@ const sportClass = computed(() => {
 
 /* Sport colors */
 .field-card.sport-football {
-  --sport-color: rgb(0 145 33);
-  --sport-bg: rgb(0 145 33 / 0.08);
-  --sport-border: rgb(0 145 33 / 0.12);
+  --sport-color: rgb(0 89 23);
+  --sport-bg: rgb(0 89 28 / 0.08);
+  --sport-border: rgb(0 89 23 / 0.12);
 }
 
 .field-card.sport-basketball {
-  --sport-color: rgb(237 132 0);
-  --sport-bg: rgb(237 132 0 / 0.08);
-  --sport-border: rgb(237 132 0 / 0.12);
+  --sport-color: rgb(209 116 0);
+  --sport-bg: rgb(209 116 0 / 0.08);
+  --sport-border: rgb(209 116 0 / 0.12);
 }
 
 .field-card.sport-volleyball {
-  --sport-color: rgb(0 113 227);
-  --sport-bg: rgb(0 113 227 / 0.08);
-  --sport-border: rgb(0 113 227 / 0.12);
+  --sport-color: rgb(36 90 147);
+  --sport-bg: rgb(36 90 147 / 0.08);
+  --sport-border: rgb(36 90 147 / 0.12);
 }
 
 /* Card hover */
@@ -162,7 +162,7 @@ const sportClass = computed(() => {
 }
 
 .field-name {
-  color: #111113;
+  color: var(--color-black);
   font-weight: 700;
   font-size: 15px;
   margin: 0;
@@ -209,7 +209,7 @@ const sportClass = computed(() => {
 
 .field-card:hover .book-action-indicator {
   background: var(--sport-color);
-  color: #ffffff;
+  color: var(--color-white);
 }
 
 /* Metadata */
@@ -226,11 +226,11 @@ const sportClass = computed(() => {
 
   font-size: 13px;
   font-weight: 500;
-  color: #48484a;
+  color: var(--color-darkgray);
 }
 
 .meta-icon {
-  color: #6e6e73;
+  color: var(--color-darkgray);
   flex-shrink: 0;
 }
 

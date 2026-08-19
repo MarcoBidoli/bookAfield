@@ -119,7 +119,7 @@ const emit = defineEmits(['remove'])
 
 .team-title h3 {
   margin: 0;
-  color: #111113;
+  color: var(--color-black);
   font-size: 15px;
   font-weight: 750;
   white-space: nowrap;
@@ -150,7 +150,7 @@ const emit = defineEmits(['remove'])
   border: 0;
   border-radius: 8px;
 
-  color: #b71c1c;
+  color: var(--color-danger-banner);
   background: rgba(255, 59, 48, 0.08);
 
   cursor: pointer;

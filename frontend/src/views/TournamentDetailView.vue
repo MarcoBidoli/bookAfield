@@ -602,7 +602,7 @@ onMounted(loadTournament)
   height: 38px;
   flex-shrink: 0;
   border-radius: 10px;
-  color: #0071e3;
+  color: var(--color-primary);
   background: rgba(0, 113, 227, 0.08);
 }
 
@@ -621,12 +621,12 @@ onMounted(loadTournament)
   color: #8e8e93;
   font-size: 10px;
   font-weight: 700;
-  letter-spacing: 0.5px;
+  letter-spacing: 1px;
   text-transform: uppercase;
 }
 
 .stat strong {
-  color: #111113;
+  color: var(--color-black);
   font-size: 14px;
 }
 
@@ -676,7 +676,7 @@ onMounted(loadTournament)
 
 .section-heading h2 {
   margin: 0;
-  color: #111113;
+  color: var(--color-black);
   font-size: 20px;
   font-weight: 750;
   letter-spacing: -0.3px;
@@ -711,7 +711,7 @@ onMounted(loadTournament)
   height: 38px;
   flex-shrink: 0;
   border-radius: 10px;
-  color: #0071e3;
+  color: var(--color-primary-dark);
   background: rgba(0, 113, 227, 0.08);
 }
 
@@ -722,7 +722,7 @@ onMounted(loadTournament)
 
 .panel-heading h3 {
   margin: 0;
-  color: #111113;
+  color: var(--color-black);
   font-size: 14px;
   font-weight: 700;
 }
@@ -756,7 +756,7 @@ onMounted(loadTournament)
   border: 1px solid rgba(0, 0, 0, 0.14);
   border-radius: 9px;
   outline: none;
-  color: #111113;
+  color: var(--color-black);
   background: rgba(255, 255, 255, 0.95);
   font-size: 12px;
   font-weight: 600;
@@ -764,7 +764,7 @@ onMounted(loadTournament)
 }
 
 .form-input:focus {
-  border-color: #0071e3;
+  border-color: var(--color-primary);
   box-shadow: 0 0 0 3px rgba(0, 113, 227, 0.12);
 }
 

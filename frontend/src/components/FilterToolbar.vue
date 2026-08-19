@@ -11,6 +11,8 @@ defineEmits(['update:modelValue', 'update:modelFilter'])
 
 <template>
   <div class="filter-toolbar">
+
+    <!-- left filter buttons -->
     <div class="filter-buttons-group">
       <button
         v-for="filter in filters"
@@ -23,6 +25,7 @@ defineEmits(['update:modelValue', 'update:modelFilter'])
       </button>
     </div>
 
+    <!-- right search bar -->
     <div class="search-wrapper">
       <input
         :value="modelValue"
@@ -57,14 +60,14 @@ defineEmits(['update:modelValue', 'update:modelFilter'])
   border: 1px solid rgba(0, 0, 0, 0.12);
   font-size: 13px;
   font-weight: 500;
-  color: #111113;
+  color: var(--color-black);
   outline: none;
   height: 38px;
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.02);
   transition: all 0.1s ease;
 }
 .search-pill:focus {
-  border-color: #0071e3;
+  border-color: var(--color-primary);
   box-shadow: 0 0 0 3px rgba(0, 113, 227, 0.15);
 }
 .filter-buttons-group {
@@ -81,20 +84,20 @@ defineEmits(['update:modelValue', 'update:modelFilter'])
   border: none;
   font-size: 12px;
   font-weight: 600;
-  color: #48484a;
+  color: var(--color-darkgray);
   padding: 6px 14px;
   border-radius: 8px;
   cursor: pointer;
   white-space: nowrap;
-  transition: all 0.1s ease;
+  transition: all 0.2s ease;
 }
 .filter-btn.active {
-  background: #ffffff;
+  background: var(--color-white);
   color: #171b1c;
   box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06);
   font-weight: 700;
 }
 .filter-btn:hover:not(.active) {
-  color: #111113;
+  color: var(--color-black);
 }
 </style>

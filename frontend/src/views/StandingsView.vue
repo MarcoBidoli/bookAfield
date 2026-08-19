@@ -250,7 +250,7 @@ onMounted(() => {
   text-align: center;
   font-size: 13px;
   font-weight: 600;
-  color: #6e6e73;
+  color: var(--color-lightgray-text);
   padding: 32px;
 }
 
@@ -271,7 +271,7 @@ onMounted(() => {
   border: 1px solid rgba(0, 0, 0, 0.08);
   border-radius: 12px;
   overflow: hidden;
-  background: #ffffff;
+  background: var(--color-white);
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02);
 }
 
@@ -281,7 +281,7 @@ onMounted(() => {
   padding: 10px 12px;
   background: rgba(0, 0, 0, 0.02);
   border-bottom: 1px solid rgba(0, 0, 0, 0.08);
-  color: #6e6e73;
+  color: var(--color-darkgray);
   font-size: 11px;
   font-weight: 700;
   text-align: center;
@@ -301,7 +301,7 @@ onMounted(() => {
 .standing-row td {
   padding: 12px 10px;
   border-bottom: 1px solid rgba(0, 0, 0, 0.05);
-  color: #111113;
+  color: var(--color-black);
   text-align: center;
   white-space: nowrap;
   font-weight: 500;
@@ -318,7 +318,7 @@ onMounted(() => {
 }
 
 .standing-row:hover {
-  background: rgba(0, 113, 227, 0.04);
+  background: rgb(232 232 232 / 0.75);
 }
 
 /* --------------------------------------------------
@@ -343,7 +343,7 @@ onMounted(() => {
   border-radius: 50%;
   background: rgba(0, 0, 0, 0.05);
   font-size: 11px;
-  color: #6e6e73;
+  color: var(--color-lightgray-text);
   font-weight: 700;
 }
 
@@ -355,7 +355,7 @@ onMounted(() => {
 .team-cell {
   min-width: 200px;
   font-weight: 700;
-  color: #111113;
+  color: var(--color-black);
   text-align: left !important;
 }
 
@@ -365,7 +365,7 @@ onMounted(() => {
 
 .points-cell {
   width: 70px;
-  color: #0071e3 !important;
+  color: var(--color-primary) !important;
   font-size: 14px;
   font-weight: 800;
 }
@@ -405,7 +405,7 @@ onMounted(() => {
 }
 
 .difference-cell.negative {
-  color: #b71c1c;
+  color: var(--color-danger-banner);
 }
 
 /* --------------------------------------------------
@@ -419,7 +419,7 @@ onMounted(() => {
   margin-top: 14px;
   padding-top: 12px;
   border-top: 1px solid rgba(0, 0, 0, 0.06);
-  color: #6e6e73;
+  color: var(--color-lightgray-text);
   font-size: 11px;
   font-weight: 600;
 }

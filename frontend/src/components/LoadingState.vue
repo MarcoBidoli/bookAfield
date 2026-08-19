@@ -20,13 +20,13 @@ defineProps({
   text-align: center;
   padding: 64px 20px;
   gap: 12px;
-  color: #6e6e73;
+  color: var(--color-lightgray-text);
 }
 .spinner {
   width: 32px;
   height: 32px;
   border: 3px solid rgba(0, 113, 227, 0.15);
-  border-top-color: #0071e3;
+  border-top-color: var(--color-primary);
   border-radius: 50%;
   animation: spin 0.8s linear infinite;
 }

@@ -339,9 +339,9 @@ onMounted(() => {
 .form-group label {
   font-size: 11px;
   font-weight: 700;
-  color: #111113;
+  color: var(--color-black);
   text-transform: uppercase;
-  letter-spacing: 0.5px;
+  letter-spacing: 1px;
 }
 
 .form-group input,
@@ -352,7 +352,7 @@ onMounted(() => {
   border: 1px solid rgba(0, 0, 0, 0.15);
   border-radius: 8px;
   background: rgba(255, 255, 255, 0.95);
-  color: #111113;
+  color: var(--color-black);
   font-size: 12px;
   font-weight: 600;
   outline: none;
@@ -361,7 +361,7 @@ onMounted(() => {
 
 .form-group input:focus,
 .form-group select:focus {
-  border-color: #0071e3;
+  border-color: var(--color-primary);
   box-shadow: 0 0 0 3px rgba(0, 113, 227, 0.12);
 }
 

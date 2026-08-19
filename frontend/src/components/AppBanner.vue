@@ -28,7 +28,7 @@ defineProps({
 .banner-error {
   background: rgba(255, 59, 48, 0.12);
   border: 1px solid rgba(255, 59, 48, 0.25);
-  color: #b71c1c;
+  color: var(--color-danger-banner);
 }
 .banner-success {
   background: rgba(52, 199, 89, 0.12);

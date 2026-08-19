@@ -548,7 +548,7 @@ onMounted(async () => {
   text-align: center;
   font-size: 13px;
   font-weight: 600;
-  color: #6e6e73;
+  color: var(--color-danger-banner);
   padding: 32px;
 }
 
@@ -557,7 +557,7 @@ onMounted(async () => {
 -------------------------------------------------- */
 
 .selected-field {
-  background: #ffffff;
+  background: var(--color-white);
   border: 1px solid rgba(0, 0, 0, 0.08);
   border-radius: 12px;
   padding: 16px 20px;
@@ -573,7 +573,7 @@ onMounted(async () => {
 }
 
 .field-name {
-  color: #111113;
+  color: var(--color-black);
   font-size: 15px;
   font-weight: 700;
   letter-spacing: -0.2px;
@@ -585,7 +585,7 @@ onMounted(async () => {
   flex-wrap: wrap;
   font-size: 12px;
   font-weight: 500;
-  color: #6e6e73;
+  color: var(--color-darkgray);
 }
 
 .field-meta span {
@@ -613,7 +613,7 @@ onMounted(async () => {
   margin-bottom: 8px;
   font-size: 13px;
   font-weight: 700;
-  color: #111113;
+  color: var(--color-black);
 }
 
 .form-group label {
@@ -644,7 +644,7 @@ onMounted(async () => {
 .section-hint {
   font-size: 12px;
   font-weight: 500;
-  color: #6e6e73;
+  color: var(--color-lightgray-text);
 }
 
 /* Empty tournament state */
@@ -667,14 +667,14 @@ onMounted(async () => {
 }
 
 .tournament-empty-title {
-  color: #111113;
+  color: var(--color-black);
   font-size: 14px;
   font-weight: 700;
   margin-bottom: 4px;
 }
 
 .tournament-empty-text {
-  color: #6e6e73;
+  color: var(--color-lightgray-text);
   font-size: 12px;
   font-weight: 500;
   line-height: 1.5;
@@ -699,7 +699,7 @@ onMounted(async () => {
   align-items: center;
   gap: 12px;
 
-  background: #ffffff;
+  background: var(--color-white);
   border: 1px solid rgba(0, 0, 0, 0.08);
   border-radius: 12px;
   padding: 12px 16px;
@@ -710,7 +710,7 @@ onMounted(async () => {
 .tournament-picker label {
   font-size: 12px;
   font-weight: 700;
-  color: #111113;
+  color: var(--color-black);
   white-space: nowrap;
 }
 
@@ -720,7 +720,7 @@ onMounted(async () => {
 }
 
 .manage-tournaments {
-  color: #0071e3;
+  color: var(--color-primary);
   font-size: 12px;
   font-weight: 700;
   text-decoration: none;
@@ -749,20 +749,20 @@ onMounted(async () => {
 
 select,
 input[type='date'] {
-  background: #ffffff;
+  background: var(--color-white);
   border: 1px solid rgba(0, 0, 0, 0.15);
   border-radius: 8px;
   padding: 10px 14px;
   font-size: 13px;
   font-weight: 500;
-  color: #111113;
+  color: var(--color-black);
   outline: none;
   transition: all 0.1s ease;
 }
 
 select:focus,
 input[type='date']:focus {
-  border-color: #0071e3;
+  border-color: var(--color-primary);
   box-shadow: 0 0 0 3px rgba(0, 113, 227, 0.15);
 }
 
@@ -789,7 +789,7 @@ input[type='date']:disabled {
 
 .slots-hint {
   font-size: 13px;
-  color: #6e6e73;
+  color: var(--color-lightgray-text);
 }
 
 .slots-grid {
@@ -808,7 +808,7 @@ input[type='date']:disabled {
 
   padding: 12px 16px;
 
-  background: #ffffff;
+  background: var(--color-white);
   border: 1px solid rgba(0, 0, 0, 0.08);
   border-radius: 12px;
 
@@ -824,12 +824,12 @@ input[type='date']:disabled {
 }
 
 .slot-selected {
-  border-color: #0071e3;
+  border-color: var(--color-primary-dark);
   background: rgba(0, 113, 227, 0.04);
 }
 
 .slot-disabled {
-  opacity: 0.5;
+  opacity: 0.6;
   cursor: not-allowed;
   background: rgba(0, 0, 0, 0.02);
 }

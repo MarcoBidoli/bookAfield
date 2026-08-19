@@ -26,13 +26,13 @@ defineProps({
 .page-title {
   font-size: 24px;
   font-weight: 800;
-  color: #111113;
+  color: var(--color-black);
   margin: 0 0 4px 0;
   letter-spacing: -0.5px;
 }
 .page-subtitle {
   font-size: 14px;
-  color: #6e6e73;
+  color: var(--color-lightgray-text);
   margin: 0;
   font-weight: 500;
 }

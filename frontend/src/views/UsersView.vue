@@ -157,7 +157,7 @@ onMounted(loadUsers)
 }
 
 .user-item {
-  background: #ffffff;
+  background: var(--color-white);
   border: 1px solid rgba(0, 0, 0, 0.08);
   border-radius: 14px;
   padding: 16px 20px;
@@ -194,7 +194,7 @@ onMounted(loadUsers)
 }
 
 .user-name {
-  color: #111113;
+  color: var(--color-black);
   font-weight: 700;
   font-size: 14px;
   letter-spacing: -0.2px;
@@ -202,7 +202,7 @@ onMounted(loadUsers)
 
 .user-item:hover .user-name,
 .user-item:focus-visible .user-name {
-  color: #0071e3;
+  color: var(--color-primary);
 }
 
 .user-chevron {
@@ -217,7 +217,7 @@ onMounted(loadUsers)
 
 .user-item:hover .user-chevron,
 .user-item:focus-visible .user-chevron {
-  color: #0071e3;
+  color: var(--color-primary);
   transform: translateX(2px);
 }
 
@@ -227,7 +227,7 @@ onMounted(loadUsers)
   gap: 16px;
 
   font-size: 12px;
-  color: #48484a;
+  color: var(--color-darkgray);
   font-weight: 500;
 }
 

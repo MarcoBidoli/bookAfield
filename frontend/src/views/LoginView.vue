@@ -271,7 +271,7 @@ async function handleRegister() {
 label {
   font-size: 13px;
   font-weight: 700;
-  color: #111113;
+  color: var(--color-black);
 }
 
 input {
@@ -281,14 +281,14 @@ input {
   border-radius: 8px;
   font-size: 13px;
   font-weight: 500;
-  color: #111113;
-  background: #ffffff;
+  color: var(--color-black);
+  background: var(--color-white);
   outline: none;
   transition: all 0.1s ease;
 }
 
 input:focus {
-  border-color: #0071e3;
+  border-color: var(--color-primary);
   box-shadow: 0 0 0 3px rgba(0, 113, 227, 0.15);
 }
 

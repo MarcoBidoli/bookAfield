@@ -153,11 +153,11 @@ onMounted(() => {
 
   background: linear-gradient(
     135deg,
-    #0071e3 0%,
-    #409cff 100%
+    var(--color-primary-dark) 0%,
+    var(--color-primary-hover-light) 100%
   );
 
-  color: #ffffff;
+  color: var(--color-white);
   font-size: 24px;
   font-weight: 700;
 
@@ -182,14 +182,14 @@ onMounted(() => {
 
   font-size: 18px;
   font-weight: 700;
-  color: #111113;
+  color: var(--color-black);
   letter-spacing: -0.3px;
 }
 
 .profile-username {
   font-size: 13px;
   font-weight: 600;
-  color: #0071e3;
+  color: var(--color-primary);
 }
 
 .profile-stats {
@@ -215,7 +215,7 @@ onMounted(() => {
 .stat-value {
   font-size: 16px;
   font-weight: 700;
-  color: #111113;
+  color: var(--color-black);
 }
 
 .stat-label {

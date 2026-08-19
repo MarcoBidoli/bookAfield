@@ -21,7 +21,7 @@ defineProps({
 
 <style scoped>
 .group {
-  background: #ffffff;
+  background: var(--color-white);
   border: 1px solid rgba(0, 0, 0, 0.08);
   border-radius: 16px;
   padding: 20px 24px;
@@ -32,7 +32,7 @@ defineProps({
 .group-title {
   font-size: 15px;
   font-weight: 700;
-  color: #111113;
+  color: var(--color-black);
   margin-bottom: 16px;
   padding-bottom: 10px;
   border-bottom: 1px solid rgba(0, 0, 0, 0.06);

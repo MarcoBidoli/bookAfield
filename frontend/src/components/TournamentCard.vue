@@ -1,6 +1,8 @@
 <script setup>
 import SportBadge from '@/components/SportBadge.vue'
 import Pill from '@/components/Pill.vue'
+import CalendarIcon from "@/components/icons/CalendarIcon.vue";
+import UsersIcon from "@/components/icons/UsersIcon.vue";
 
 defineProps({
   tournament: {
@@ -69,48 +71,14 @@ defineEmits(['click', 'delete'])
     <!-- Metadata -->
     <div class="tournament-meta-grid">
       <div class="meta-item">
-        <svg
-          class="meta-icon"
-          xmlns="http://www.w3.org/2000/svg"
-          width="14"
-          height="14"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="2"
-          stroke-linecap="round"
-          stroke-linejoin="round"
-        >
-          <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
-          <line x1="16" y1="2" x2="16" y2="6" />
-          <line x1="8" y1="2" x2="8" y2="6" />
-          <line x1="3" y1="10" x2="21" y2="10" />
-        </svg>
-
+       <CalendarIcon/>
         <span class="meta-text">
           Starts {{ tournament.startDate }}
         </span>
       </div>
 
       <div class="meta-item">
-        <svg
-          class="meta-icon"
-          xmlns="http://www.w3.org/2000/svg"
-          width="14"
-          height="14"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          stroke-width="2"
-          stroke-linecap="round"
-          stroke-linejoin="round"
-        >
-          <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
-          <circle cx="9" cy="7" r="4" />
-          <path d="M22 21v-2a4 4 0 0 0-3-3.87" />
-          <path d="M16 3.13a4 4 0 0 1 0 7.75" />
-        </svg>
-
+       <UsersIcon/>
         <span class="meta-text">
           {{ tournament.teams?.length || 0 }}
           / {{ tournament.maxTeams }} Teams Registered
@@ -151,8 +119,11 @@ defineEmits(['click', 'delete'])
 </template>
 
 <style scoped>
+svg {
+  width: 14px;
+}
 .tournament-card {
-  background: #ffffff;
+  background: var(--color-white);
   border: 1px solid rgba(0, 0, 0, 0.08);
   border-radius: 16px;
   padding: 20px;
@@ -194,7 +165,7 @@ defineEmits(['click', 'delete'])
 }
 
 .tournament-name {
-  color: #111113;
+  color: var(--color-black);
   font-weight: 700;
   font-size: 16px;
   line-height: 1.3;
@@ -208,7 +179,7 @@ defineEmits(['click', 'delete'])
 }
 
 .tournament-name:hover {
-  color: #0071e3;
+  color: var(--color-primary);
 }
 
 .tournament-meta-grid {
@@ -223,12 +194,7 @@ defineEmits(['click', 'delete'])
   gap: 8px;
   font-size: 13px;
   font-weight: 500;
-  color: #48484a;
-}
-
-.meta-icon {
-  color: #6e6e73;
-  flex-shrink: 0;
+  color: var(--color-darkgray);
 }
 
 .meta-text {
@@ -261,7 +227,7 @@ defineEmits(['click', 'delete'])
   border: 1px solid transparent;
   border-radius: 8px;
   background: transparent;
-  color: #48484a;
+  color: var(--color-darkgray);
   font-size: 12px;
   font-weight: 600;
   text-decoration: none;
@@ -271,7 +237,7 @@ defineEmits(['click', 'delete'])
 
 .action-link:hover {
   background: rgba(0, 0, 0, 0.04);
-  color: #111113;
+  color: var(--color-black);
 }
 
 .action-link:active {
@@ -282,7 +248,7 @@ defineEmits(['click', 'delete'])
   flex-shrink: 0;
   border: 1px solid rgba(255, 59, 48, 0.2);
   background: rgba(255, 59, 48, 0.08);
-  color: #b71c1c;
+  color: var(--color-danger-banner);
   cursor: pointer;
 }
 
