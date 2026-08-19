@@ -1,10 +1,14 @@
 <script setup>
-import {computed, onMounted, ref, watch} from 'vue'
-import {useRoute, useRouter} from 'vue-router'
-import {useAuthStore} from '@/stores/auth'
+import { computed, onMounted, ref, watch } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
+import { useAuthStore } from '@/stores/auth'
 
-import {bookFieldSlot, fetchFieldById, fetchFieldSlots,} from '@/api/fields'
-import {fetchTournaments} from '@/api/tournaments'
+import {
+  bookFieldSlot,
+  fetchFieldById,
+  fetchFieldSlots,
+} from '@/api/fields'
+import { fetchTournaments } from '@/api/tournaments'
 
 import Panel from '@/components/Panel.vue'
 import Button from '@/components/Button.vue'
@@ -13,6 +17,7 @@ import AppBanner from '@/components/AppBanner.vue'
 import SportBadge from '@/components/SportBadge.vue'
 import Switcher from '@/components/Switcher.vue'
 import Pill from '@/components/Pill.vue'
+import DateStrip from '@/components/DateStrip.vue'
 
 import ClockIcon from '@/components/icons/ClockIcon.vue'
 import PinPointIcon from '@/components/icons/PinPointIcon.vue'
@@ -29,7 +34,8 @@ const tournaments = ref([])
 const bookingType = ref('standard')
 const selectedTournamentId = ref('')
 
-const selectedDate = ref(getTomorrowDate())
+const selectedDate = ref(getTomorrowDateAsDate())
+
 const availableSlots = ref([])
 const selectedSlot = ref('')
 
@@ -51,27 +57,71 @@ const bookingTypeOptions = [
   },
 ]
 
-function getTomorrowDate() {
-  const date = new Date()
-  date.setDate(date.getDate() + 1)
-  return date.toISOString().split('T')[0]
-}
+/* --------------------------------------------------
+   Dates
+-------------------------------------------------- */
 
 function getTodayDate() {
-  return new Date().toISOString().split('T')[0]
+  return formatDate(new Date())
 }
+
+function getTomorrowDateAsDate() {
+  const date = new Date()
+
+  date.setDate(date.getDate() + 1)
+  date.setHours(0, 0, 0, 0)
+
+  return date
+}
+
+function formatDate(date) {
+  if (!date) return ''
+  const d = new Date(date)
+  const year = d.getFullYear()
+  const month = String(d.getMonth() + 1).padStart(2, '0')
+  const day = String(d.getDate()).padStart(2, '0')
+
+  return `${year}-${month}-${day}`
+}
+
+function parseDate(dateString) {
+  if (!dateString) {
+    return new Date()
+  }
+
+  if (dateString instanceof Date) {
+    return new Date(dateString)
+  }
+
+  // Safely handle both ISO strings and standard YYYY-MM-DD
+  const cleanDateStr = String(dateString).split('T')[0]
+  const [year, month, day] = cleanDateStr.split('-')
+
+  return new Date(
+    Number(year),
+    Number(month) - 1,
+    Number(day)
+  )
+}
+
+/* --------------------------------------------------
+   Computed
+-------------------------------------------------- */
 
 const myActiveTournaments = computed(() => {
   if (!authStore.isAuthenticated || !authStore.user) {
     return []
   }
 
-  const userId = authStore.user._id || authStore.user.id
+  const userId =
+    authStore.user._id ||
+    authStore.user.id
 
   return tournaments.value.filter(
     (tournament) =>
-      String(tournament.creatorId) === String(userId) &&
-      tournament.status === 'active',
+      String(tournament.creatorId) ===
+      String(userId) &&
+      tournament.status === 'active'
   )
 })
 
@@ -79,7 +129,8 @@ const currentSelectedTournament = computed(() => {
   return (
     tournaments.value.find(
       (tournament) =>
-        tournament._id === selectedTournamentId.value,
+        tournament._id ===
+        selectedTournamentId.value
     ) || null
   )
 })
@@ -95,23 +146,38 @@ const minimumBookingDate = computed(() => {
   return getTodayDate()
 })
 
+const minimumBookingDateObject = computed(() => {
+  return parseDate(minimumBookingDate.value)
+})
+
+/* --------------------------------------------------
+   Field
+-------------------------------------------------- */
+
 async function loadField() {
   isLoading.value = true
   errorMessage.value = ''
 
   try {
-    field.value = await fetchFieldById(fieldId)
+    field.value =
+      await fetchFieldById(fieldId)
 
     if (authStore.isAuthenticated) {
-      tournaments.value = await fetchTournaments()
+      tournaments.value =
+        await fetchTournaments()
     }
   } catch (err) {
     errorMessage.value =
-      err.message || 'Error loading field'
+      err.message ||
+      'Error loading field'
   } finally {
     isLoading.value = false
   }
 }
+
+/* --------------------------------------------------
+   Slots
+-------------------------------------------------- */
 
 async function loadSlots() {
   if (!fieldId || !selectedDate.value) {
@@ -123,18 +189,25 @@ async function loadSlots() {
   selectedSlot.value = ''
 
   try {
-    availableSlots.value = await fetchFieldSlots(
-      fieldId,
-      selectedDate.value,
-    )
+    availableSlots.value =
+      await fetchFieldSlots(
+        fieldId,
+        formatDate(selectedDate.value)
+      )
   } catch (err) {
     availableSlots.value = []
+
     errorMessage.value =
-      err.message || 'Error loading available slots'
+      err.message ||
+      'Error loading available slots'
   } finally {
     isLoadingSlots.value = false
   }
 }
+
+/* --------------------------------------------------
+   Booking
+-------------------------------------------------- */
 
 async function handleBooking() {
   errorMessage.value = ''
@@ -146,7 +219,8 @@ async function handleBooking() {
   }
 
   if (!selectedSlot.value) {
-    errorMessage.value = 'Please select a time slot'
+    errorMessage.value =
+      'Please select a time slot'
     return
   }
 
@@ -156,6 +230,7 @@ async function handleBooking() {
   ) {
     errorMessage.value =
       'Please select which tournament this match booking is for'
+
     return
   }
 
@@ -163,7 +238,7 @@ async function handleBooking() {
 
   try {
     await bookFieldSlot(fieldId, {
-      date: selectedDate.value,
+      date: formatDate(selectedDate.value),
       slot: selectedSlot.value,
       type: bookingType.value,
       tournamentId:
@@ -174,11 +249,14 @@ async function handleBooking() {
 
     successMessage.value =
       `Successfully booked ${field.value.name} for ` +
-      `${selectedDate.value} at ${selectedSlot.value}.`
+      `${formatDate(selectedDate.value)} at ` +
+      `${selectedSlot.value}.`
 
     await loadSlots()
   } catch (err) {
-    errorMessage.value = err.message || 'Booking failed'
+    errorMessage.value =
+      err.message ||
+      'Booking failed'
   } finally {
     isSubmitting.value = false
   }
@@ -187,6 +265,36 @@ async function handleBooking() {
 function goBackToFields() {
   router.push('/fields')
 }
+
+/* --------------------------------------------------
+   Date selection
+-------------------------------------------------- */
+
+watch(
+  selectedDate,
+  async (newDate, oldDate) => {
+    if (!newDate || !field.value) {
+      return
+    }
+
+    if (
+      oldDate &&
+      formatDate(newDate) ===
+      formatDate(oldDate)
+    ) {
+      return
+    }
+
+    errorMessage.value = ''
+    successMessage.value = ''
+
+    await loadSlots()
+  }
+)
+
+/* --------------------------------------------------
+   Booking type
+-------------------------------------------------- */
 
 watch(bookingType, () => {
   errorMessage.value = ''
@@ -204,15 +312,28 @@ watch(bookingType, () => {
       myActiveTournaments.value[0]._id
   }
 
-  const tournament = currentSelectedTournament.value
+  const tournament =
+    currentSelectedTournament.value
+
+  if (!tournament?.startDate) {
+    return
+  }
+
+  const tournamentStartDate =
+    parseDate(tournament.startDate)
 
   if (
-    tournament?.startDate &&
-    selectedDate.value < tournament.startDate
+    selectedDate.value <
+    tournamentStartDate
   ) {
-    selectedDate.value = tournament.startDate
+    selectedDate.value =
+      tournamentStartDate
   }
 })
+
+/* --------------------------------------------------
+   Tournament selection
+-------------------------------------------------- */
 
 watch(selectedTournamentId, () => {
   errorMessage.value = ''
@@ -220,24 +341,24 @@ watch(selectedTournamentId, () => {
 
   if (
     bookingType.value !== 'tournament' ||
-    !currentSelectedTournament.value?.startDate
+    !currentSelectedTournament.value
+      ?.startDate
   ) {
     return
   }
 
-  const startDate =
+  const startDate = parseDate(
     currentSelectedTournament.value.startDate
+  )
 
   if (selectedDate.value < startDate) {
     selectedDate.value = startDate
   }
 })
 
-watch(selectedDate, () => {
-  if (field.value) {
-    loadSlots()
-  }
-})
+/* --------------------------------------------------
+   Initial load
+-------------------------------------------------- */
 
 onMounted(async () => {
   await loadField()
@@ -297,6 +418,7 @@ onMounted(async () => {
 
     <template v-else>
       <Panel :title="`Book ${field.name}`">
+
         <!-- Field summary -->
         <div class="selected-field">
           <div class="selected-field-main">
@@ -304,18 +426,24 @@ onMounted(async () => {
               {{ field.name }}
             </span>
 
-            <SportBadge :sport="field.sport" />
+            <SportBadge
+              :sport="field.sport"
+            />
           </div>
 
           <div class="field-meta">
             <span>
               <PinPointIcon />
-              {{ field.address || 'Main Sports Complex' }}
+              {{
+                field.address ||
+                'Main Sports Complex'
+              }}
             </span>
 
             <span>
               <ClockIcon />
-              {{ field.slots?.length || 0 }} Daily Slots
+              {{ field.slots?.length || 0 }}
+              Daily Slots
             </span>
           </div>
         </div>
@@ -349,22 +477,37 @@ onMounted(async () => {
 
           <!-- No tournaments -->
           <div
-            v-if="myActiveTournaments.length === 0"
+            v-if="
+              myActiveTournaments.length === 0
+            "
             class="tournament-empty"
           >
-            <div class="tournament-empty-content">
-              <div class="tournament-empty-title">
+            <div
+              class="tournament-empty-content"
+            >
+              <div
+                class="tournament-empty-title"
+              >
                 No active tournaments
               </div>
 
-              <div class="tournament-empty-text">
-                Create a tournament, add all teams, and generate the matches before booking a field for a tournament match.
+              <div
+                class="tournament-empty-text"
+              >
+                Create a tournament, add all
+                teams, and generate the matches
+                before booking a field for a
+                tournament match.
               </div>
             </div>
 
             <div class="quick-actions">
-              <router-link to="/tournaments">
-                <Button variant="secondary">
+              <router-link
+                to="/tournaments"
+              >
+                <Button
+                  variant="secondary"
+                >
                   Go to Tournaments
                 </Button>
               </router-link>
@@ -376,7 +519,9 @@ onMounted(async () => {
             v-else
             class="tournament-picker"
           >
-            <label for="tournament-select">
+            <label
+              for="tournament-select"
+            >
               Your Active Tournaments
             </label>
 
@@ -386,13 +531,20 @@ onMounted(async () => {
               :disabled="isSubmitting"
             >
               <option
-                v-for="tournament in myActiveTournaments"
+                v-for="
+                  tournament in
+                    myActiveTournaments
+                "
                 :key="tournament._id"
                 :value="tournament._id"
               >
                 {{ tournament.name }}
                 ({{ tournament.sport }}) —
-                {{ tournament.teams?.length || 0 }} Teams
+                {{
+                  tournament.teams?.length ||
+                  0
+                }}
+                Teams
               </option>
             </select>
 
@@ -410,19 +562,18 @@ onMounted(async () => {
           class="booking-form"
           @submit.prevent="handleBooking"
         >
+
           <!-- Date -->
-          <div class="form-group">
-            <label for="date-select">
+          <div class="date-section">
+            <label class="section-label">
               Date:
             </label>
 
-            <input
-              id="date-select"
+            <DateStrip
               v-model="selectedDate"
-              type="date"
-              :min="minimumBookingDate"
-              :disabled="isSubmitting"
-              required
+              :min-date="
+                minimumBookingDateObject
+              "
             />
           </div>
 
@@ -440,10 +591,13 @@ onMounted(async () => {
             </div>
 
             <div
-              v-else-if="availableSlots.length === 0"
+              v-else-if="
+                availableSlots.length === 0
+              "
               class="slots-hint"
             >
-              No slot information available for this date.
+              No slot information available
+              for this date.
             </div>
 
             <div
@@ -451,13 +605,16 @@ onMounted(async () => {
               class="slots-grid"
             >
               <label
-                v-for="slotInfo in availableSlots"
+                v-for="
+                  slotInfo in availableSlots
+                "
                 :key="slotInfo.slot"
                 :class="[
                   'slot-card',
                   {
                     'slot-selected':
-                      selectedSlot === slotInfo.slot,
+                      selectedSlot ===
+                      slotInfo.slot,
                     'slot-disabled':
                       !slotInfo.available,
                   },
@@ -512,21 +669,26 @@ onMounted(async () => {
               :disabled="
                 isSubmitting ||
                 !selectedSlot ||
-                (bookingType === 'tournament' &&
-                  !selectedTournamentId)
+                (
+                  bookingType ===
+                    'tournament' &&
+                  !selectedTournamentId
+                )
               "
             >
               {{
                 isSubmitting
                   ? 'Booking...'
                   : authStore.isAuthenticated
-                    ? bookingType === 'tournament'
+                    ? bookingType ===
+                    'tournament'
                       ? 'Confirm Tournament Match Booking'
                       : 'Confirm Standard Booking'
                     : 'Sign In to Book'
               }}
             </Button>
           </div>
+
         </form>
       </Panel>
     </template>
@@ -562,7 +724,8 @@ onMounted(async () => {
   border-radius: 12px;
   padding: 16px 20px;
   margin-bottom: 20px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02);
+  box-shadow:
+    0 2px 8px rgba(0, 0, 0, 0.02);
 }
 
 .selected-field-main {
@@ -607,17 +770,12 @@ onMounted(async () => {
   margin-bottom: 20px;
 }
 
-.section-label,
-.form-group label {
+.section-label {
   display: block;
   margin-bottom: 8px;
   font-size: 13px;
   font-weight: 700;
   color: var(--color-black);
-}
-
-.form-group label {
-  margin-bottom: 0;
 }
 
 /* --------------------------------------------------
@@ -647,16 +805,12 @@ onMounted(async () => {
   color: var(--color-lightgray-text);
 }
 
-/* Empty tournament state */
-
 .tournament-empty {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
   gap: 14px;
-
   padding: 18px 20px;
-
   background: rgba(0, 113, 227, 0.04);
   border: 1px solid rgba(0, 113, 227, 0.12);
   border-radius: 12px;
@@ -680,8 +834,6 @@ onMounted(async () => {
   line-height: 1.5;
 }
 
-/* Buttons under explanation */
-
 .quick-actions {
   display: flex;
   align-items: center;
@@ -692,19 +844,16 @@ onMounted(async () => {
   text-decoration: none;
 }
 
-/* Tournament picker */
-
 .tournament-picker {
   display: flex;
   align-items: center;
   gap: 12px;
-
   background: var(--color-white);
   border: 1px solid rgba(0, 0, 0, 0.08);
   border-radius: 12px;
   padding: 12px 16px;
-
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02);
+  box-shadow:
+    0 2px 8px rgba(0, 0, 0, 0.02);
 }
 
 .tournament-picker label {
@@ -741,38 +890,6 @@ onMounted(async () => {
   gap: 20px;
 }
 
-.form-group {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-}
-
-select,
-input[type='date'] {
-  background: var(--color-white);
-  border: 1px solid rgba(0, 0, 0, 0.15);
-  border-radius: 8px;
-  padding: 10px 14px;
-  font-size: 13px;
-  font-weight: 500;
-  color: var(--color-black);
-  outline: none;
-  transition: all 0.1s ease;
-}
-
-select:focus,
-input[type='date']:focus {
-  border-color: var(--color-primary);
-  box-shadow: 0 0 0 3px rgba(0, 113, 227, 0.15);
-}
-
-select:disabled,
-input[type='date']:disabled {
-  background: rgba(0, 0, 0, 0.04);
-  color: #8e8e93;
-  cursor: not-allowed;
-}
-
 /* --------------------------------------------------
    Slots
 -------------------------------------------------- */
@@ -794,10 +911,8 @@ input[type='date']:disabled {
 
 .slots-grid {
   display: grid;
-  grid-template-columns: repeat(
-    auto-fill,
-    minmax(200px, 1fr)
-  );
+  grid-template-columns:
+    repeat(auto-fill, minmax(200px, 1fr));
   gap: 12px;
 }
 
@@ -805,18 +920,17 @@ input[type='date']:disabled {
   display: flex;
   align-items: center;
   gap: 10px;
-
   padding: 12px 16px;
-
   background: var(--color-white);
   border: 1px solid rgba(0, 0, 0, 0.08);
   border-radius: 12px;
-
   cursor: pointer;
   font-size: 13px;
   font-weight: 500;
-
-  transition: 0.1s ease;
+  transition:
+    border-color 0.15s ease,
+    background 0.15s ease,
+    transform 0.15s ease;
 }
 
 .slot-card:hover:not(.slot-disabled) {
