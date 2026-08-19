@@ -1,7 +1,20 @@
 <script setup>
-import {useAuthStore} from '@/stores/auth'
+import { ref, onMounted } from 'vue'
+import { useAuthStore } from '@/stores/auth'
 
 const authStore = useAuthStore()
+const isCollapsed = ref(false)
+
+// Automatically start collapsed on mobile screens, but allow manual toggling
+onMounted(() => {
+  if (window.innerWidth <= 700) {
+    isCollapsed.value = true
+  }
+})
+
+const toggleSidebar = () => {
+  isCollapsed.value = !isCollapsed.value
+}
 
 const navigation = [
   {
@@ -28,23 +41,13 @@ const navigation = [
 </script>
 
 <template>
-  <aside class="sidebar">
+  <aside class="sidebar" :class="{ collapsed: isCollapsed }">
     <!-- Navigation -->
-    <div class="sidebar-group-title">
-      Navigation
-    </div>
+    <div class="sidebar-group-title">Navigation</div>
 
     <ul class="sidebar-menu">
-      <li
-        v-for="item in navigation"
-        :key="item.to"
-      >
-        <router-link
-          :to="item.to"
-          active-class="active"
-          class="sidebar-link"
-          :title="item.label"
-        >
+      <li v-for="item in navigation" :key="item.to">
+        <router-link :to="item.to" active-class="active" class="sidebar-link" :title="item.label">
           <!-- Home -->
           <svg
             v-if="item.icon === 'home'"
@@ -144,9 +147,7 @@ const navigation = [
             <path d="m9 16 2 2 4-4" />
           </svg>
 
-          <span class="sidebar-label">
-            My Bookings
-          </span>
+          <span class="sidebar-label"> My Bookings </span>
         </router-link>
       </li>
     </ul>
@@ -155,9 +156,7 @@ const navigation = [
     <div class="sidebar-spacer"></div>
 
     <!-- Account -->
-    <div class="sidebar-group-title">
-      Account
-    </div>
+    <div class="sidebar-group-title">Account</div>
 
     <ul class="sidebar-menu account-menu">
       <!-- Login -->
@@ -182,9 +181,7 @@ const navigation = [
             <line x1="15" y1="12" x2="3" y2="12" />
           </svg>
 
-          <span class="sidebar-label">
-            Login or Register
-          </span>
+          <span class="sidebar-label"> Login or Register </span>
         </router-link>
       </li>
 
@@ -210,12 +207,32 @@ const navigation = [
             <line x1="21" y1="12" x2="9" y2="12" />
           </svg>
 
-          <span class="sidebar-label">
-            Logout
-          </span>
+          <span class="sidebar-label"> Logout </span>
         </button>
       </li>
     </ul>
+
+    <!-- Collapse / Expand Toggle Button -->
+    <button
+      type="button"
+      class="sidebar-link sidebar-button toggle-btn"
+      :title="isCollapsed ? 'Expand Sidebar' : 'Collapse Sidebar'"
+      @click="toggleSidebar"
+    >
+      <svg
+        class="sidebar-icon toggle-icon"
+        :style="{ transform: isCollapsed ? 'rotate(180deg)' : 'rotate(0deg)' }"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+      >
+        <polyline points="15 18 9 12 15 6" />
+      </svg>
+      <span class="sidebar-label">Collapse</span>
+    </button>
   </aside>
 </template>
 
@@ -235,7 +252,9 @@ const navigation = [
 
   padding: 20px 12px;
 
-  transition: width 0.2s ease;
+  transition:
+    width 0.2s ease,
+    padding 0.2s ease;
 }
 
 .sidebar-group-title {
@@ -288,6 +307,7 @@ const navigation = [
   width: 18px;
   height: 18px;
   flex-shrink: 0;
+  transition: transform 0.2s ease;
 }
 
 .sidebar-link.active,
@@ -300,29 +320,19 @@ const navigation = [
   flex: 1;
 }
 
-/* Icon-only sidebar on small screens */
-@media (max-width: 700px) {
-  .sidebar {
-    width: 64px;
-    padding: 20px 8px;
-  }
+/* Collapsed State Styles (Applies universally on both desktop & mobile) */
+.sidebar.collapsed {
+  width: 64px;
+  padding: 20px 8px;
+}
 
-  .sidebar-group-title {
-    display: none;
-  }
+.sidebar.collapsed .sidebar-group-title,
+.sidebar.collapsed .sidebar-label {
+  display: none;
+}
 
-  .sidebar-link {
-    justify-content: center;
-    padding: 0;
-  }
-
-  .sidebar-label {
-    display: none;
-  }
-
-  .sidebar-icon {
-    width: 20px;
-    height: 20px;
-  }
+.sidebar.collapsed .sidebar-link {
+  justify-content: center;
+  padding: 0;
 }
 </style>
