@@ -24,6 +24,7 @@ const isLoading = ref(true)
 const isSubmitting = ref(false)
 const errorMessage = ref('')
 const successMessage = ref('')
+const tomorrowDate = getTomorrowDate()
 
 const tournamentsFilter = [
   { label: 'All', value: 'all' },
@@ -236,6 +237,7 @@ onMounted(() => {
               id="t-date"
               v-model="newTournament.startDate"
               type="date"
+              :min="tomorrowDate"
               required
             />
           </div>
