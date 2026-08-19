@@ -7,6 +7,8 @@ import {fetchTournamentById, updateTournament} from '@/api/tournaments'
 import Panel from '@/components/Panel.vue'
 import Button from '@/components/Button.vue'
 import Breadcrumbs from '@/components/Breadcrumbs.vue'
+import AppBanner from "@/components/AppBanner.vue";
+import LoadingState from "@/components/LoadingState.vue";
 
 const route = useRoute()
 const router = useRouter()
@@ -116,12 +118,23 @@ onMounted(() => {
     />
 
     <!-- Feedback -->
-    <div v-if="successMessage" class="banner success-banner">✓ {{ successMessage }}</div>
+    <AppBanner
+      v-if="successMessage"
+      type="success"
+      :message="successMessage"
+    />
 
-    <div v-if="errorMessage" class="banner error-banner">⚠️ {{ errorMessage }}</div>
+    <AppBanner
+      v-if="errorMessage"
+      type="error"
+      :message="errorMessage"
+    />
 
     <!-- Loading -->
-    <div v-if="isLoading" class="loading-state">Loading tournament...</div>
+    <LoadingState
+      v-if="isLoading"
+      message="Loading tournament..."
+    />
 
     <!-- Not owner -->
     <Panel v-else-if="!isOwner" title="Edit Tournament">
@@ -213,33 +226,6 @@ onMounted(() => {
   gap: 20px;
 }
 
-.banner {
-  padding: 10px 14px;
-  border-radius: 8px;
-  font-size: 13px;
-  font-weight: 600;
-}
-
-.success-banner {
-  background: rgba(40, 167, 69, 0.15);
-  border: 1px solid rgba(40, 167, 69, 0.3);
-  color: #155724;
-}
-
-.error-banner {
-  background: rgba(220, 53, 69, 0.15);
-  border: 1px solid rgba(220, 53, 69, 0.3);
-  color: #721c24;
-}
-
-.loading-state {
-  text-align: center;
-  font-size: 13px;
-  font-weight: 600;
-  color: #48484a;
-  padding: 24px;
-}
-
 .access-denied {
   background: rgba(255, 193, 7, 0.15);
   border: 1px solid rgba(255, 193, 7, 0.3);
@@ -284,7 +270,7 @@ onMounted(() => {
 }
 
 .form-input:focus {
-  border-color: #0051c7;
+  border-color: var(--color-primary-dark)7;
   box-shadow: 0 0 0 3px rgba(0, 81, 199, 0.25), inset 0 1px 3px rgba(0, 0, 0, 0.08);
 }
 
