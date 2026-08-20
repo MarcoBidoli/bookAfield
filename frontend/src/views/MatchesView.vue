@@ -134,6 +134,16 @@ async function handleSaveScore(match) {
     return
   }
 
+  const confirmed = window.confirm(
+    `Confirm final score?\n\n` +
+      `${match.teamAName} ${input.scoreA} - ${input.scoreB} ${match.teamBName}\n\n` +
+      `Once entered, this match result cannot be edited.`,
+  )
+
+  if (!confirmed) {
+    return
+  }
+
   isSubmitting.value = true
   errorMessage.value = ''
   successMessage.value = ''
@@ -144,7 +154,7 @@ async function handleSaveScore(match) {
       scoreB: Number(input.scoreB),
     })
 
-    successMessage.value = `Score updated for ${match.teamAName} vs ` + `${match.teamBName}!`
+    successMessage.value = `Score updated for ${match.teamAName} vs ${match.teamBName}!`
 
     await loadMatches()
   } catch (err) {
@@ -350,7 +360,10 @@ onMounted(loadMatches)
               </div>
 
               <!-- Booking assignment -->
-              <div v-if="isOwner && tournament?.status === 'active'" class="booking-assignment">
+              <div
+                v-if="isOwner && tournament?.status === 'active' && match.status !== 'played'"
+                class="booking-assignment"
+              >
                 <label class="booking-label"> Field booking assignment </label>
 
                 <div class="booking-controls">
