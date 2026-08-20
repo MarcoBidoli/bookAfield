@@ -1,6 +1,31 @@
-import {closeDB, connectDB} from "./db.js";
-import {ObjectId} from "mongodb";
+import { closeDB, connectDB } from "./db.js";
+import { ObjectId } from "mongodb";
 import bcrypt from "bcryptjs";
+
+function getTodayDate() {
+  const now = new Date();
+
+  const year = now.getFullYear();
+  const month = String(now.getMonth() + 1).padStart(2, "0");
+  const day = String(now.getDate()).padStart(2, "0");
+
+  return `${year}-${month}-${day}`;
+}
+
+function getDateOffset(days) {
+  const date = new Date();
+  date.setDate(date.getDate() + days);
+
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+
+  return `${year}-${month}-${day}`;
+}
+
+function shuffle(array) {
+  return [...array].sort(() => Math.random() - 0.5);
+}
 
 async function seedDatabase() {
   try {
@@ -9,12 +34,11 @@ async function seedDatabase() {
     console.log("--- Starting Database Seed ---");
 
     /*
-     * ------------------------------------------------------------------
-     * 0. CLEAN EXISTING SEED DATA
-     * ------------------------------------------------------------------
-     *
-     * Makes the script safe to run repeatedly during development.
+     * ==================================================================
+     * 0. CLEAN DATABASE
+     * ==================================================================
      */
+
     console.log("Cleaning existing collections...");
 
     await Promise.all([
@@ -26,111 +50,126 @@ async function seedDatabase() {
     ]);
 
     /*
-     * ------------------------------------------------------------------
+     * ==================================================================
      * 1. INDEXES
-     * ------------------------------------------------------------------
+     * ==================================================================
      */
 
-    console.log("Creating database indexes...");
+    console.log("Creating indexes...");
 
-    await db.collection("users").createIndex({ username: 1 }, { unique: true });
+    await db.collection("users").createIndex(
+        { username: 1 },
+        { unique: true },
+    );
 
-    await db
-      .collection("bookings")
-      .createIndex({ fieldId: 1, date: 1, slot: 1 }, { unique: true });
+    await db.collection("bookings").createIndex(
+        { fieldId: 1, date: 1, slot: 1 },
+        { unique: true },
+    );
 
-    await db.collection("bookings").createIndex({ userId: 1, date: 1 });
+    await db.collection("bookings").createIndex({
+      userId: 1,
+      date: 1,
+    });
 
-    await db.collection("matches").createIndex({ tournamentId: 1, round: 1 });
-
-    console.log("Indexes created.");
+    await db.collection("matches").createIndex({
+      tournamentId: 1,
+      round: 1,
+    });
 
     /*
-     * ------------------------------------------------------------------
+     * ==================================================================
      * 2. USERS
-     * ------------------------------------------------------------------
-     *
-     * All accounts use:
-     *
-     *     password123
-     *
-     * The people/names are fictional but use realistic Italian/FVG
-     * names and surnames.
+     * ==================================================================
      */
 
-    console.log("Seeding 5 users...");
+    console.log("Creating users...");
 
-    const salt = await bcrypt.genSalt(10);
-    const hashedPassword = await bcrypt.hash("password123", salt);
+    const passwordHash = await bcrypt.hash("password123", 10);
 
     const usersData = [
       {
         _id: new ObjectId(),
         username: "jfabbro",
-        password: hashedPassword,
+        password: passwordHash,
         name: "Jacopo",
         surname: "Fabbro",
-        createdAt: new Date(),
+        createdAt: new Date("2026-01-10T10:00:00"),
       },
       {
         _id: new ObjectId(),
         username: "avisintin",
-        password: hashedPassword,
+        password: passwordHash,
         name: "Alvise",
         surname: "Visintin",
-        createdAt: new Date(),
+        createdAt: new Date("2026-01-12T10:00:00"),
       },
       {
         _id: new ObjectId(),
         username: "ecalligaris",
-        password: hashedPassword,
+        password: passwordHash,
         name: "Elena",
         surname: "Calligaris",
-        createdAt: new Date(),
+        createdAt: new Date("2026-01-15T10:00:00"),
       },
       {
         _id: new ObjectId(),
         username: "dzuliani",
-        password: hashedPassword,
+        password: passwordHash,
         name: "Davide",
         surname: "Zuliani",
-        createdAt: new Date(),
+        createdAt: new Date("2026-01-18T10:00:00"),
       },
       {
         _id: new ObjectId(),
         username: "gpozzo",
-        password: hashedPassword,
+        password: passwordHash,
         name: "Giovanni",
         surname: "Pozzo",
-        createdAt: new Date(),
+        createdAt: new Date("2026-01-20T10:00:00"),
+      },
+      {
+        _id: new ObjectId(),
+        username: "mrossi",
+        password: passwordHash,
+        name: "Marco",
+        surname: "Rossi",
+        createdAt: new Date("2026-02-01T10:00:00"),
+      },
+      {
+        _id: new ObjectId(),
+        username: "lbianchi",
+        password: passwordHash,
+        name: "Luca",
+        surname: "Bianchi",
+        createdAt: new Date("2026-02-05T10:00:00"),
       },
     ];
 
     await db.collection("users").insertMany(usersData);
 
-    const [userFabbro, userVisintin, userCalligaris, userZuliani, userPozzo] =
-      usersData;
-
-    console.log(`Seeded ${usersData.length} users.`);
+    const [
+      userFabbro,
+      userVisintin,
+      userCalligaris,
+      userZuliani,
+      userPozzo,
+      userRossi,
+      userBianchi,
+    ] = usersData;
 
     /*
-     * ------------------------------------------------------------------
-     * 3. SPORTS FIELDS
-     * ------------------------------------------------------------------
+     * ==================================================================
+     * 3. FIELDS
      *
-     * Real facilities in Friuli Venezia Giulia.
-     *
-     * Slots are application booking slots, not claims about the
-     * facilities' official opening hours.
+     * Keep shuffle behavior, but identify fields by name afterwards so
+     * the rest of the seed does not accidentally depend on shuffle order.
+     * ==================================================================
      */
 
-    console.log("Seeding 10 FVG sports fields...");
+    console.log("Creating sports fields...");
 
     const fieldsData = [
-      // ==============================================================
-      // FOOTBALL
-      // ==============================================================
-
       {
         _id: new ObjectId(),
         name: "Campo Sportivo Edi Colussi",
@@ -140,71 +179,45 @@ async function seedDatabase() {
           "09:00-10:00",
           "10:00-11:00",
           "11:00-12:00",
+          "14:00-15:00",
           "15:00-16:00",
           "16:00-17:00",
           "17:00-18:00",
           "18:00-19:00",
-          "19:00-20:00",
-          "20:00-21:00",
         ],
       },
-
       {
         _id: new ObjectId(),
-        name: "Campo sportivo centrale L. Zanussi",
+        name: "Campo Sportivo Centrale L. Zanussi",
         sport: "football",
         address: "Via 4 Novembre, San Daniele del Friuli (UD)",
         slots: [
           "09:00-10:00",
           "10:00-11:00",
           "11:00-12:00",
-          "15:00-16:00",
-          "16:00-17:00",
-          "17:00-18:00",
-          "18:00-19:00",
-          "19:00-20:00",
-        ],
-      },
-
-      {
-        _id: new ObjectId(),
-        name: "Campo Comunale sintetico",
-        sport: "football",
-        address: "Via Mezzana 11, Cividale del Friuli (UD)",
-        slots: [
-          "09:00-10:00",
-          "10:00-11:00",
           "14:00-15:00",
           "15:00-16:00",
           "16:00-17:00",
           "17:00-18:00",
           "18:00-19:00",
-          "19:00-20:00",
         ],
       },
-
       {
         _id: new ObjectId(),
-        name: "Campo Comunale E. Sfriso",
+        name: "Stadio Nereo Rocco",
         sport: "football",
-        address: "Via Martiri Sfriso 12/D, Sacile (PN)",
+        address: "Piazzale Atleti Azzurri d'Italia 1, Trieste (TS)",
         slots: [
           "09:00-10:00",
           "10:00-11:00",
           "11:00-12:00",
+          "14:00-15:00",
           "15:00-16:00",
           "16:00-17:00",
           "17:00-18:00",
           "18:00-19:00",
-          "19:00-20:00",
-          "20:00-21:00",
         ],
       },
-
-      // ==============================================================
-      // VOLLEYBALL
-      // ==============================================================
-
       {
         _id: new ObjectId(),
         name: "PalaTrieste",
@@ -213,17 +226,15 @@ async function seedDatabase() {
         slots: [
           "09:00-10:00",
           "10:00-11:00",
-          "11:00-12:00",
+          "12:00-13:00",
           "14:00-15:00",
           "15:00-16:00",
           "16:00-17:00",
           "17:00-18:00",
           "18:00-19:00",
           "19:00-20:00",
-          "20:00-21:00",
         ],
       },
-
       {
         _id: new ObjectId(),
         name: "Palachiarbola G. Calza",
@@ -232,17 +243,15 @@ async function seedDatabase() {
         slots: [
           "09:00-10:00",
           "10:00-11:00",
-          "11:00-12:00",
+          "12:00-13:00",
           "14:00-15:00",
           "15:00-16:00",
           "16:00-17:00",
           "17:00-18:00",
           "18:00-19:00",
           "19:00-20:00",
-          "20:00-21:00",
         ],
       },
-
       {
         _id: new ObjectId(),
         name: "Palasport Manlio Benedetti",
@@ -251,40 +260,32 @@ async function seedDatabase() {
         slots: [
           "09:00-10:00",
           "10:00-11:00",
-          "11:00-12:00",
+          "12:00-13:00",
           "14:00-15:00",
           "15:00-16:00",
           "16:00-17:00",
           "17:00-18:00",
           "18:00-19:00",
           "19:00-20:00",
-          "20:00-21:00",
         ],
       },
-
-      // ==============================================================
-      // BASKETBALL
-      // ==============================================================
-
       {
         _id: new ObjectId(),
-        name: "Palasport Primo Carnera",
-        sport: "basketball",
-        address: "Via Floriano Candonio 540, Udine (UD)",
+        name: "PalaGalvani",
+        sport: "volleyball",
+        address: "Via Galvani, Pordenone (PN)",
         slots: [
           "09:00-10:00",
           "10:00-11:00",
-          "11:00-12:00",
+          "12:00-13:00",
           "14:00-15:00",
           "15:00-16:00",
           "16:00-17:00",
           "17:00-18:00",
           "18:00-19:00",
           "19:00-20:00",
-          "20:00-21:00",
         ],
       },
-
       {
         _id: new ObjectId(),
         name: "Palacalvola",
@@ -293,965 +294,1104 @@ async function seedDatabase() {
         slots: [
           "09:00-10:00",
           "10:00-11:00",
-          "11:00-12:00",
+          "12:00-13:00",
           "14:00-15:00",
           "15:00-16:00",
           "16:00-17:00",
           "17:00-18:00",
           "18:00-19:00",
           "19:00-20:00",
-          "20:00-21:00",
         ],
       },
-
       {
         _id: new ObjectId(),
-        name: "Palamicheletto",
+        name: "Palasport Primo Carnera",
         sport: "basketball",
-        address: "Via Cartiera Vecchia 52, Sacile (PN)",
+        address: "Via Floriano Candonio 540, Udine (UD)",
         slots: [
           "09:00-10:00",
           "10:00-11:00",
-          "11:00-12:00",
+          "12:00-13:00",
           "14:00-15:00",
           "15:00-16:00",
           "16:00-17:00",
           "17:00-18:00",
           "18:00-19:00",
           "19:00-20:00",
-          "20:00-21:00",
+        ],
+      },
+      {
+        _id: new ObjectId(),
+        name: "PalaBrumatti",
+        sport: "basketball",
+        address: "Via Traverso, Gorizia (GO)",
+        slots: [
+          "09:00-10:00",
+          "10:00-11:00",
+          "12:00-13:00",
+          "14:00-15:00",
+          "15:00-16:00",
+          "16:00-17:00",
+          "17:00-18:00",
+          "18:00-19:00",
+          "19:00-20:00",
         ],
       },
     ];
 
-    fieldsData.sort(() => Math.random() - 0.5); // to avoid ordered fields type
-    await db.collection("fields").insertMany(fieldsData);
+    /*
+     * Preserve the requested shuffle behavior.
+     */
+    const shuffledFields = shuffle(fieldsData);
 
-    const [
-      fieldColussi,
-      fieldZanussi,
-      fieldCividale,
-      fieldSfriso,
-      fieldPalaTrieste,
-      fieldPalachiarbola,
-      fieldBenedetti,
-      fieldCarnera,
-      fieldPalacalvola,
-      fieldPalamicheletto,
-    ] = fieldsData;
-
-    console.log(`Seeded ${fieldsData.length} fields.`);
+    await db.collection("fields").insertMany(shuffledFields);
 
     /*
-     * ------------------------------------------------------------------
-     * 4. HELPER FOR PLAYERS
-     * ------------------------------------------------------------------
+     * Resolve fields by name, so random ordering never changes their role.
+     */
+    const fieldColussi = fieldsData.find(
+        (field) => field.name === "Campo Sportivo Edi Colussi",
+    );
+
+    const fieldZanussi = fieldsData.find(
+        (field) => field.name === "Campo Sportivo Centrale L. Zanussi",
+    );
+
+    const fieldPalaTrieste = fieldsData.find(
+        (field) => field.name === "PalaTrieste",
+    );
+
+    const fieldPalachiarbola = fieldsData.find(
+        (field) => field.name === "Palachiarbola G. Calza",
+    );
+
+    const fieldBenedetti = fieldsData.find(
+        (field) => field.name === "Palasport Manlio Benedetti",
+    );
+
+    const fieldPalacalvola = fieldsData.find(
+        (field) => field.name === "Palacalvola",
+    );
+
+    const fieldCarnera = fieldsData.find(
+        (field) => field.name === "Palasport Primo Carnera",
+    );
+
+    /*
+     * ==================================================================
+     * 4. HELPERS
+     * ==================================================================
      */
 
-    function registeredPlayer(user) {
+    function registeredPlayer(user, jerseyNumber = null) {
       return {
         userId: user._id,
         name: user.name,
         surname: user.surname,
+        jerseyNumber,
       };
     }
 
-    function guestPlayer(name, surname) {
+    function guestPlayer(name, surname, jerseyNumber = null) {
       return {
         userId: null,
         name,
         surname,
+        jerseyNumber,
+      };
+    }
+
+    function createTeam(name, players) {
+      return {
+        _id: new ObjectId(),
+        name,
+        players,
+      };
+    }
+
+    function createBooking({
+                             fieldId,
+                             userId,
+                             date,
+                             slot,
+                             tournamentId = null,
+                             type = "normal",
+                             createdAt = new Date(),
+                           }) {
+      return {
+        _id: new ObjectId(),
+        fieldId,
+        userId,
+        date,
+        slot,
+        type,
+        ...(tournamentId && { tournamentId }),
+        createdAt,
       };
     }
 
     /*
-     * ------------------------------------------------------------------
-     * 5. PAST TOURNAMENT #1 - VOLLEYBALL
-     * ------------------------------------------------------------------
+     * Match schema intentionally mirrors the output of:
      *
-     * Completed tournament in June 2026.
+     * POST /:id/matches/generate
+     */
+    function createMatch({
+                           tournamentId,
+                           teamA,
+                           teamB,
+                           teamAName,
+                           teamBName,
+                           round,
+                           status = "upcoming",
+                           fieldId = null,
+                           date = null,
+                           slot = null,
+                           bookingId = null,
+                           result = null,
+                         }) {
+      return {
+        _id: new ObjectId(),
+        tournamentId,
+        teamA,
+        teamB,
+        teamAName,
+        teamBName,
+        round,
+        status,
+        fieldId,
+        date,
+        slot,
+        bookingId,
+        result,
+      };
+    }
+
+    /*
+     * Creates the exact round-robin pairings produced by the route.
+     *
+     * This is deliberately the same algorithm as the application route,
+     * except that it returns match data instead of inserting it.
+     */
+    function generateRoundRobinMatches(tournamentId, teams) {
+      const scheduleTeams = [...teams];
+
+      if (scheduleTeams.length % 2 !== 0) {
+        scheduleTeams.push({
+          _id: null,
+          name: "BYE",
+        });
+      }
+
+      const N = scheduleTeams.length;
+      const rounds = N - 1;
+      const matches = [];
+
+      for (let round = 1; round <= rounds; round++) {
+        for (let i = 0; i < N / 2; i++) {
+          const home = scheduleTeams[i];
+          const away = scheduleTeams[N - 1 - i];
+
+          /*
+           * Ignore BYE games. The real endpoint currently inserts them,
+           * but all seeded tournaments here have an even number of teams.
+           */
+          if (home._id !== null && away._id !== null) {
+            matches.push(
+                createMatch({
+                  tournamentId,
+                  teamA: home._id,
+                  teamB: away._id,
+                  teamAName: home.name,
+                  teamBName: away.name,
+                  round,
+                }),
+            );
+          }
+        }
+
+        scheduleTeams.splice(1, 0, scheduleTeams.pop());
+      }
+
+      return matches;
+    }
+
+    const today = getTodayDate();
+    const yesterday = getDateOffset(-1);
+    const tomorrow = getDateOffset(1);
+    const inTwoDays = getDateOffset(2);
+    const nextWeek = getDateOffset(7);
+
+    /*
+     * ==================================================================
+     * 5. JFABBR0 - TOURNAMENT 1
+     *
+     * REGISTRATION
+     *
+     * This intentionally represents the state BEFORE
+     * /:id/matches/generate is called.
+     *
+     * 4/4 teams
+     * 0 matches
+     * 0 tournament bookings
+     * ==================================================================
      */
 
-    console.log("Creating completed volleyball tournament...");
+    console.log("Creating jfabbro registration tournament...");
 
-    const pastVolleyId = new ObjectId();
+    const readyTournamentId = new ObjectId();
 
-    const pvTeam1Id = new ObjectId();
-    const pvTeam2Id = new ObjectId();
-    const pvTeam3Id = new ObjectId();
-    const pvTeam4Id = new ObjectId();
+    const readyTeam1 = createTeam("Trieste Sharks", [
+      registeredPlayer(userFabbro, 10),
+      guestPlayer("Luca", "Rossi", 7),
+      guestPlayer("Marco", "Bianchi", 12),
+      guestPlayer("Andrea", "Moro", 4),
+    ]);
 
-    const pastVolley = {
-      _id: pastVolleyId,
+    const readyTeam2 = createTeam("Udine Eagles", [
+      registeredPlayer(userVisintin, 8),
+      guestPlayer("Matteo", "Verdi", 5),
+      guestPlayer("Paolo", "Russo", 11),
+      guestPlayer("Davide", "Furlan", 3),
+    ]);
+
+    const readyTeam3 = createTeam("Gorizia Block", [
+      registeredPlayer(userCalligaris, 6),
+      guestPlayer("Stefano", "Moro", 9),
+      guestPlayer("Pietro", "Neri", 13),
+      guestPlayer("Fabio", "Basso", 2),
+    ]);
+
+    const readyTeam4 = createTeam("Pordenone Volley", [
+      registeredPlayer(userZuliani, 1),
+      guestPlayer("Nicola", "Pavan", 7),
+      guestPlayer("Enrico", "Moretti", 15),
+      guestPlayer("Giorgio", "Rossi", 10),
+    ]);
+
+    const readyTournament = {
+      _id: readyTournamentId,
       creatorId: userFabbro._id,
-      name: "Coppa Friuli Volley 2026",
+      name: "Cornacchia World Cup - Test",
       sport: "volleyball",
       maxTeams: 4,
-      startDate: "2026-06-13",
-      status: "completed",
-
-      teams: [
-        {
-          _id: pvTeam1Id,
-          name: "Udine Volley",
-          players: [
-            registeredPlayer(userFabbro),
-            registeredPlayer(userVisintin),
-            guestPlayer("Matteo", "Bearzot"),
-            guestPlayer("Luca", "Trevisan"),
-          ],
-        },
-        {
-          _id: pvTeam2Id,
-          name: "Trieste Sharks",
-          players: [
-            registeredPlayer(userCalligaris),
-            guestPlayer("Alice", "Cudicio"),
-            guestPlayer("Marta", "Del Fabro"),
-            guestPlayer("Elisa", "Rossi"),
-          ],
-        },
-        {
-          _id: pvTeam3Id,
-          name: "Gorizia Block",
-          players: [
-            registeredPlayer(userZuliani),
-            guestPlayer("Piero", "Degano"),
-            guestPlayer("Marco", "Bertossi"),
-            guestPlayer("Andrea", "Furlan"),
-          ],
-        },
-        {
-          _id: pvTeam4Id,
-          name: "Pordenone Volley",
-          players: [
-            registeredPlayer(userPozzo),
-            guestPlayer("Nicola", "Basso"),
-            guestPlayer("Davide", "Moretti"),
-            guestPlayer("Stefano", "Moro"),
-          ],
-        },
-      ],
-
-      createdAt: new Date("2026-05-20T10:00:00"),
-    };
-
-    /*
-     * ------------------------------------------------------------------
-     * 6. PAST TOURNAMENT #2 - BASKETBALL
-     * ------------------------------------------------------------------
-     */
-
-    console.log("Creating completed basketball tournament...");
-
-    const pastBasketId = new ObjectId();
-
-    const pbTeam1Id = new ObjectId();
-    const pbTeam2Id = new ObjectId();
-    const pbTeam3Id = new ObjectId();
-    const pbTeam4Id = new ObjectId();
-
-    const pastBasket = {
-      _id: pastBasketId,
-      creatorId: userPozzo._id,
-      name: "Torneo Basket delle Province FVG",
-      sport: "basketball",
-      maxTeams: 4,
-      startDate: "2026-07-11",
-      status: "completed",
-
-      teams: [
-        {
-          _id: pbTeam1Id,
-          name: "Udine Eagles",
-          players: [
-            registeredPlayer(userPozzo),
-            guestPlayer("Federico", "Marin"),
-            guestPlayer("Alessandro", "Comisso"),
-            guestPlayer("Lorenzo", "Venuti"),
-            guestPlayer("Matteo", "Bergamasco"),
-          ],
-        },
-        {
-          _id: pbTeam2Id,
-          name: "Trieste Basket Club",
-          players: [
-            registeredPlayer(userFabbro),
-            guestPlayer("Gabriele", "Visentin"),
-            guestPlayer("Davide", "Rossi"),
-            guestPlayer("Enrico", "Miani"),
-            guestPlayer("Tommaso", "Degrassi"),
-          ],
-        },
-        {
-          _id: pbTeam3Id,
-          name: "Pordenone Hoops",
-          players: [
-            registeredPlayer(userZuliani),
-            guestPlayer("Simone", "Furlan"),
-            guestPlayer("Andrea", "Zanier"),
-            guestPlayer("Luca", "Bortolussi"),
-            guestPlayer("Marco", "Benedetti"),
-          ],
-        },
-        {
-          _id: pbTeam4Id,
-          name: "Gorizia Basket",
-          players: [
-            registeredPlayer(userCalligaris),
-            guestPlayer("Giulio", "Dri"),
-            guestPlayer("Riccardo", "Cescutti"),
-            guestPlayer("Michele", "Schiavo"),
-            guestPlayer("Paolo", "Bertoni"),
-          ],
-        },
-      ],
-
-      createdAt: new Date("2026-06-15T10:00:00"),
-    };
-
-    await db.collection("tournaments").insertMany([pastVolley, pastBasket]);
-
-    /*
-     * ------------------------------------------------------------------
-     * 7. UPCOMING TOURNAMENT #1 - FOOTBALL
-     * ------------------------------------------------------------------
-     *
-     * 3/6 teams => 3 spaces available.
-     */
-
-    console.log("Creating upcoming football tournament...");
-
-    const upcomingFootballId = new ObjectId();
-
-    const ufTeam1Id = new ObjectId();
-    const ufTeam2Id = new ObjectId();
-    const ufTeam3Id = new ObjectId();
-
-    const upcomingFootball = {
-      _id: upcomingFootballId,
-      creatorId: userZuliani._id,
-      name: "Coppa del Friuli Calcio a 7",
-      sport: "football",
-      maxTeams: 6,
-      startDate: "2026-09-19",
+      startDate: tomorrow,
       status: "registration",
-
       teams: [
-        {
-          _id: ufTeam1Id,
-          name: "Udine Rizzi FC",
-          players: [
-            registeredPlayer(userZuliani),
-            guestPlayer("Alessio", "Bortolin"),
-            guestPlayer("Matteo", "Fabbro"),
-            guestPlayer("Luca", "Basso"),
-            guestPlayer("Davide", "Saccavino"),
-          ],
-        },
-        {
-          _id: ufTeam2Id,
-          name: "San Daniele United",
-          players: [
-            registeredPlayer(userFabbro),
-            guestPlayer("Mauro", "Della Vedova"),
-            guestPlayer("Stefano", "Ciani"),
-            guestPlayer("Pietro", "Venier"),
-            guestPlayer("Marco", "Zorzi"),
-          ],
-        },
-        {
-          _id: ufTeam3Id,
-          name: "Cervignano Calcio",
-          players: [
-            registeredPlayer(userPozzo),
-            guestPlayer("Andrea", "Pellizzari"),
-            guestPlayer("Nicola", "Comelli"),
-            guestPlayer("Fabio", "Furlan"),
-            guestPlayer("Lorenzo", "Benedetti"),
-          ],
-        },
+        readyTeam1,
+        readyTeam2,
+        readyTeam3,
+        readyTeam4,
       ],
-
       createdAt: new Date("2026-08-01T10:00:00"),
     };
 
     /*
-     * ------------------------------------------------------------------
-     * 8. UPCOMING TOURNAMENT #2 - VOLLEYBALL
-     * ------------------------------------------------------------------
+     * ==================================================================
+     * 6. JFABBR0 - TOURNAMENT 2
      *
-     * 2/6 teams => 4 spaces available.
+     * ACTIVE / SCHEDULE GENERATED
+     *
+     * 4/4 teams
+     * 6 round-robin matches
+     * 6 tournament bookings
+     *
+     * Two matches are already played.
+     * Their bookingId points to their corresponding historical booking.
+     * ==================================================================
      */
 
-    console.log("Creating upcoming volleyball tournament...");
+    console.log("Creating jfabbro active tournament...");
 
-    const upcomingVolleyId = new ObjectId();
+    const activeTournamentId = new ObjectId();
 
-    const uvTeam1Id = new ObjectId();
-    const uvTeam2Id = new ObjectId();
+    const activeTeam1 = createTeam("Trieste United", [
+      registeredPlayer(userFabbro, 10),
+      guestPlayer("Luca", "Rossi", 7),
+      guestPlayer("Marco", "Bianchi", 12),
+      guestPlayer("Andrea", "Moro", 4),
+      guestPlayer("Stefano", "Neri", 8),
+    ]);
 
-    const upcomingVolley = {
-      _id: upcomingVolleyId,
-      creatorId: userCalligaris._id,
+    const activeTeam2 = createTeam("Udine FC", [
+      registeredPlayer(userVisintin, 9),
+      guestPlayer("Matteo", "Verdi", 5),
+      guestPlayer("Paolo", "Russo", 11),
+      guestPlayer("Davide", "Furlan", 3),
+      guestPlayer("Giorgio", "Basso", 6),
+    ]);
+
+    const activeTeam3 = createTeam("Gorizia United", [
+      registeredPlayer(userCalligaris, 1),
+      guestPlayer("Stefano", "Moro", 4),
+      guestPlayer("Pietro", "Neri", 8),
+      guestPlayer("Fabio", "Basso", 13),
+      guestPlayer("Lorenzo", "Pavan", 17),
+    ]);
+
+    const activeTeam4 = createTeam("Pordenone FC", [
+      registeredPlayer(userZuliani, 12),
+      guestPlayer("Nicola", "Moretti", 7),
+      guestPlayer("Enrico", "Rossi", 9),
+      guestPlayer("Gabriele", "Moro", 14),
+      guestPlayer("Simone", "Bianchi", 18),
+    ]);
+
+    const activeTeams = [
+      activeTeam1,
+      activeTeam2,
+      activeTeam3,
+      activeTeam4,
+    ];
+
+    const activeTournament = {
+      _id: activeTournamentId,
+      creatorId: userFabbro._id,
+      name: "Coppa Italia Dilettanti FVG - Test",
+      sport: "football",
+      maxTeams: 4,
+      startDate: yesterday,
+      status: "active",
+      teams: activeTeams,
+      createdAt: new Date("2026-08-10T10:00:00"),
+    };
+
+    /*
+     * Generate the same six pairings as the real endpoint.
+     */
+    const activeMatches = generateRoundRobinMatches(
+        activeTournamentId,
+        activeTeams,
+    );
+
+    /*
+     * Assign a realistic completed schedule.
+     *
+     * Round 1:
+     *   match 1 -> yesterday 14:00
+     *   match 2 -> yesterday 15:00
+     *
+     * Round 2:
+     *   match 3 -> today 14:00
+     *   match 4 -> today 15:00
+     *
+     * Round 3:
+     *   match 5 -> tomorrow 17:00
+     *   match 6 -> tomorrow 18:00
+     */
+
+    const activeSchedule = [
+      {
+        fieldId: fieldColussi._id,
+        date: yesterday,
+        slot: "14:00-15:00",
+      },
+      {
+        fieldId: fieldColussi._id,
+        date: yesterday,
+        slot: "15:00-16:00",
+      },
+      {
+        fieldId: fieldColussi._id,
+        date: today,
+        slot: "14:00-15:00",
+      },
+      {
+        fieldId: fieldColussi._id,
+        date: today,
+        slot: "15:00-16:00",
+      },
+      {
+        fieldId: fieldColussi._id,
+        date: tomorrow,
+        slot: "17:00-18:00",
+      },
+      {
+        fieldId: fieldColussi._id,
+        date: tomorrow,
+        slot: "18:00-19:00",
+      },
+    ];
+
+    activeMatches.forEach((match, index) => {
+      const schedule = activeSchedule[index];
+
+      match.fieldId = schedule.fieldId;
+      match.date = schedule.date;
+      match.slot = schedule.slot;
+
+      if (index < 2) {
+        match.status = "played";
+
+        match.result =
+            index === 0
+                ? {
+                  scoreA: 3,
+                  scoreB: 1,
+                }
+                : {
+                  scoreA: 2,
+                  scoreB: 2,
+                };
+      }
+    });
+
+    /*
+     * Create bookings AFTER matches exist, then connect the booking
+     * through match.bookingId.
+     *
+     * This means played matches have a real historical booking ID.
+     */
+    const activeBookings = [];
+
+    for (const match of activeMatches) {
+      const isPlayed = match.status === "played";
+
+      const booking = createBooking({
+        fieldId: match.fieldId,
+        userId: userFabbro._id,
+        date: match.date,
+        slot: match.slot,
+        tournamentId: activeTournamentId,
+        type: "tournament",
+        createdAt: isPlayed
+            ? new Date("2026-08-10T11:00:00")
+            : new Date("2026-08-10T12:00:00"),
+      });
+
+      match.bookingId = booking._id;
+      activeBookings.push(booking);
+    }
+
+    /*
+     * ==================================================================
+     * 7. JFABBR0 - TOURNAMENT 3
+     *
+     * COMPLETED
+     *
+     * Full historical tournament with all 6 matches played.
+     * Every match has:
+     *   - fieldId
+     *   - date
+     *   - slot
+     *   - bookingId
+     *   - result
+     * ==================================================================
+     */
+
+    console.log("Creating jfabbro completed tournament...");
+
+    const completedTournamentId = new ObjectId();
+
+    const completedTeam1 = createTeam("Trieste Basketball", [
+      registeredPlayer(userFabbro, 10),
+      guestPlayer("Luca", "Rossi", 7),
+      guestPlayer("Marco", "Bianchi", 12),
+      guestPlayer("Andrea", "Moro", 4),
+      guestPlayer("Stefano", "Neri", 8),
+    ]);
+
+    const completedTeam2 = createTeam("Udine Eagles", [
+      registeredPlayer(userPozzo, 9),
+      guestPlayer("Matteo", "Verdi", 5),
+      guestPlayer("Paolo", "Russo", 11),
+      guestPlayer("Davide", "Furlan", 3),
+      guestPlayer("Giorgio", "Basso", 6),
+    ]);
+
+    const completedTeam3 = createTeam("Gorizia Basket", [
+      registeredPlayer(userCalligaris, 6),
+      guestPlayer("Stefano", "Moro", 9),
+      guestPlayer("Pietro", "Neri", 13),
+      guestPlayer("Fabio", "Basso", 2),
+      guestPlayer("Lorenzo", "Pavan", 15),
+    ]);
+
+    const completedTeam4 = createTeam("Pordenone Hoops", [
+      registeredPlayer(userZuliani, 12),
+      guestPlayer("Nicola", "Moretti", 7),
+      guestPlayer("Enrico", "Rossi", 9),
+      guestPlayer("Gabriele", "Moro", 14),
+      guestPlayer("Simone", "Bianchi", 18),
+    ]);
+
+    const completedTeams = [
+      completedTeam1,
+      completedTeam2,
+      completedTeam3,
+      completedTeam4,
+    ];
+
+    const completedTournament = {
+      _id: completedTournamentId,
+      creatorId: userFabbro._id,
+      name: "Memorial Mario Morley - Test",
+      sport: "basketball",
+      maxTeams: 4,
+      startDate: "2026-07-11",
+      status: "completed",
+      teams: completedTeams,
+      createdAt: new Date("2026-06-15T10:00:00"),
+    };
+
+    const completedMatches = generateRoundRobinMatches(
+        completedTournamentId,
+        completedTeams,
+    );
+
+    const completedSchedule = [
+      {
+        date: "2026-07-11",
+        slot: "14:00-15:00",
+        scoreA: 78,
+        scoreB: 71,
+      },
+      {
+        date: "2026-07-11",
+        slot: "15:00-16:00",
+        scoreA: 65,
+        scoreB: 72,
+      },
+      {
+        date: "2026-07-11",
+        slot: "16:00-17:00",
+        scoreA: 84,
+        scoreB: 69,
+      },
+      {
+        date: "2026-07-11",
+        slot: "17:00-18:00",
+        scoreA: 76,
+        scoreB: 81,
+      },
+      {
+        date: "2026-07-12",
+        slot: "14:00-15:00",
+        scoreA: 88,
+        scoreB: 75,
+      },
+      {
+        date: "2026-07-12",
+        slot: "15:00-16:00",
+        scoreA: 82,
+        scoreB: 77,
+      },
+    ];
+
+    const completedBookings = [];
+
+    completedMatches.forEach((match, index) => {
+      const schedule = completedSchedule[index];
+
+      match.status = "played";
+      match.fieldId = fieldCarnera._id;
+      match.date = schedule.date;
+      match.slot = schedule.slot;
+      match.result = {
+        scoreA: schedule.scoreA,
+        scoreB: schedule.scoreB,
+      };
+
+      const booking = createBooking({
+        fieldId: fieldCarnera._id,
+        userId: userFabbro._id,
+        date: schedule.date,
+        slot: schedule.slot,
+        tournamentId: completedTournamentId,
+        type: "tournament",
+        createdAt: new Date("2026-06-15T11:00:00"),
+      });
+
+      match.bookingId = booking._id;
+
+      completedBookings.push(booking);
+    });
+
+    /*
+     * ==================================================================
+     * 8. OTHER USERS' TOURNAMENTS
+     * ==================================================================
+     */
+
+    console.log("Creating other users' tournaments...");
+
+    /*
+     * --------------------------------------------------------------
+     * avisintin - registration
+     * --------------------------------------------------------------
+     */
+
+    const otherVolleyTournamentId = new ObjectId();
+
+    const otherVolleyTeam1 = createTeam("Udine Panthers", [
+      registeredPlayer(userVisintin, 10),
+      guestPlayer("Anna", "Rossi", 4),
+      guestPlayer("Marta", "Visentin", 8),
+    ]);
+
+    const otherVolleyTeam2 = createTeam("Trieste Waves", [
+      registeredPlayer(userRossi, 7),
+      guestPlayer("Chiara", "Furlan", 3),
+      guestPlayer("Elisa", "Pavan", 9),
+    ]);
+
+    const otherVolleyTournament = {
+      _id: otherVolleyTournamentId,
+      creatorId: userVisintin._id,
       name: "Trofeo Autunno Volley FVG",
       sport: "volleyball",
       maxTeams: 6,
       startDate: "2026-10-24",
       status: "registration",
-
       teams: [
-        {
-          _id: uvTeam1Id,
-          name: "Trieste Waves",
-          players: [
-            registeredPlayer(userCalligaris),
-            guestPlayer("Sara", "Bertossi"),
-            guestPlayer("Chiara", "Furlan"),
-            guestPlayer("Elisa", "Pavan"),
-          ],
-        },
-        {
-          _id: uvTeam2Id,
-          name: "Udine Panthers",
-          players: [
-            registeredPlayer(userVisintin),
-            guestPlayer("Anna", "Rossi"),
-            guestPlayer("Marta", "Visentin"),
-            guestPlayer("Francesca", "Basso"),
-          ],
-        },
+        otherVolleyTeam1,
+        otherVolleyTeam2,
       ],
-
       createdAt: new Date("2026-08-05T10:00:00"),
     };
 
-    await db
-      .collection("tournaments")
-      .insertMany([upcomingFootball, upcomingVolley]);
-
     /*
-     * ------------------------------------------------------------------
-     * 9. MATCHES FOR COMPLETED VOLLEYBALL TOURNAMENT
-     * ------------------------------------------------------------------
-     *
-     * Round-robin:
-     *
-     * R1:
-     * Udine 2-0 Trieste
-     * Gorizia 2-1 Pordenone
-     *
-     * R2:
-     * Udine 2-1 Gorizia
-     * Trieste 2-0 Pordenone
-     *
-     * R3:
-     * Udine 2-0 Pordenone
-     * Trieste 1-2 Gorizia
+     * --------------------------------------------------------------
+     * ecalligaris - registration
+     * --------------------------------------------------------------
      */
 
-    const volleyMatch1Id = new ObjectId();
-    const volleyMatch2Id = new ObjectId();
-    const volleyMatch3Id = new ObjectId();
-    const volleyMatch4Id = new ObjectId();
-    const volleyMatch5Id = new ObjectId();
-    const volleyMatch6Id = new ObjectId();
+    const otherBasketTournamentId = new ObjectId();
 
-    const volleyBooking1Id = new ObjectId();
-    const volleyBooking2Id = new ObjectId();
-    const volleyBooking3Id = new ObjectId();
-    const volleyBooking4Id = new ObjectId();
-    const volleyBooking5Id = new ObjectId();
-    const volleyBooking6Id = new ObjectId();
-
-    const completedVolleyBookings = [
-      {
-        _id: volleyBooking1Id,
-        fieldId: fieldBenedetti._id,
-        userId: userFabbro._id,
-        date: "2026-06-13",
-        slot: "14:00-15:00",
-        type: "tournament",
-        tournamentId: pastVolleyId,
-        matchId: volleyMatch1Id,
-        createdAt: new Date("2026-05-20T11:00:00"),
-      },
-      {
-        _id: volleyBooking2Id,
-        fieldId: fieldBenedetti._id,
-        userId: userFabbro._id,
-        date: "2026-06-13",
-        slot: "15:00-16:00",
-        type: "tournament",
-        tournamentId: pastVolleyId,
-        matchId: volleyMatch2Id,
-        createdAt: new Date("2026-05-20T11:00:00"),
-      },
-      {
-        _id: volleyBooking3Id,
-        fieldId: fieldBenedetti._id,
-        userId: userFabbro._id,
-        date: "2026-06-13",
-        slot: "16:00-17:00",
-        type: "tournament",
-        tournamentId: pastVolleyId,
-        matchId: volleyMatch3Id,
-        createdAt: new Date("2026-05-20T11:00:00"),
-      },
-      {
-        _id: volleyBooking4Id,
-        fieldId: fieldBenedetti._id,
-        userId: userFabbro._id,
-        date: "2026-06-13",
-        slot: "17:00-18:00",
-        type: "tournament",
-        tournamentId: pastVolleyId,
-        matchId: volleyMatch4Id,
-        createdAt: new Date("2026-05-20T11:00:00"),
-      },
-      {
-        _id: volleyBooking5Id,
-        fieldId: fieldBenedetti._id,
-        userId: userFabbro._id,
-        date: "2026-06-14",
-        slot: "14:00-15:00",
-        type: "tournament",
-        tournamentId: pastVolleyId,
-        matchId: volleyMatch5Id,
-        createdAt: new Date("2026-05-20T11:00:00"),
-      },
-      {
-        _id: volleyBooking6Id,
-        fieldId: fieldBenedetti._id,
-        userId: userFabbro._id,
-        date: "2026-06-14",
-        slot: "15:00-16:00",
-        type: "tournament",
-        tournamentId: pastVolleyId,
-        matchId: volleyMatch6Id,
-        createdAt: new Date("2026-05-20T11:00:00"),
-      },
-    ];
-
-    const completedVolleyMatches = [
-      {
-        _id: volleyMatch1Id,
-        tournamentId: pastVolleyId,
-        teamA: pvTeam1Id,
-        teamB: pvTeam2Id,
-        round: 1,
-        fieldId: fieldBenedetti._id,
-        date: "2026-06-13",
-        slot: "14:00-15:00",
-        bookingId: volleyBooking1Id,
-        status: "played",
-        result: { scoreA: 2, scoreB: 0 },
-      },
-      {
-        _id: volleyMatch2Id,
-        tournamentId: pastVolleyId,
-        teamA: pvTeam3Id,
-        teamB: pvTeam4Id,
-        round: 1,
-        fieldId: fieldBenedetti._id,
-        date: "2026-06-13",
-        slot: "15:00-16:00",
-        bookingId: volleyBooking2Id,
-        status: "played",
-        result: { scoreA: 2, scoreB: 1 },
-      },
-      {
-        _id: volleyMatch3Id,
-        tournamentId: pastVolleyId,
-        teamA: pvTeam1Id,
-        teamB: pvTeam3Id,
-        round: 2,
-        fieldId: fieldBenedetti._id,
-        date: "2026-06-13",
-        slot: "16:00-17:00",
-        bookingId: volleyBooking3Id,
-        status: "played",
-        result: { scoreA: 2, scoreB: 1 },
-      },
-      {
-        _id: volleyMatch4Id,
-        tournamentId: pastVolleyId,
-        teamA: pvTeam2Id,
-        teamB: pvTeam4Id,
-        round: 2,
-        fieldId: fieldBenedetti._id,
-        date: "2026-06-13",
-        slot: "17:00-18:00",
-        bookingId: volleyBooking4Id,
-        status: "played",
-        result: { scoreA: 2, scoreB: 0 },
-      },
-      {
-        _id: volleyMatch5Id,
-        tournamentId: pastVolleyId,
-        teamA: pvTeam1Id,
-        teamB: pvTeam4Id,
-        round: 3,
-        fieldId: fieldBenedetti._id,
-        date: "2026-06-14",
-        slot: "14:00-15:00",
-        bookingId: volleyBooking5Id,
-        status: "played",
-        result: { scoreA: 2, scoreB: 0 },
-      },
-      {
-        _id: volleyMatch6Id,
-        tournamentId: pastVolleyId,
-        teamA: pvTeam2Id,
-        teamB: pvTeam3Id,
-        round: 3,
-        fieldId: fieldBenedetti._id,
-        date: "2026-06-14",
-        slot: "15:00-16:00",
-        bookingId: volleyBooking6Id,
-        status: "played",
-        result: { scoreA: 1, scoreB: 2 },
-      },
-    ];
+    const otherBasketTournament = {
+      _id: otherBasketTournamentId,
+      creatorId: userCalligaris._id,
+      name: "Trieste Basketball Cup",
+      sport: "basketball",
+      maxTeams: 6,
+      startDate: "2026-09-20",
+      status: "registration",
+      teams: [
+        createTeam("Trieste Lions", [
+          registeredPlayer(userCalligaris, 10),
+          guestPlayer("Alberto", "Rossi", 4),
+          guestPlayer("Lorenzo", "Moro", 8),
+        ]),
+        createTeam("Muggia Basket", [
+          registeredPlayer(userBianchi, 7),
+          guestPlayer("Marco", "Neri", 12),
+          guestPlayer("Fabio", "Pavan", 15),
+        ]),
+      ],
+      createdAt: new Date("2026-08-06T10:00:00"),
+    };
 
     /*
-     * ------------------------------------------------------------------
-     * 10. MATCHES FOR COMPLETED BASKETBALL TOURNAMENT
-     * ------------------------------------------------------------------
-     *
-     * Round-robin, realistic basketball scores.
+     * --------------------------------------------------------------
+     * dzuliani - active, schedule generated
+     * --------------------------------------------------------------
      */
 
-    const basketMatch1Id = new ObjectId();
-    const basketMatch2Id = new ObjectId();
-    const basketMatch3Id = new ObjectId();
-    const basketMatch4Id = new ObjectId();
-    const basketMatch5Id = new ObjectId();
-    const basketMatch6Id = new ObjectId();
+    const otherFootballTournamentId = new ObjectId();
 
-    const basketBooking1Id = new ObjectId();
-    const basketBooking2Id = new ObjectId();
-    const basketBooking3Id = new ObjectId();
-    const basketBooking4Id = new ObjectId();
-    const basketBooking5Id = new ObjectId();
-    const basketBooking6Id = new ObjectId();
+    const otherFootballTeam1 = createTeam("Cividale FC", [
+      registeredPlayer(userZuliani, 10),
+      guestPlayer("Alessio", "Bortolin", 7),
+      guestPlayer("Matteo", "Fabbro", 9),
+      guestPlayer("Luca", "Basso", 11),
+    ]);
 
-    const completedBasketBookings = [
-      {
-        _id: basketBooking1Id,
-        fieldId: fieldCarnera._id,
-        userId: userPozzo._id,
-        date: "2026-07-11",
-        slot: "14:00-15:00",
-        type: "tournament",
-        tournamentId: pastBasketId,
-        matchId: basketMatch1Id,
-        createdAt: new Date("2026-06-15T11:00:00"),
-      },
-      {
-        _id: basketBooking2Id,
-        fieldId: fieldCarnera._id,
-        userId: userPozzo._id,
-        date: "2026-07-11",
-        slot: "15:00-16:00",
-        type: "tournament",
-        tournamentId: pastBasketId,
-        matchId: basketMatch2Id,
-        createdAt: new Date("2026-06-15T11:00:00"),
-      },
-      {
-        _id: basketBooking3Id,
-        fieldId: fieldCarnera._id,
-        userId: userPozzo._id,
-        date: "2026-07-11",
-        slot: "16:00-17:00",
-        type: "tournament",
-        tournamentId: pastBasketId,
-        matchId: basketMatch3Id,
-        createdAt: new Date("2026-06-15T11:00:00"),
-      },
-      {
-        _id: basketBooking4Id,
-        fieldId: fieldCarnera._id,
-        userId: userPozzo._id,
-        date: "2026-07-11",
-        slot: "17:00-18:00",
-        type: "tournament",
-        tournamentId: pastBasketId,
-        matchId: basketMatch4Id,
-        createdAt: new Date("2026-06-15T11:00:00"),
-      },
-      {
-        _id: basketBooking5Id,
-        fieldId: fieldCarnera._id,
-        userId: userPozzo._id,
-        date: "2026-07-12",
-        slot: "14:00-15:00",
-        type: "tournament",
-        tournamentId: pastBasketId,
-        matchId: basketMatch5Id,
-        createdAt: new Date("2026-06-15T11:00:00"),
-      },
-      {
-        _id: basketBooking6Id,
-        fieldId: fieldCarnera._id,
-        userId: userPozzo._id,
-        date: "2026-07-12",
-        slot: "15:00-16:00",
-        type: "tournament",
-        tournamentId: pastBasketId,
-        matchId: basketMatch6Id,
-        createdAt: new Date("2026-06-15T11:00:00"),
-      },
+    const otherFootballTeam2 = createTeam("San Daniele United", [
+      registeredPlayer(userBianchi, 8),
+      guestPlayer("Mauro", "Ciani", 4),
+      guestPlayer("Stefano", "Venier", 6),
+      guestPlayer("Pietro", "Zorzi", 12),
+    ]);
+
+    const otherFootballTeam3 = createTeam("Cervignano Calcio", [
+      registeredPlayer(userPozzo, 1),
+      guestPlayer("Andrea", "Pellizzari", 5),
+      guestPlayer("Nicola", "Comelli", 13),
+      guestPlayer("Fabio", "Furlan", 15),
+    ]);
+
+    const otherFootballTeam4 = createTeam("Sacile United", [
+      registeredPlayer(userRossi, 3),
+      guestPlayer("Davide", "Saccavino", 8),
+      guestPlayer("Lorenzo", "Benedetti", 10),
+      guestPlayer("Marco", "Zorzi", 14),
+    ]);
+
+    const otherFootballTeams = [
+      otherFootballTeam1,
+      otherFootballTeam2,
+      otherFootballTeam3,
+      otherFootballTeam4,
     ];
 
-    const completedBasketMatches = [
+    const otherFootballTournament = {
+      _id: otherFootballTournamentId,
+      creatorId: userZuliani._id,
+      name: "Friuli Football Challenge",
+      sport: "football",
+      maxTeams: 4,
+      startDate: today,
+      status: "active",
+      teams: otherFootballTeams,
+      createdAt: new Date("2026-08-08T10:00:00"),
+    };
+
+    const otherFootballMatches = generateRoundRobinMatches(
+        otherFootballTournamentId,
+        otherFootballTeams,
+    );
+
+    const otherFootballSchedule = [
       {
-        _id: basketMatch1Id,
-        tournamentId: pastBasketId,
-        teamA: pbTeam1Id,
-        teamB: pbTeam2Id,
-        round: 1,
-        fieldId: fieldCarnera._id,
-        date: "2026-07-11",
+        date: tomorrow,
         slot: "14:00-15:00",
-        bookingId: basketBooking1Id,
-        status: "played",
-        result: { scoreA: 78, scoreB: 71 },
       },
       {
-        _id: basketMatch2Id,
-        tournamentId: pastBasketId,
-        teamA: pbTeam3Id,
-        teamB: pbTeam4Id,
-        round: 1,
-        fieldId: fieldCarnera._id,
-        date: "2026-07-11",
+        date: tomorrow,
         slot: "15:00-16:00",
-        bookingId: basketBooking2Id,
-        status: "played",
-        result: { scoreA: 65, scoreB: 72 },
       },
       {
-        _id: basketMatch3Id,
-        tournamentId: pastBasketId,
-        teamA: pbTeam1Id,
-        teamB: pbTeam3Id,
-        round: 2,
-        fieldId: fieldCarnera._id,
-        date: "2026-07-11",
-        slot: "16:00-17:00",
-        bookingId: basketBooking3Id,
-        status: "played",
-        result: { scoreA: 84, scoreB: 69 },
+        date: inTwoDays,
+        slot: "14:00-15:00",
       },
       {
-        _id: basketMatch4Id,
-        tournamentId: pastBasketId,
-        teamA: pbTeam2Id,
-        teamB: pbTeam4Id,
-        round: 2,
-        fieldId: fieldCarnera._id,
-        date: "2026-07-11",
+        date: inTwoDays,
+        slot: "15:00-16:00",
+      },
+      {
+        date: getDateOffset(3),
         slot: "17:00-18:00",
-        bookingId: basketBooking4Id,
-        status: "played",
-        result: { scoreA: 76, scoreB: 81 },
       },
       {
-        _id: basketMatch5Id,
-        tournamentId: pastBasketId,
-        teamA: pbTeam1Id,
-        teamB: pbTeam4Id,
-        round: 3,
-        fieldId: fieldCarnera._id,
-        date: "2026-07-12",
-        slot: "14:00-15:00",
-        bookingId: basketBooking5Id,
-        status: "played",
-        result: { scoreA: 88, scoreB: 75 },
-      },
-      {
-        _id: basketMatch6Id,
-        tournamentId: pastBasketId,
-        teamA: pbTeam2Id,
-        teamB: pbTeam3Id,
-        round: 3,
-        fieldId: fieldCarnera._id,
-        date: "2026-07-12",
-        slot: "15:00-16:00",
-        bookingId: basketBooking6Id,
-        status: "played",
-        result: { scoreA: 82, scoreB: 77 },
-      },
-    ];
-
-    /*
-     * ------------------------------------------------------------------
-     * 12. NORMAL USER BOOKINGS
-     * ------------------------------------------------------------------
-     *
-     * These are distributed between all five users.
-     *
-     * Dates span:
-     *
-     *   17 August 2026 -> 30 November 2026
-     *
-     * The bookings intentionally cover different sports and locations.
-     */
-
-    console.log("Creating normal bookings from August through November...");
-
-    const normalBookings = [
-      // --------------------------------------------------------------
-      // AUGUST
-      // --------------------------------------------------------------
-
-      {
-        _id: new ObjectId(),
-        fieldId: fieldColussi._id,
-        userId: userFabbro._id,
-        date: "2026-08-18",
+        date: getDateOffset(3),
         slot: "18:00-19:00",
-        type: "normal",
-        createdAt: new Date(),
       },
-      {
-        _id: new ObjectId(),
-        fieldId: fieldPalachiarbola._id,
-        userId: userVisintin._id,
-        date: "2026-08-20",
-        slot: "19:00-20:00",
-        type: "normal",
-        createdAt: new Date(),
-      },
-      {
-        _id: new ObjectId(),
-        fieldId: fieldCarnera._id,
-        userId: userCalligaris._id,
-        date: "2026-08-22",
-        slot: "16:00-17:00",
-        type: "normal",
-        createdAt: new Date(),
-      },
-      {
-        _id: new ObjectId(),
+    ];
+
+    const otherFootballBookings = [];
+
+    otherFootballMatches.forEach((match, index) => {
+      const schedule = otherFootballSchedule[index];
+
+      match.fieldId = fieldZanussi._id;
+      match.date = schedule.date;
+      match.slot = schedule.slot;
+      match.status = "upcoming";
+
+      const booking = createBooking({
         fieldId: fieldZanussi._id,
         userId: userZuliani._id,
-        date: "2026-08-24",
+        date: schedule.date,
+        slot: schedule.slot,
+        tournamentId: otherFootballTournamentId,
+        type: "tournament",
+        createdAt: new Date("2026-08-08T11:00:00"),
+      });
+
+      match.bookingId = booking._id;
+
+      otherFootballBookings.push(booking);
+    });
+
+    /*
+     * --------------------------------------------------------------
+     * gpozzo - completed
+     * --------------------------------------------------------------
+     */
+
+    const otherCompletedTournamentId = new ObjectId();
+
+    const otherCompletedTeam1 = createTeam("Udine Basket", [
+      registeredPlayer(userPozzo, 10),
+      guestPlayer("Federico", "Marin", 4),
+      guestPlayer("Alessandro", "Comisso", 8),
+    ]);
+
+    const otherCompletedTeam2 = createTeam("Trieste Basket Club", [
+      registeredPlayer(userFabbro, 7),
+      guestPlayer("Gabriele", "Visentin", 9),
+      guestPlayer("Davide", "Rossi", 12),
+    ]);
+
+    const otherCompletedTeam3 = createTeam("Pordenone Hoops", [
+      registeredPlayer(userZuliani, 3),
+      guestPlayer("Simone", "Furlan", 6),
+      guestPlayer("Andrea", "Zanier", 11),
+    ]);
+
+    const otherCompletedTeam4 = createTeam("Gorizia Basket", [
+      registeredPlayer(userCalligaris, 5),
+      guestPlayer("Giulio", "Dri", 13),
+      guestPlayer("Riccardo", "Cescutti", 15),
+    ]);
+
+    const otherCompletedTeams = [
+      otherCompletedTeam1,
+      otherCompletedTeam2,
+      otherCompletedTeam3,
+      otherCompletedTeam4,
+    ];
+
+    const otherCompletedTournament = {
+      _id: otherCompletedTournamentId,
+      creatorId: userPozzo._id,
+      name: "Coppa delle Province FVG",
+      sport: "basketball",
+      maxTeams: 4,
+      startDate: "2026-07-05",
+      status: "completed",
+      teams: otherCompletedTeams,
+      createdAt: new Date("2026-06-01T10:00:00"),
+    };
+
+    const otherCompletedMatches = generateRoundRobinMatches(
+        otherCompletedTournamentId,
+        otherCompletedTeams,
+    );
+
+    const otherCompletedResults = [
+      [70, 65],
+      [62, 68],
+      [75, 71],
+      [69, 74],
+      [80, 73],
+      [77, 81],
+    ];
+
+    const otherCompletedBookings = [];
+
+    otherCompletedMatches.forEach((match, index) => {
+      const round = Math.floor(index / 2);
+
+      match.status = "played";
+      match.fieldId = fieldCarnera._id;
+
+      if (round < 2) {
+        match.date = "2026-07-05";
+      } else {
+        match.date = "2026-07-06";
+      }
+
+      match.slot = [
+        "14:00-15:00",
+        "15:00-16:00",
+        "16:00-17:00",
+        "17:00-18:00",
+        "14:00-15:00",
+        "15:00-16:00",
+      ][index];
+
+      match.result = {
+        scoreA: otherCompletedResults[index][0],
+        scoreB: otherCompletedResults[index][1],
+      };
+
+      const booking = createBooking({
+        fieldId: fieldCarnera._id,
+        userId: userPozzo._id,
+        date: match.date,
+        slot: match.slot,
+        tournamentId: otherCompletedTournamentId,
+        type: "tournament",
+        createdAt: new Date("2026-06-01T11:00:00"),
+      });
+
+      match.bookingId = booking._id;
+
+      otherCompletedBookings.push(booking);
+    });
+
+    /*
+     * --------------------------------------------------------------
+     * lbianchi - future registration
+     * --------------------------------------------------------------
+     */
+
+    const otherFutureTournamentId = new ObjectId();
+
+    const otherFutureTournament = {
+      _id: otherFutureTournamentId,
+      creatorId: userBianchi._id,
+      name: "Winter Football Cup",
+      sport: "football",
+      maxTeams: 8,
+      startDate: "2026-11-15",
+      status: "registration",
+      teams: [
+        createTeam("Winter FC", [
+          registeredPlayer(userBianchi, 10),
+          guestPlayer("Luca", "Moro", 4),
+          guestPlayer("Paolo", "Rossi", 7),
+        ]),
+      ],
+      createdAt: new Date("2026-08-12T10:00:00"),
+    };
+
+    /*
+     * ==================================================================
+     * 9. INSERT TOURNAMENTS
+     * ==================================================================
+     */
+
+    const tournamentsData = [
+      readyTournament,
+      activeTournament,
+      completedTournament,
+
+      otherVolleyTournament,
+      otherBasketTournament,
+      otherFootballTournament,
+      otherCompletedTournament,
+      otherFutureTournament,
+    ];
+
+    await db.collection("tournaments").insertMany(tournamentsData);
+
+    /*
+     * ==================================================================
+     * 10. NORMAL BOOKINGS
+     * ==================================================================
+     */
+
+    console.log("Creating normal bookings...");
+
+    const normalBookings = [
+      createBooking({
+        fieldId: fieldPalachiarbola._id,
+        userId: userFabbro._id,
+        date: today,
         slot: "19:00-20:00",
         type: "normal",
-        createdAt: new Date(),
-      },
-      {
-        _id: new ObjectId(),
-        fieldId: fieldPalamicheletto._id,
-        userId: userPozzo._id,
-        date: "2026-08-27",
-        slot: "20:00-21:00",
-        type: "normal",
-        createdAt: new Date(),
-      },
+        createdAt: new Date("2026-08-18T10:00:00"),
+      }),
 
-      // --------------------------------------------------------------
-      // SEPTEMBER
-      // --------------------------------------------------------------
-
-      {
-        _id: new ObjectId(),
-        fieldId: fieldCividale._id,
+      createBooking({
+        fieldId: fieldPalacalvola._id,
         userId: userFabbro._id,
-        date: "2026-09-03",
+        date: tomorrow,
+        slot: "16:00-17:00",
+        type: "normal",
+        createdAt: new Date("2026-08-18T11:00:00"),
+      }),
+
+      createBooking({
+        fieldId: fieldBenedetti._id,
+        userId: userFabbro._id,
+        date: nextWeek,
         slot: "18:00-19:00",
         type: "normal",
-        createdAt: new Date(),
-      },
-      {
-        _id: new ObjectId(),
-        fieldId: fieldPalaTrieste._id,
-        userId: userVisintin._id,
+        createdAt: new Date("2026-08-19T10:00:00"),
+      }),
+
+      createBooking({
+        fieldId: fieldCarnera._id,
+        userId: userFabbro._id,
         date: "2026-09-05",
-        slot: "17:00-18:00",
+        slot: "14:00-15:00",
         type: "normal",
-        createdAt: new Date(),
-      },
-      {
-        _id: new ObjectId(),
-        fieldId: fieldPalacalvola._id,
-        userId: userCalligaris._id,
-        date: "2026-09-08",
-        slot: "19:00-20:00",
-        type: "normal",
-        createdAt: new Date(),
-      },
-      {
-        _id: new ObjectId(),
-        fieldId: fieldSfriso._id,
-        userId: userZuliani._id,
+        createdAt: new Date("2026-08-19T11:00:00"),
+      }),
+
+      createBooking({
+        fieldId: fieldColussi._id,
+        userId: userFabbro._id,
         date: "2026-09-12",
         slot: "18:00-19:00",
         type: "normal",
-        createdAt: new Date(),
-      },
-      {
-        _id: new ObjectId(),
-        fieldId: fieldBenedetti._id,
-        userId: userPozzo._id,
-        date: "2026-09-15",
-        slot: "20:00-21:00",
-        type: "normal",
-        createdAt: new Date(),
-      },
-
-      // --------------------------------------------------------------
-      // OCTOBER
-      // --------------------------------------------------------------
-
-      {
-        _id: new ObjectId(),
-        fieldId: fieldColussi._id,
-        userId: userFabbro._id,
-        date: "2026-10-02",
-        slot: "19:00-20:00",
-        type: "normal",
-        createdAt: new Date(),
-      },
-      {
-        _id: new ObjectId(),
-        fieldId: fieldPalachiarbola._id,
-        userId: userVisintin._id,
-        date: "2026-10-04",
-        slot: "18:00-19:00",
-        type: "normal",
-        createdAt: new Date(),
-      },
-      {
-        _id: new ObjectId(),
-        fieldId: fieldCarnera._id,
-        userId: userCalligaris._id,
-        date: "2026-10-09",
-        slot: "19:00-20:00",
-        type: "normal",
-        createdAt: new Date(),
-      },
-      {
-        _id: new ObjectId(),
-        fieldId: fieldZanussi._id,
-        userId: userZuliani._id,
-        date: "2026-10-17",
-        slot: "17:00-18:00",
-        type: "normal",
-        createdAt: new Date(),
-      },
-      {
-        _id: new ObjectId(),
-        fieldId: fieldPalamicheletto._id,
-        userId: userPozzo._id,
-        date: "2026-10-22",
-        slot: "20:00-21:00",
-        type: "normal",
-        createdAt: new Date(),
-      },
-
-      // --------------------------------------------------------------
-      // NOVEMBER
-      // --------------------------------------------------------------
-
-      {
-        _id: new ObjectId(),
-        fieldId: fieldCividale._id,
-        userId: userFabbro._id,
-        date: "2026-11-03",
-        slot: "18:00-19:00",
-        type: "normal",
-        createdAt: new Date(),
-      },
-      {
-        _id: new ObjectId(),
-        fieldId: fieldPalaTrieste._id,
-        userId: userVisintin._id,
-        date: "2026-11-07",
-        slot: "16:00-17:00",
-        type: "normal",
-        createdAt: new Date(),
-      },
-      {
-        _id: new ObjectId(),
-        fieldId: fieldPalacalvola._id,
-        userId: userCalligaris._id,
-        date: "2026-11-10",
-        slot: "19:00-20:00",
-        type: "normal",
-        createdAt: new Date(),
-      },
-      {
-        _id: new ObjectId(),
-        fieldId: fieldSfriso._id,
-        userId: userZuliani._id,
-        date: "2026-11-14",
-        slot: "18:00-19:00",
-        type: "normal",
-        createdAt: new Date(),
-      },
-      {
-        _id: new ObjectId(),
-        fieldId: fieldBenedetti._id,
-        userId: userPozzo._id,
-        date: "2026-11-21",
-        slot: "19:00-20:00",
-        type: "normal",
-        createdAt: new Date(),
-      },
+        createdAt: new Date("2026-08-19T12:00:00"),
+      }),
     ];
 
     /*
-     * ------------------------------------------------------------------
-     * 13. INSERT BOOKINGS
-     * ------------------------------------------------------------------
+     * Other users' normal bookings.
+     */
+
+    const otherNormalBookings = [
+      createBooking({
+        fieldId: fieldPalaTrieste._id,
+        userId: userVisintin._id,
+        date: today,
+        slot: "20:00-21:00",
+        type: "normal",
+      }),
+
+      createBooking({
+        fieldId: fieldCarnera._id,
+        userId: userCalligaris._id,
+        date: tomorrow,
+        slot: "18:00-19:00",
+        type: "normal",
+      }),
+
+      createBooking({
+        fieldId: fieldColussi._id,
+        userId: userPozzo._id,
+        date: "2026-09-20",
+        slot: "17:00-18:00",
+        type: "normal",
+      }),
+    ];
+
+    /*
+     * ==================================================================
+     * 11. INSERT MATCHES
+     * ==================================================================
+     */
+
+    const allMatches = [
+      ...activeMatches,
+      ...completedMatches,
+      ...otherFootballMatches,
+      ...otherCompletedMatches,
+    ];
+
+    await db.collection("matches").insertMany(allMatches);
+
+    /*
+     * ==================================================================
+     * 12. INSERT BOOKINGS
+     * ==================================================================
      */
 
     const allBookings = [
-      ...completedVolleyBookings,
-      ...completedBasketBookings,
+      ...activeBookings,
+      ...completedBookings,
+      ...otherFootballBookings,
+      ...otherCompletedBookings,
       ...normalBookings,
+      ...otherNormalBookings,
     ];
 
     await db.collection("bookings").insertMany(allBookings);
 
     /*
-     * ------------------------------------------------------------------
-     * 14. INSERT MATCHES
-     * ------------------------------------------------------------------
-     */
-
-    await db
-      .collection("matches")
-      .insertMany([...completedVolleyMatches, ...completedBasketMatches]);
-
-    /*
-     * ------------------------------------------------------------------
-     * 15. SUMMARY
-     * ------------------------------------------------------------------
+     * ==================================================================
+     * 13. SUMMARY
+     * ==================================================================
      */
 
     console.log("");
-    console.log("--- Seeding Completed Successfully ---");
-    console.log(`Users:       ${usersData.length}`);
-    console.log(`Fields:      ${fieldsData.length}`);
-    console.log(`Tournaments: 4`);
-    console.log(`  - Past:    2`);
-    console.log(`  - Upcoming: 2`);
-    console.log(
-      `Matches:     ${completedVolleyMatches.length + completedBasketMatches.length + 1}`,
-    );
-    console.log(`Bookings:    ${allBookings.length}`);
+    console.log("==============================================");
+    console.log("       DATABASE SEED COMPLETED");
+    console.log("==============================================");
     console.log("");
-    console.log("Test password for every user: password123");
+
+    console.log(`Today:        ${today}`);
+    console.log(`Users:        ${usersData.length}`);
+    console.log(`Fields:       ${fieldsData.length}`);
+    console.log(`Tournaments:  ${tournamentsData.length}`);
+    console.log(`Matches:      ${allMatches.length}`);
+    console.log(`Bookings:     ${allBookings.length}`);
+
     console.log("");
-    console.log("Users:");
-    usersData.forEach((user) => {
-      console.log(`  ${user.username} / password123`);
-    });
+    console.log("TEST ACCOUNT");
+    console.log("----------------------------------------------");
+    console.log("Username:     jfabbro");
+    console.log("Password:     password123");
+    console.log("");
+    console.log("All demo users have password: password123");
+    console.log("");
+    console.log("Disclaimer: Any real names, sports facilities, or occurrences used in this script are for demonstration and testing purposes only, and any resemblance to actual entities or events is purely coincidental.");
+    console.log("");
   } catch (error) {
     console.error("Error seeding database:", error);
     process.exitCode = 1;
