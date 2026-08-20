@@ -11,6 +11,8 @@ It is a field and tournament management application that allows users to:
 - automatically generate single round-robin match schedules;
 - enter match results and view updated standings;
 
+![Screenshoot of fields available](bookAfield.png)
+
 ## Technologies
 
 - **Backend:** [Node.js](https://nodejs.org/), [Express](https://expressjs.com/)
