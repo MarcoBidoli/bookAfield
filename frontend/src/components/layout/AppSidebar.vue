@@ -290,8 +290,6 @@ const navigation = [
   box-sizing: border-box;
 
   background: rgba(240, 242, 245, 0.9);
-  backdrop-filter: blur(25px);
-  -webkit-backdrop-filter: blur(25px);
 
   padding: 12px;
 
@@ -388,7 +386,7 @@ const navigation = [
   font-family: inherit;
   font-size: 13px;
   font-weight: 600;
-  color: #111113;
+  color: var(--color-black);
 
   text-decoration: none;
   border-radius: 8px;
@@ -538,5 +536,52 @@ const navigation = [
 .sidebar.collapsed .sidebar-user-avatar {
   width: 32px;
   height: 32px;
+}
+
+/* mobile tweaks */
+@media (max-width: 700px) {
+  .sidebar.collapsed {
+    width: 32px;
+    padding: 12px 0;
+  }
+
+  .sidebar.collapsed .sidebar-link {
+    width: 32px;
+    height: 38px;
+    padding: 0;
+    justify-content: center;
+  }
+
+  /* No active/hover background on mobile */
+  .sidebar.collapsed .sidebar-link.active,
+  .sidebar.collapsed .sidebar-link:hover {
+    background: transparent;
+  }
+
+  .sidebar.collapsed .sidebar-icon {
+    width: 18px;
+    height: 18px;
+  }
+
+  .sidebar.collapsed .sidebar-header {
+    padding-left: 0;
+    padding-right: 0;
+  }
+
+  .sidebar.collapsed .collapse-button {
+    width: 20px;
+    height: 20px;
+  }
+
+  .sidebar.collapsed .sidebar-user {
+    width: 32px;
+    padding: 8px 0;
+    justify-content: center;
+  }
+
+  .sidebar.collapsed .sidebar-user-avatar {
+    width: 28px;
+    height: 28px;
+  }
 }
 </style>
