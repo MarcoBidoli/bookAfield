@@ -1,11 +1,11 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { useAuthStore } from '@/stores/auth'
+import SidebarIcon from '@/components/icons/SidebarIcon.vue'
 
 const authStore = useAuthStore()
 const isCollapsed = ref(false)
 
-// Automatically start collapsed on mobile screens, but allow manual toggling
 onMounted(() => {
   if (window.innerWidth <= 700) {
     isCollapsed.value = true
@@ -42,6 +42,23 @@ const navigation = [
 
 <template>
   <aside class="sidebar" :class="{ collapsed: isCollapsed }">
+    <!-- Header -->
+    <div class="sidebar-header">
+      <router-link to="/" class="service-name">
+        <span v-if="!isCollapsed">bookAfield</span>
+      </router-link>
+
+      <button
+        type="button"
+        class="collapse-button"
+        :title="isCollapsed ? 'Expand Sidebar' : 'Collapse Sidebar'"
+        :aria-label="isCollapsed ? 'Expand Sidebar' : 'Collapse Sidebar'"
+        @click="toggleSidebar"
+      >
+        <SidebarIcon :rotated="isCollapsed" />
+      </button>
+    </div>
+
     <!-- Navigation -->
     <div class="sidebar-group-title">Navigation</div>
 
@@ -147,7 +164,7 @@ const navigation = [
             <path d="m9 16 2 2 4-4" />
           </svg>
 
-          <span class="sidebar-label"> My Bookings </span>
+          <span class="sidebar-label">My Bookings</span>
         </router-link>
       </li>
     </ul>
@@ -181,7 +198,7 @@ const navigation = [
             <line x1="15" y1="12" x2="3" y2="12" />
           </svg>
 
-          <span class="sidebar-label"> Login or Register </span>
+          <span class="sidebar-label">Login or Register</span>
         </router-link>
       </li>
 
@@ -207,55 +224,95 @@ const navigation = [
             <line x1="21" y1="12" x2="9" y2="12" />
           </svg>
 
-          <span class="sidebar-label"> Logout </span>
+          <span class="sidebar-label">Logout</span>
         </button>
       </li>
     </ul>
-
-    <!-- Collapse / Expand Toggle Button -->
-    <button
-      type="button"
-      class="sidebar-link sidebar-button toggle-btn"
-      :title="isCollapsed ? 'Expand Sidebar' : 'Collapse Sidebar'"
-      @click="toggleSidebar"
-    >
-      <svg
-        class="sidebar-icon toggle-icon"
-        :style="{ transform: isCollapsed ? 'rotate(180deg)' : 'rotate(0deg)' }"
-        viewBox="0 0 24 24"
-        fill="none"
-        stroke="currentColor"
-        stroke-width="2"
-        stroke-linecap="round"
-        stroke-linejoin="round"
-      >
-        <polyline points="15 18 9 12 15 6" />
-      </svg>
-      <span class="sidebar-label">Collapse</span>
-    </button>
   </aside>
 </template>
 
 <style scoped>
 .sidebar {
   width: 240px;
+  height: 100vh;
   flex-shrink: 0;
 
   display: flex;
   flex-direction: column;
 
+  box-sizing: border-box;
+
   background: rgba(240, 242, 245, 0.9);
   backdrop-filter: blur(25px);
   -webkit-backdrop-filter: blur(25px);
 
-  border-right: 1px solid rgba(0, 0, 0, 0.15);
-
-  padding: 20px 12px;
+  padding: 12px;
 
   transition:
     width 0.2s ease,
     padding 0.2s ease;
 }
+
+/* Header */
+
+.sidebar-header {
+  height: 40px;
+  margin-bottom: 12px;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+  padding: 0 4px 12px;
+  box-sizing: content-box;
+}
+
+.service-name {
+  min-width: 0;
+
+  color: #111113;
+  font-size: 15px;
+  font-weight: 800;
+
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.collapse-button {
+  width: 24px;
+  height: 24px;
+  flex-shrink: 0;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  padding: 0;
+
+  border: none;
+  border-radius: 8px;
+
+  background: transparent;
+  color: #48484a;
+
+  cursor: pointer;
+
+  transition: background 0.15s ease;
+}
+
+.collapse-button:hover {
+  background: rgba(82, 82, 82, 0.12);
+}
+
+.collapse-icon {
+  width: 18px;
+  height: 18px;
+
+  transition: transform 0.2s ease;
+}
+
+/* Navigation */
 
 .sidebar-group-title {
   color: #959595;
@@ -285,6 +342,8 @@ const navigation = [
   height: 38px;
   padding: 0 12px;
 
+  box-sizing: border-box;
+
   font-family: inherit;
   font-size: 13px;
   font-weight: 600;
@@ -307,7 +366,6 @@ const navigation = [
   width: 18px;
   height: 18px;
   flex-shrink: 0;
-  transition: transform 0.2s ease;
 }
 
 .sidebar-link.active,
@@ -320,10 +378,11 @@ const navigation = [
   flex: 1;
 }
 
-/* Collapsed State Styles (Applies universally on both desktop & mobile) */
+/* Collapsed */
+
 .sidebar.collapsed {
   width: 64px;
-  padding: 20px 8px;
+  padding: 12px 8px;
 }
 
 .sidebar.collapsed .sidebar-group-title,
@@ -334,5 +393,20 @@ const navigation = [
 .sidebar.collapsed .sidebar-link {
   justify-content: center;
   padding: 0;
+}
+
+.sidebar.collapsed .sidebar-header {
+  justify-content: center;
+  padding-left: 0;
+  padding-right: 0;
+}
+
+.sidebar.collapsed .service-name {
+  font-size: 15px;
+}
+
+.sidebar.collapsed .collapse-button {
+  width: 22px;
+  height: 22px;
 }
 </style>

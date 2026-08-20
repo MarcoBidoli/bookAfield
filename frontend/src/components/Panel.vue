@@ -2,8 +2,8 @@
 defineProps({
   title: {
     type: String,
-    default: ''
-  }
+    default: '',
+  },
 })
 </script>
 
@@ -20,15 +20,6 @@ defineProps({
 </template>
 
 <style scoped>
-.group {
-  background: var(--color-white);
-  border: 1px solid rgba(0, 0, 0, 0.08);
-  border-radius: 16px;
-  padding: 20px 24px;
-  margin-bottom: 20px;
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.02);
-}
-
 .group-title {
   font-size: 15px;
   font-weight: 700;
