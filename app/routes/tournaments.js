@@ -25,7 +25,39 @@ router.get('/', async (req, res, next) => {
             ]
         } : {};
 
-        const tournaments = await db.collection("tournaments").find(filter).toArray();
+        const tournaments = await db.collection("tournaments")
+            .aggregate([
+                {
+                    $match: filter
+                },
+                {
+                    $addFields: {
+                        statusOrder: {
+                            $switch: {
+                                branches: [
+                                    { case: { $eq: ["$status", "active"] }, then: 1 },
+                                    { case: { $eq: ["$status", "registration"] }, then: 2 },
+                                    { case: { $eq: ["$status", "completed"] }, then: 3 }
+                                ],
+                                default: 4
+                            }
+                        }
+                    }
+                },
+                {
+                    $sort: {
+                        statusOrder: 1,
+                        _id: 1
+                    }
+                },
+                {
+                    $project: {
+                        statusOrder: 0
+                    }
+                }
+            ])
+            .toArray();
+
         res.json(tournaments);
     } catch (error) {
         next(error);
