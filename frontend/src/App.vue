@@ -1,17 +1,14 @@
 <script setup>
-import AppNavbar from '@/components/layout/AppNavbar.vue'
 import AppSidebar from '@/components/layout/AppSidebar.vue'
 import AppFooter from '@/components/layout/AppFooter.vue'
 </script>
 
 <template>
   <div class="app-shell">
-    <AppNavbar />
+    <AppSidebar />
 
-    <div class="app-body">
-      <AppSidebar />
-
-      <div class="main-column">
+    <div class="main-column">
+      <div class="content-card">
         <main class="content-area">
           <router-view />
         </main>
@@ -25,30 +22,36 @@ import AppFooter from '@/components/layout/AppFooter.vue'
 <style scoped>
 .app-shell {
   display: flex;
-  flex-direction: column;
-
+  gap: 12px;
   width: 100%;
   height: 100vh;
+  padding: 12px;
+  box-sizing: border-box;
   overflow: hidden;
-}
-
-.app-body {
-  display: flex;
-  flex: 1;
-  min-height: 0;
-  overflow: hidden;
+  background: #f1f3f5;
 }
 
 .main-column {
-  display: flex;
   flex: 1;
-  flex-direction: column;
-
   min-width: 0;
   min-height: 0;
+  display: flex;
+}
+
+.content-card {
+  flex: 1;
+  min-width: 0;
+
+  background: #fff;
+
+  border: 1px solid rgba(0, 0, 0, 0.06);
+  border-radius: 12px;
+
+  box-shadow:
+    0 20px 25px -5px rgba(0, 0, 0, 0.05),
+    0 8px 10px -6px rgba(0, 0, 0, 0.05);
 
   overflow-y: auto;
-  overflow-x: hidden;
 }
 
 .content-area {
