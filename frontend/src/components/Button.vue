@@ -26,16 +26,16 @@ defineProps({
 
   box-sizing: border-box;
   margin: 0;
-  padding: 12px 16px;
+  padding: 8px 16px;
 
-  border: none;
-  border-radius: 12px;
+  border: 1px solid transparent;
+  border-radius: 8px;
   outline: none;
   box-shadow: none;
 
   background: none;
   text-decoration: none;
-  -webkit-appearance: none;;
+  -webkit-appearance: none;
   font-size: 14px;
   font-weight: 500;
   line-height: 16px;
@@ -45,28 +45,20 @@ defineProps({
   cursor: pointer;
 
   transition:
-    background-color 200ms cubic-bezier(0, 0, 1, 1),
-    opacity 200ms cubic-bezier(0, 0, 1, 1);
+    background-color 150ms ease,
+    border-color 150ms ease,
+    color 150ms ease,
+    transform 100ms ease;
 }
 
 /* Primary */
 .btn-primary {
-  background: linear-gradient(
-    180deg,
-    var(--color-primary-light) 0%,
-    var(--color-primary) 50%,
-    var(--color-primary-dark) 100%
-  );
+  background-color: var(--color-primary);
   color: var(--color-white);
 }
 
 .btn-primary:hover:not(:disabled) {
-  background: linear-gradient(
-    180deg,
-    var(--color-primary-hover-light) 0%,
-    var(--color-primary-hover) 50%,
-    var(--color-primary-hover-dark) 100%
-  );
+  background-color: var(--color-primary-hover);
 }
 
 /* Secondary / Light */
@@ -74,7 +66,7 @@ defineProps({
 .btn-light {
   background-color: var(--color-white);
   color: var(--color-black);
-  border: 1px solid var(--color-border);
+  border-color: var(--color-border);
 }
 
 .btn-secondary:hover:not(:disabled),
@@ -94,7 +86,7 @@ defineProps({
 
 /* Active / Pressed */
 .btn:active:not(:disabled) {
-  opacity: 0.8;
+  transform: scale(0.97);
 }
 
 /* Disabled */

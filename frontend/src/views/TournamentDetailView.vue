@@ -1,8 +1,12 @@
 <script setup>
-import {computed, onMounted, reactive, ref} from 'vue'
-import {useRoute, useRouter} from 'vue-router'
-import {useAuthStore} from '@/stores/auth'
-import {fetchTournamentById, generateTournamentSchedule, updateTournament,} from '@/api/tournaments'
+import { computed, onMounted, reactive, ref } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
+import { useAuthStore } from '@/stores/auth'
+import {
+  fetchTournamentById,
+  generateTournamentSchedule,
+  updateTournament,
+} from '@/api/tournaments'
 
 import Panel from '@/components/Panel.vue'
 import Button from '@/components/Button.vue'
@@ -20,7 +24,7 @@ import StandingsIcon from '@/components/icons/StandingsIcon.vue'
 import TeamCard from '@/components/TeamCard.vue'
 import PencilIcon from '@/components/icons/PencilIcon.vue'
 import AddIcon from '@/components/icons/AddIcon.vue'
-import BoltIcon from "@/components/icons/BoltIcon.vue";
+import BoltIcon from '@/components/icons/BoltIcon.vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -36,7 +40,7 @@ const errorMessage = ref('')
 const successMessage = ref('')
 
 const newTeamName = ref('')
-const selectedTeamId = ref(null);
+const selectedTeamId = ref(null)
 
 const newPlayer = reactive({
   name: '',
@@ -55,9 +59,7 @@ const isOwner = computed(() => {
 })
 
 const teams = computed(() => {
-  return Array.isArray(tournament.value?.teams)
-    ? tournament.value.teams
-    : []
+  return Array.isArray(tournament.value?.teams) ? tournament.value.teams : []
 })
 
 const numberOfTeams = computed(() => teams.value.length)
@@ -77,10 +79,7 @@ const canManageTournament = computed(() => {
 })
 
 const canAddTeams = computed(() => {
-  return (
-    canManageTournament.value &&
-    numberOfTeams.value < tournament.value.maxTeams
-  )
+  return canManageTournament.value && numberOfTeams.value < tournament.value.maxTeams
 })
 
 const canManagePlayers = computed(() => {
@@ -88,16 +87,11 @@ const canManagePlayers = computed(() => {
 })
 
 const canStartTournament = computed(() => {
-  return (
-    canManageTournament.value &&
-    numberOfTeams.value === tournament.value.maxTeams
-  )
+  return canManageTournament.value && numberOfTeams.value === tournament.value.maxTeams
 })
 
 const selectedTeam = computed(() => {
-  return teams.value.find(
-    (team) => String(team._id) === String(selectedTeamId.value),
-  )
+  return teams.value.find((team) => String(team._id) === String(selectedTeamId.value))
 })
 
 async function loadTournament() {
@@ -106,7 +100,7 @@ async function loadTournament() {
 
   try {
     tournament.value = await fetchTournamentById(tournamentId)
-    if(!selectedTeam.value && teams.value.length) {
+    if (!selectedTeam.value && teams.value.length) {
       selectedTeamId.value = teams.value[0]._id
     }
   } catch (err) {
@@ -154,9 +148,7 @@ async function handleRemoveTeam(team) {
     return
   }
 
-  const confirmed = window.confirm(
-    `Remove "${team.name}" from this tournament?`,
-  )
+  const confirmed = window.confirm(`Remove "${team.name}" from this tournament?`)
 
   if (!confirmed) {
     return
@@ -200,9 +192,7 @@ async function handleAddPlayer() {
     players: [...(team.players || [])],
   }))
 
-  const team = teamsToUpdate.find(
-    (team) => String(team._id) === String(selectedTeamId.value),
-  )
+  const team = teamsToUpdate.find((team) => String(team._id) === String(selectedTeamId.value))
 
   if (!team) return
 
@@ -227,6 +217,45 @@ async function handleAddPlayer() {
     successMessage.value = `Player added to ${team.name}.`
   } catch (err) {
     errorMessage.value = err.message || 'Failed to register player'
+  } finally {
+    isUpdating.value = false
+  }
+}
+
+async function handleRemovePlayer(team, playerIndex) {
+  if (!canManagePlayers.value || !team) return
+
+  const player = team.players?.[playerIndex]
+
+  if (!player) return
+
+  if (!window.confirm(`Remove "${player.name} ${player.surname}" from ${team.name}?`)) {
+    return
+  }
+
+  const updatedTeams = teams.value.map((currentTeam) => {
+    if (String(currentTeam._id) !== String(team._id)) {
+      return currentTeam
+    }
+
+    return {
+      ...currentTeam,
+      players: currentTeam.players.filter((_, index) => index !== playerIndex),
+    }
+  })
+
+  isUpdating.value = true
+  errorMessage.value = ''
+  successMessage.value = ''
+
+  try {
+    tournament.value = await updateTournament(tournamentId, {
+      teams: updatedTeams,
+    })
+
+    successMessage.value = 'Player removed successfully.'
+  } catch (err) {
+    errorMessage.value = err.message || 'Failed to remove player'
   } finally {
     isUpdating.value = false
   }
@@ -257,8 +286,7 @@ async function handleGenerateSchedule() {
 
     router.push(`/tournaments/${tournamentId}/matches`)
   } catch (err) {
-    errorMessage.value =
-      err.message || 'Failed to generate tournament schedule'
+    errorMessage.value = err.message || 'Failed to generate tournament schedule'
   } finally {
     isUpdating.value = false
   }
@@ -287,27 +315,13 @@ onMounted(loadTournament)
       :current="tournament?.name || 'Tournament'"
     />
 
-    <PageHeader
-      v-if="!isLoading && tournament"
-      :title="tournament.name"
-    />
+    <PageHeader v-if="!isLoading && tournament" :title="tournament.name" />
 
-    <AppBanner
-      v-if="errorMessage"
-      type="error"
-      :message="errorMessage"
-    />
+    <AppBanner v-if="errorMessage" type="error" :message="errorMessage" />
 
-    <AppBanner
-      v-if="successMessage"
-      type="success"
-      :message="successMessage"
-    />
+    <AppBanner v-if="successMessage" type="success" :message="successMessage" />
 
-    <LoadingState
-      v-if="isLoading"
-      message="Loading tournament..."
-    />
+    <LoadingState v-if="isLoading" message="Loading tournament..." />
 
     <template v-else-if="tournament">
       <!-- Overview -->
@@ -337,9 +351,7 @@ onMounted(loadTournament)
               <span class="stat-label">Teams</span>
               <strong>
                 {{ numberOfTeams }}
-                <span class="stat-muted">
-                  / {{ tournament.maxTeams }}
-                </span>
+                <span class="stat-muted"> / {{ tournament.maxTeams }} </span>
               </strong>
             </div>
           </div>
@@ -357,20 +369,12 @@ onMounted(loadTournament)
         </div>
 
         <div class="overview-actions">
-          <Button
-            variant="secondary"
-            class="navigation-button"
-            @click="goToMatches"
-          >
+          <Button variant="secondary" class="navigation-button" @click="goToMatches">
             <MatchesIcon />
             Matches
           </Button>
 
-          <Button
-            variant="secondary"
-            class="navigation-button"
-            @click="goToStandings"
-          >
+          <Button variant="secondary" class="navigation-button" @click="goToStandings">
             <StandingsIcon />
             Standings
           </Button>
@@ -395,7 +399,7 @@ onMounted(loadTournament)
             :disabled="isUpdating"
             @click="handleGenerateSchedule"
           >
-            <BoltIcon/>
+            <BoltIcon />
 
             {{ isUpdating ? 'Starting...' : 'Start Tournament' }}
           </Button>
@@ -407,18 +411,12 @@ onMounted(loadTournament)
         <div class="section-heading">
           <div>
             <h2>Teams</h2>
-            <p>
-              Manage the teams and player rosters registered for this
-              tournament.
-            </p>
+            <p>Manage the teams and player rosters registered for this tournament.</p>
           </div>
         </div>
 
         <!-- Add Team -->
-        <Panel
-          v-if="canAddTeams"
-          class="management-panel"
-        >
+        <Panel v-if="canAddTeams" class="management-panel">
           <div class="panel-heading">
             <div class="heading-icon">
               <AddIcon />
@@ -434,10 +432,7 @@ onMounted(loadTournament)
             </div>
           </div>
 
-          <form
-            class="team-form"
-            @submit.prevent="handleAddTeam"
-          >
+          <form class="team-form" @submit.prevent="handleAddTeam">
             <input
               v-model="newTeamName"
               class="form-input"
@@ -446,21 +441,14 @@ onMounted(loadTournament)
               :disabled="isUpdating"
             />
 
-            <Button
-              type="submit"
-              variant="primary"
-              :disabled="isUpdating || !newTeamName.trim()"
-            >
+            <Button type="submit" variant="primary" :disabled="isUpdating || !newTeamName.trim()">
               Add Team
             </Button>
           </form>
         </Panel>
 
         <!-- Add Player -->
-        <Panel
-          v-if="canManagePlayers"
-          class="management-panel"
-        >
+        <Panel v-if="canManagePlayers" class="management-panel">
           <div class="panel-heading">
             <div class="heading-icon">
               <UserIcon />
@@ -472,20 +460,9 @@ onMounted(loadTournament)
             </div>
           </div>
 
-          <form
-            class="player-form"
-            @submit.prevent="handleAddPlayer"
-          >
-            <select
-              v-model="selectedTeamId"
-              class="form-input"
-              :disabled="isUpdating"
-            >
-              <option
-                v-for="team in teams"
-                :key="team._id"
-                :value="team._id"
-              >
+          <form class="player-form" @submit.prevent="handleAddPlayer">
+            <select v-model="selectedTeamId" class="form-input" :disabled="isUpdating">
+              <option v-for="team in teams" :key="team._id" :value="team._id">
                 {{ team.name }}
               </option>
             </select>
@@ -517,11 +494,7 @@ onMounted(loadTournament)
             <Button
               type="submit"
               variant="secondary"
-              :disabled="
-                isUpdating ||
-                !newPlayer.name.trim() ||
-                !newPlayer.surname.trim()
-              "
+              :disabled="isUpdating || !newPlayer.name.trim() || !newPlayer.surname.trim()"
             >
               Add Player
             </Button>
@@ -530,17 +503,15 @@ onMounted(loadTournament)
       </template>
 
       <!-- Teams -->
-      <div
-        v-if="teams.length"
-        class="teams-grid"
-      >
+      <div v-if="teams.length" class="teams-grid">
         <TeamCard
           v-for="team in teams"
           :key="team._id"
           :team="team"
           :can-remove="canManageTournament"
-          :disabled="isUpdating"
+          :is-updating="isUpdating"
           @remove="handleRemoveTeam(team)"
+          @remove-player="handleRemovePlayer(team, $event)"
         />
       </div>
 

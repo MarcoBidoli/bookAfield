@@ -55,7 +55,7 @@ defineProps({
 }
 
 .breadcrumb-link {
-  color: var(--color-primary-dark);
+  color: var(--color-primary);
   font-weight: 700;
   text-decoration: none;
 }

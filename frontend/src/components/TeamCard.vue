@@ -1,7 +1,7 @@
 <script setup>
 import Panel from '@/components/Panel.vue'
-import TrashIcon from "@/components/icons/TrashIcon.vue";
-import UsersIcon from "@/components/icons/UsersIcon.vue";
+import TrashIcon from '@/components/icons/TrashIcon.vue'
+import UsersIcon from '@/components/icons/UsersIcon.vue'
 
 defineProps({
   team: {
@@ -18,7 +18,7 @@ defineProps({
   },
 })
 
-const emit = defineEmits(['remove'])
+const emit = defineEmits(['remove', 'remove-player'])
 </script>
 
 <template>
@@ -42,7 +42,7 @@ const emit = defineEmits(['remove'])
         title="Remove team"
         @click="emit('remove')"
       >
-        <TrashIcon/>
+        <TrashIcon />
       </button>
     </div>
 
@@ -53,10 +53,7 @@ const emit = defineEmits(['remove'])
       </div>
 
       <!-- Players -->
-      <div
-        v-if="team.players?.length"
-        class="player-list"
-      >
+      <div v-if="team.players?.length" class="player-list">
         <div
           v-for="(player, playerIndex) in team.players"
           :key="player.userId || playerIndex"
@@ -67,26 +64,28 @@ const emit = defineEmits(['remove'])
           </div>
 
           <div class="player-info">
-            <strong>
-              {{ player.name }} {{ player.surname }}
-            </strong>
+            <strong> {{ player.name }} {{ player.surname }} </strong>
           </div>
 
-          <span
-            v-if="player.jerseyNumber"
-            class="jersey"
+          <span v-if="player.jerseyNumber" class="jersey"> #{{ player.jerseyNumber }} </span>
+
+          <!-- remove player button -->
+          <button
+            v-if="canRemove"
+            type="button"
+            class="remove-player-button"
+            :disabled="isUpdating"
+            title="Remove player"
+            @click="emit('remove-player', playerIndex)"
           >
-            #{{ player.jerseyNumber }}
-          </span>
+            <TrashIcon />
+          </button>
         </div>
       </div>
 
       <!-- Empty roster -->
-      <div
-        v-else
-        class="empty-roster"
-      >
-        <UsersIcon/>
+      <div v-else class="empty-roster">
+        <UsersIcon />
 
         <span>No players registered</span>
       </div>
@@ -305,5 +304,37 @@ const emit = defineEmits(['remove'])
 .empty-roster :deep(svg) {
   width: 22px;
   height: 22px;
+}
+
+.remove-player-button {
+  width: 28px;
+  height: 28px;
+  flex-shrink: 0;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border: 0;
+  border-radius: 7px;
+
+  color: var(--color-danger-banner);
+  background: rgba(255, 59, 48, 0.08);
+
+  cursor: pointer;
+}
+
+.remove-player-button:hover {
+  background: rgba(255, 59, 48, 0.14);
+}
+
+.remove-player-button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.remove-player-button svg {
+  width: 15px;
+  height: 15px;
 }
 </style>

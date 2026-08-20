@@ -650,6 +650,7 @@ input[type='date'] {
   color: var(--color-black);
   outline: none;
   transition: all 0.1s ease;
+  font-family: inherit;
 }
 
 select:focus,

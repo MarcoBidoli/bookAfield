@@ -1,7 +1,7 @@
 <script setup>
-import {computed, onMounted, reactive, ref} from 'vue'
-import {useRoute, useRouter} from 'vue-router'
-import {useAuthStore} from '@/stores/auth'
+import { computed, onMounted, reactive, ref } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
+import { useAuthStore } from '@/stores/auth'
 import {
   assignMatchBooking,
   fetchTournamentBookings,
@@ -20,7 +20,7 @@ import CalendarIcon from '@/components/icons/CalendarIcon.vue'
 import ClockIcon from '@/components/icons/ClockIcon.vue'
 import TrophyIcon from '@/components/icons/TrophyIcon.vue'
 import PinPointIcon from '@/components/icons/PinPointIcon.vue'
-import StandingsIcon from "@/components/icons/StandingsIcon.vue";
+import StandingsIcon from '@/components/icons/StandingsIcon.vue'
 
 const route = useRoute()
 const authStore = useAuthStore()
@@ -41,21 +41,13 @@ const selectedBookings = reactive({})
 const scoreInputs = reactive({})
 
 const isOwner = computed(() => {
-  if (
-    !tournament.value ||
-    !authStore.isAuthenticated ||
-    !authStore.user
-  ) {
+  if (!tournament.value || !authStore.isAuthenticated || !authStore.user) {
     return false
   }
 
-  const currentUserId =
-    authStore.user._id || authStore.user.id
+  const currentUserId = authStore.user._id || authStore.user.id
 
-  return (
-    String(tournament.value.creatorId) ===
-    String(currentUserId)
-  )
+  return String(tournament.value.creatorId) === String(currentUserId)
 })
 
 const matchesByRound = computed(() => {
@@ -79,18 +71,16 @@ async function loadMatches() {
   errorMessage.value = ''
 
   try {
-    const [tournamentData, matchesData] =
-      await Promise.all([
-        fetchTournamentById(tournamentId),
-        fetchTournamentMatches(tournamentId),
-      ])
+    const [tournamentData, matchesData] = await Promise.all([
+      fetchTournamentById(tournamentId),
+      fetchTournamentMatches(tournamentId),
+    ])
 
     tournament.value = tournamentData
     matches.value = matchesData
 
     if (isOwner.value) {
-      bookings.value =
-        await fetchTournamentBookings(tournamentId)
+      bookings.value = await fetchTournamentBookings(tournamentId)
     } else {
       bookings.value = []
     }
@@ -101,25 +91,20 @@ async function loadMatches() {
         scoreB: match.result?.scoreB ?? '',
       }
 
-      selectedBookings[match._id] = match.bookingId
-        ? String(match.bookingId)
-        : ''
+      selectedBookings[match._id] = match.bookingId ? String(match.bookingId) : ''
     }
   } catch (err) {
-    errorMessage.value =
-      err.message || 'Failed to load matches'
+    errorMessage.value = err.message || 'Failed to load matches'
   } finally {
     isLoading.value = false
   }
 }
 
 async function handleAssignBooking(match) {
-  const bookingId =
-    selectedBookings[match._id]
+  const bookingId = selectedBookings[match._id]
 
   if (!bookingId) {
-    errorMessage.value =
-      'Please select a booking'
+    errorMessage.value = 'Please select a booking'
     return
   }
 
@@ -128,19 +113,14 @@ async function handleAssignBooking(match) {
   successMessage.value = ''
 
   try {
-    await assignMatchBooking(
-      match._id,
-      bookingId
-    )
+    await assignMatchBooking(match._id, bookingId)
 
     successMessage.value =
-      `Field booking successfully assigned to ` +
-      `${match.teamAName} vs ${match.teamBName}`
+      `Field booking successfully assigned to ` + `${match.teamAName} vs ${match.teamBName}`
 
     await loadMatches()
   } catch (err) {
-    errorMessage.value =
-      err.message || 'Failed to assign booking'
+    errorMessage.value = err.message || 'Failed to assign booking'
   } finally {
     isSubmitting.value = false
   }
@@ -149,12 +129,8 @@ async function handleAssignBooking(match) {
 async function handleSaveScore(match) {
   const input = scoreInputs[match._id]
 
-  if (
-    input.scoreA === '' ||
-    input.scoreB === ''
-  ) {
-    errorMessage.value =
-      'Please enter both scores'
+  if (input.scoreA === '' || input.scoreB === '') {
+    errorMessage.value = 'Please enter both scores'
     return
   }
 
@@ -168,25 +144,18 @@ async function handleSaveScore(match) {
       scoreB: Number(input.scoreB),
     })
 
-    successMessage.value =
-      `Score updated for ${match.teamAName} vs ` +
-      `${match.teamBName}!`
+    successMessage.value = `Score updated for ${match.teamAName} vs ` + `${match.teamBName}!`
 
     await loadMatches()
   } catch (err) {
-    errorMessage.value =
-      err.message || 'Failed to save score'
+    errorMessage.value = err.message || 'Failed to save score'
   } finally {
     isSubmitting.value = false
   }
 }
 
 function isMatchScheduled(match) {
-  return Boolean(
-    match.bookingId &&
-    match.date &&
-    match.slot
-  )
+  return Boolean(match.bookingId && match.date && match.slot)
 }
 
 const router = useRouter()
@@ -204,7 +173,6 @@ onMounted(loadMatches)
 
 <template>
   <div class="matches-view">
-
     <!-- Breadcrumbs -->
     <Breadcrumbs
       section="Tournaments"
@@ -217,26 +185,12 @@ onMounted(loadMatches)
     />
 
     <!-- Feedback -->
-    <AppBanner
-      v-if="successMessage"
-      type="success"
-      :message="successMessage"
-    />
+    <AppBanner v-if="successMessage" type="success" :message="successMessage" />
 
-    <AppBanner
-      v-if="errorMessage"
-      type="error"
-      :message="errorMessage"
-    />
+    <AppBanner v-if="errorMessage" type="error" :message="errorMessage" />
 
     <!-- Header -->
-    <Panel
-      :title="
-        `Fixtures & Scores — ${
-          tournament?.name || 'Tournament'
-        }`
-      "
-    >
+    <Panel :title="`Fixtures & Scores — ${tournament?.name || 'Tournament'}`">
       <div class="header-actions">
         <Button
           v-if="isOwner && tournament?.status === 'active'"
@@ -245,11 +199,7 @@ onMounted(loadMatches)
         >
           Book a Field
         </Button>
-        <Button
-          variant="secondary"
-          class="navigation-button"
-          @click="goToStandings"
-        >
+        <Button variant="secondary" class="navigation-button" @click="goToStandings">
           <StandingsIcon />
           Standings
         </Button>
@@ -257,99 +207,58 @@ onMounted(loadMatches)
     </Panel>
 
     <!-- Loading -->
-    <div
-      v-if="isLoading"
-      class="loading-state"
-    >
-      Loading tournament match fixtures...
-    </div>
+    <div v-if="isLoading" class="loading-state">Loading tournament match fixtures...</div>
 
     <!-- Empty -->
-    <div
-      v-else-if="matches.length === 0"
-      class="empty-state"
-    >
+    <div v-else-if="matches.length === 0" class="empty-state">
       <Panel title="Schedule">
         <p>No matches generated yet.</p>
 
-        <p
-          v-if="isOwner"
-          class="empty-description"
-        >
-          Once all teams are registered in the
-          tournament details page, generate the
-          match fixtures to start the tournament.
+        <p v-if="isOwner" class="empty-description">
+          Once all teams are registered in the tournament details page, generate the match fixtures
+          to start the tournament.
         </p>
       </Panel>
     </div>
 
     <!-- Matches -->
     <template v-else>
-
       <Panel
         v-for="(roundMatches, roundNum) in matchesByRound"
         :key="roundNum"
         :title="`Round ${roundNum} Fixtures`"
       >
-
         <div class="matches-grid">
-
           <div
             v-for="match in roundMatches"
             :key="match._id"
             :class="[
               'match-card',
               {
-                'match-played':
-                  match.status === 'played',
+                'match-played': match.status === 'played',
               },
             ]"
           >
-
             <!-- BYE -->
-            <div
-              v-if="
-                !match.teamA ||
-                !match.teamB
-              "
-              class="bye-row"
-            >
+            <div v-if="!match.teamA || !match.teamB" class="bye-row">
               <span class="bye-team">
-                {{
-                  match.teamAName === 'BYE'
-                    ? match.teamBName
-                    : match.teamAName
-                }}
+                {{ match.teamAName === 'BYE' ? match.teamBName : match.teamAName }}
               </span>
 
-              <Pill variant="secondary">
-                Rest Day
-              </Pill>
+              <Pill variant="secondary"> Rest Day </Pill>
             </div>
 
             <!-- STANDARD MATCH -->
-            <div
-              v-else
-              class="match-content"
-            >
-
+            <div v-else class="match-content">
               <!-- Teams / Score -->
               <div class="teams-versus">
-
-                <span
-                  class="team-name team-home"
-                >
+                <span class="team-name team-home">
                   {{ match.teamAName }}
                 </span>
 
                 <div class="score-container">
-
                   <!-- Played -->
-                  <template
-                    v-if="
-                      match.status === 'played'
-                    "
-                  >
+                  <template v-if="match.status === 'played'">
                     <span class="score-badge">
                       {{ match.result?.scoreA }}
                       -
@@ -358,33 +267,20 @@ onMounted(loadMatches)
                   </template>
 
                   <!-- Owner enters score -->
-                  <template
-                    v-else-if="isOwner"
-                  >
+                  <template v-else-if="isOwner">
                     <div class="score-form">
-
                       <input
-                        v-model.number="
-                          scoreInputs[
-                            match._id
-                          ].scoreA
-                        "
+                        v-model.number="scoreInputs[match._id].scoreA"
                         type="number"
                         min="0"
                         class="score-input"
                         placeholder="0"
                       />
 
-                      <span class="score-colon">
-                        :
-                      </span>
+                      <span class="score-colon"> : </span>
 
                       <input
-                        v-model.number="
-                          scoreInputs[
-                            match._id
-                          ].scoreB
-                        "
+                        v-model.number="scoreInputs[match._id].scoreB"
                         type="number"
                         min="0"
                         class="score-input"
@@ -395,48 +291,30 @@ onMounted(loadMatches)
                         type="button"
                         variant="primary"
                         class="btn-enter"
-                        :disabled="
-                          isSubmitting
-                        "
-                        @click="
-                          handleSaveScore(match)
-                        "
+                        :disabled="isSubmitting"
+                        @click="handleSaveScore(match)"
                       >
                         Enter
                       </Button>
-
                     </div>
                   </template>
 
                   <!-- Everyone else -->
                   <template v-else>
-                    <Pill variant="secondary">
-                      VS
-                    </Pill>
+                    <Pill variant="secondary"> VS </Pill>
                   </template>
-
                 </div>
 
-                <span
-                  class="team-name team-away"
-                >
+                <span class="team-name team-away">
                   {{ match.teamBName }}
                 </span>
-
               </div>
 
               <!-- Match metadata -->
               <div class="match-meta">
-
                 <div class="match-info">
-
                   <!-- Scheduled -->
-                  <template
-                    v-if="
-                      isMatchScheduled(match)
-                    "
-                  >
-
+                  <template v-if="isMatchScheduled(match)">
                     <span class="meta-item">
                       <CalendarIcon />
                       {{ match.date }}
@@ -447,142 +325,78 @@ onMounted(loadMatches)
                       {{ match.slot }}
                     </span>
 
-                    <span
-                      v-if="match.field"
-                      class="meta-item"
-                    >
+                    <span v-if="match.field" class="meta-item">
                       <TrophyIcon />
                       {{ match.field.name }}
                     </span>
 
-                    <span
-                      v-if="
-                        match.field?.address
-                      "
-                      class="meta-item"
-                    >
+                    <span v-if="match.field?.address" class="meta-item">
                       <PinPointIcon />
                       {{ match.field.address }}
                     </span>
-
                   </template>
 
                   <!-- Not scheduled -->
-                  <span
-                    v-else-if="isOwner"
-                    class="meta-item unscheduled"
-                  >
+                  <span v-else-if="isOwner" class="meta-item unscheduled">
                     <CalendarIcon />
                     Unscheduled
-                    <span>
-                      (Field booking required)
-                    </span>
+                    <span> (Field booking required) </span>
                   </span>
-
                 </div>
 
-                <Pill
-                  :variant="
-                    match.status === 'played'
-                      ? 'success'
-                      : 'warning'
-                  "
-                >
-                  {{
-                    match.status === 'played'
-                      ? 'Played'
-                      : 'Upcoming'
-                  }}
+                <Pill :variant="match.status === 'played' ? 'success' : 'warning'">
+                  {{ match.status === 'played' ? 'Played' : 'Upcoming' }}
                 </Pill>
-
               </div>
 
               <!-- Booking assignment -->
-              <div
-                v-if="
-                  isOwner &&
-                  tournament?.status === 'active'
-                "
-                class="booking-assignment"
-              >
-
-                <label class="booking-label">
-                  Field booking assignment
-                </label>
+              <div v-if="isOwner && tournament?.status === 'active'" class="booking-assignment">
+                <label class="booking-label"> Field booking assignment </label>
 
                 <div class="booking-controls">
-
                   <select
-                    v-model="
-                      selectedBookings[
-                        match._id
-                      ]
-                    "
+                    v-model="selectedBookings[match._id]"
                     class="booking-select"
                     :disabled="isSubmitting"
                   >
-
-                    <option value="">
-                      -- Select a tournament
-                      booking --
-                    </option>
+                    <option value="">-- Select a tournament booking --</option>
 
                     <option
                       v-for="booking in bookings"
                       :key="booking._id"
-                      :value="
-                        String(booking._id)
-                      "
+                      :value="String(booking._id)"
                     >
                       {{ booking.date }}
                       |
                       {{ booking.slot }}
 
-                      <template
-                        v-if="
-                          booking.fieldName
-                        "
-                      >
+                      <template v-if="booking.fieldName">
                         —
                         {{ booking.fieldName }}
                       </template>
                     </option>
-
                   </select>
 
                   <Button
                     type="button"
                     variant="primary"
                     class="btn-assign"
-                    :disabled="
-                      isSubmitting ||
-                      !selectedBookings[
-                        match._id
-                      ]
-                    "
-                    @click="
-                      handleAssignBooking(match)
-                    "
+                    :disabled="isSubmitting || !selectedBookings[match._id]"
+                    @click="handleAssignBooking(match)"
                   >
                     Assign
                   </Button>
-
                 </div>
               </div>
-
             </div>
           </div>
-
         </div>
       </Panel>
-
     </template>
-
   </div>
 </template>
 
 <style scoped>
-
 .navigation-button,
 .start-button {
   display: inline-flex;
@@ -627,10 +441,7 @@ onMounted(loadMatches)
 
 .matches-grid {
   display: grid;
-  grid-template-columns: repeat(
-    auto-fit,
-    minmax(320px, 1fr)
-  );
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
   gap: 16px;
 }
 
@@ -647,7 +458,6 @@ onMounted(loadMatches)
 }
 
 .match-card:hover {
-  border-color: rgba(0, 113, 227, 0.3);
   box-shadow: 0 6px 16px rgba(0, 113, 227, 0.08);
 }
 
@@ -710,8 +520,7 @@ onMounted(loadMatches)
   padding: 4px 12px;
   border-radius: 980px;
 
-  box-shadow:
-    0 2px 6px rgba(0, 113, 227, 0.2);
+  box-shadow: 0 2px 6px rgba(0, 113, 227, 0.2);
 }
 
 .score-form {
@@ -742,9 +551,7 @@ onMounted(loadMatches)
 
 .score-input:focus {
   border-color: var(--color-primary);
-  box-shadow:
-    0 0 0 3px
-    rgba(0, 113, 227, 0.15);
+  box-shadow: 0 0 0 3px rgba(0, 113, 227, 0.15);
 }
 
 .score-colon {
@@ -769,8 +576,7 @@ onMounted(loadMatches)
 
   padding-top: 12px;
 
-  border-top: 1px solid
-  rgba(0, 0, 0, 0.06);
+  border-top: 1px solid rgba(0, 0, 0, 0.06);
 
   font-size: 12px;
   font-weight: 500;
@@ -812,14 +618,7 @@ onMounted(loadMatches)
   display: flex;
   flex-direction: column;
   gap: 8px;
-
-  margin-top: 10px;
-  padding: 12px;
-
-  border: 1px solid
-  rgba(0, 0, 0, 0.06);
-
-  border-radius: 12px;
+  margin-top: 20px;
 }
 
 .booking-label {
@@ -845,8 +644,7 @@ onMounted(loadMatches)
   background: var(--color-white);
   color: var(--color-black);
 
-  border: 1px solid
-  rgba(0, 0, 0, 0.15);
+  border: 1px solid rgba(0, 0, 0, 0.15);
 
   border-radius: 8px;
 
@@ -857,10 +655,7 @@ onMounted(loadMatches)
 }
 
 .booking-select:focus {
-  border-color: var(--color-primary);
-  box-shadow:
-    0 0 0 3px
-    rgba(0, 113, 227, 0.15);
+  border-color: var(--color-primary-hover-light);
 }
 
 .btn-assign {
