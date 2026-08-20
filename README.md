@@ -104,3 +104,8 @@ docker compose -f docker-compose.prod.yml exec app node seed.js
 ```
 
 Run this command after the production containers have been started.
+
+## AI Disclosure
+Large Language Models (LLMs) were used during the development of this web application. In particular, most of the frontend code was developed with the assistance of an LLM under my direction and supervision. LLMs were also used to assist with troubleshooting during development, as well as throughout the iterative process of modifying and refining the application. Changes were carried out both manually and with the assistance of LLMs.
+
+I have reviewed each file of the project and take full responsibility for the final implementation. All design decisions and any remaining errors or bugs are my sole responsibility.
