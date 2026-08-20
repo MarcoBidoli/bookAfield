@@ -56,5 +56,6 @@ import AppFooter from '@/components/layout/AppFooter.vue'
 
 .content-area {
   padding: 32px;
+  min-height: 90vh;
 }
 </style>

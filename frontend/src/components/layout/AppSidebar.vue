@@ -1,10 +1,37 @@
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, computed } from 'vue'
 import { useAuthStore } from '@/stores/auth'
 import SidebarIcon from '@/components/icons/SidebarIcon.vue'
 
 const authStore = useAuthStore()
 const isCollapsed = ref(false)
+
+const currentUserId = computed(() => {
+  return authStore.user?._id || authStore.user?.id
+})
+
+const currentUserName = computed(() => {
+  return authStore.user?.name || authStore.user?.username || 'User'
+})
+
+const currentUserUsername = computed(() => {
+  return authStore.user?.username || ''
+})
+
+const currentUserInitials = computed(() => {
+  const name = authStore.user?.name?.trim()
+  const surname = authStore.user?.surname?.trim()
+
+  if (name || surname) {
+    return `${name?.[0] || ''}${surname?.[0] || ''}`.toUpperCase()
+  }
+
+  return authStore.user?.username?.[0]?.toUpperCase() || '?'
+})
+
+const userTournamentsPath = computed(() => {
+  return currentUserId.value ? `/users/${currentUserId.value}/tournaments` : '/users'
+})
 
 onMounted(() => {
   if (window.innerWidth <= 700) {
@@ -164,7 +191,7 @@ const navigation = [
             <path d="m9 16 2 2 4-4" />
           </svg>
 
-          <span class="sidebar-label">My Bookings</span>
+          <span class="sidebar-label"> My Bookings </span>
         </router-link>
       </li>
     </ul>
@@ -174,6 +201,26 @@ const navigation = [
 
     <!-- Account -->
     <div class="sidebar-group-title">Account</div>
+
+    <!-- Current user -->
+    <router-link
+      v-if="authStore.isAuthenticated"
+      :to="userTournamentsPath"
+      class="sidebar-user"
+      :title="`${currentUserName}'s Tournaments`"
+    >
+      <div class="sidebar-user-avatar">
+        {{ currentUserInitials }}
+      </div>
+
+      <div class="sidebar-user-info">
+        <span class="sidebar-user-name"> {{ currentUserName }} </span>
+
+        <span v-if="currentUserUsername" class="sidebar-user-username">
+          @{{ currentUserUsername }}
+        </span>
+      </div>
+    </router-link>
 
     <ul class="sidebar-menu account-menu">
       <!-- Login -->
@@ -198,7 +245,7 @@ const navigation = [
             <line x1="15" y1="12" x2="3" y2="12" />
           </svg>
 
-          <span class="sidebar-label">Login or Register</span>
+          <span class="sidebar-label"> Login or Register </span>
         </router-link>
       </li>
 
@@ -224,7 +271,7 @@ const navigation = [
             <line x1="21" y1="12" x2="9" y2="12" />
           </svg>
 
-          <span class="sidebar-label">Logout</span>
+          <span class="sidebar-label"> Logout </span>
         </button>
       </li>
     </ul>
@@ -233,7 +280,7 @@ const navigation = [
 
 <style scoped>
 .sidebar {
-  width: 240px;
+  width: 200px;
   height: 100vh;
   flex-shrink: 0;
 
@@ -265,6 +312,7 @@ const navigation = [
 
   border-bottom: 1px solid rgba(0, 0, 0, 0.08);
   padding: 0 4px 12px;
+
   box-sizing: content-box;
 }
 
@@ -280,8 +328,8 @@ const navigation = [
 }
 
 .collapse-button {
-  width: 24px;
-  height: 24px;
+  width: 20px;
+  height: 20px;
   flex-shrink: 0;
 
   display: flex;
@@ -303,13 +351,6 @@ const navigation = [
 
 .collapse-button:hover {
   background: rgba(82, 82, 82, 0.12);
-}
-
-.collapse-icon {
-  width: 18px;
-  height: 18px;
-
-  transition: transform 0.2s ease;
 }
 
 /* Navigation */
@@ -378,6 +419,81 @@ const navigation = [
   flex: 1;
 }
 
+/* User */
+
+.sidebar-user {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+
+  width: 100%;
+  min-width: 0;
+
+  box-sizing: border-box;
+
+  padding: 8px 10px;
+  margin-bottom: 6px;
+
+  border-radius: 10px;
+
+  color: inherit;
+  text-decoration: none;
+
+  transition:
+    background 0.15s ease,
+    color 0.15s ease;
+}
+
+.sidebar-user:hover {
+  background: rgba(82, 82, 82, 0.1);
+}
+
+.sidebar-user-avatar {
+  width: 30px;
+  height: 30px;
+  flex-shrink: 0;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 50%;
+
+  background: rgba(0, 113, 227, 0.1);
+  color: var(--color-primary);
+
+  font-size: 10px;
+  font-weight: 800;
+}
+
+.sidebar-user-info {
+  min-width: 0;
+
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.sidebar-user-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+
+  color: var(--color-black);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.sidebar-user-username {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+
+  color: var(--color-lightgray-text);
+  font-size: 10px;
+  font-weight: 500;
+}
+
 /* Collapsed */
 
 .sidebar.collapsed {
@@ -406,7 +522,21 @@ const navigation = [
 }
 
 .sidebar.collapsed .collapse-button {
-  width: 22px;
-  height: 22px;
+  width: 20px;
+  height: 20px;
+}
+
+.sidebar.collapsed .sidebar-user {
+  justify-content: center;
+  padding: 8px 0;
+}
+
+.sidebar.collapsed .sidebar-user-info {
+  display: none;
+}
+
+.sidebar.collapsed .sidebar-user-avatar {
+  width: 32px;
+  height: 32px;
 }
 </style>
