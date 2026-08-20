@@ -1,11 +1,17 @@
 <script setup>
-import { ref, onMounted } from 'vue'
-import { useRouter } from 'vue-router'
-import { useAuthStore } from '@/stores/auth'
-import { fetchUserBookings, cancelBooking } from '@/api/fields'
+import {onMounted, ref} from 'vue'
+import {useRouter} from 'vue-router'
+import {useAuthStore} from '@/stores/auth'
+import {cancelBooking, fetchUserBookings} from '@/api/fields'
 
-import AquaPanel from '@/components/AquaPanel.vue'
-import AquaButton from '@/components/AquaButton.vue'
+import Panel from '@/components/Panel.vue'
+import Button from '@/components/Button.vue'
+import Breadcrumbs from '@/components/Breadcrumbs.vue'
+import PageHeader from '@/components/PageHeader.vue'
+import AppBanner from '@/components/AppBanner.vue'
+import LoadingState from '@/components/LoadingState.vue'
+import EmptyState from '@/components/EmptyState.vue'
+import Pill from '@/components/Pill.vue'
 
 const router = useRouter()
 const authStore = useAuthStore()
@@ -24,9 +30,12 @@ async function loadBookings() {
 
   isLoading.value = true
   errorMessage.value = ''
+
   try {
     const userId = authStore.user?._id || authStore.user?.id
-    bookings.value = await fetchUserBookings(userId)
+
+    // reversed to show new bookings on top
+    bookings.value = (await fetchUserBookings(userId)).reverse()
   } catch (err) {
     errorMessage.value = err.message || 'Failed to load bookings'
   } finally {
@@ -34,17 +43,65 @@ async function loadBookings() {
   }
 }
 
+function isBookingPast(dateStr, slotStr) {
+  if (!dateStr || !slotStr) {
+    return false
+  }
+
+  const startTime = slotStr.split('-')[0]
+  const bookingDateTime = new Date(`${dateStr}T${startTime}`)
+
+  return bookingDateTime <= new Date()
+}
+
+function isPast(booking) {
+  return isBookingPast(booking.date, booking.slot)
+}
+
+function getFieldName(booking) {
+  return (
+    booking.fieldDetails?.name ||
+    `Field ${booking.fieldId}`
+  )
+}
+
+function getFieldDescription(booking) {
+  const sport = booking.fieldDetails?.sport
+    ? `(${booking.fieldDetails.sport})`
+    : ''
+
+  const address = booking.fieldDetails?.address
+    ? `— ${booking.fieldDetails.address}`
+    : ''
+
+  return `${sport} ${address}`.trim()
+}
+
+function getBookingType(booking) {
+  return booking.type === 'tournament'
+    ? 'Tournament'
+    : 'Standard'
+}
+
+function getBookingTypeVariant(booking) {
+  return booking.type === 'tournament'
+    ? 'primary'
+    : 'neutral'
+}
+
 async function handleCancel(booking) {
-  const isPast = isBookingPast(booking.date, booking.slot)
-  if (isPast) {
+  if (isPast(booking)) {
     errorMessage.value = 'Cannot cancel past reservations'
     return
   }
 
-  const confirmDelete = window.confirm(
-    `Are you sure you want to cancel your booking for ${booking.fieldDetails?.name || 'the field'} on ${booking.date} at ${booking.slot}?`,
+  const confirmed = window.confirm(
+    `Are you sure you want to cancel your booking for ${getFieldName(booking)} on ${booking.date} at ${booking.slot}?`
   )
-  if (!confirmDelete) return
+
+  if (!confirmed) {
+    return
+  }
 
   cancellingId.value = booking._id
   errorMessage.value = ''
@@ -52,9 +109,12 @@ async function handleCancel(booking) {
 
   try {
     await cancelBooking(booking.fieldId, booking._id)
+
     successMessage.value = 'Booking cancelled successfully'
-    // Remove from local array
-    bookings.value = bookings.value.filter((b) => b._id !== booking._id)
+
+    bookings.value = bookings.value.filter(
+      bookingItem => bookingItem._id !== booking._id
+    )
   } catch (err) {
     errorMessage.value = err.message || 'Failed to cancel booking'
   } finally {
@@ -62,96 +122,147 @@ async function handleCancel(booking) {
   }
 }
 
-function isBookingPast(dateStr, slotStr) {
-  if (!dateStr || !slotStr) return false
-  const startTime = slotStr.split('-')[0]
-  const bookingDateTime = new Date(`${dateStr}T${startTime}`)
-  return bookingDateTime <= new Date()
-}
-
-onMounted(() => {
-  loadBookings()
-})
+onMounted(loadBookings)
 </script>
 
 <template>
   <div class="user-bookings-view">
-    <!-- Status Banners -->
-    <div v-if="successMessage" class="banner success-banner">✓ {{ successMessage }}</div>
-    <div v-if="errorMessage" class="banner error-banner">⚠️ {{ errorMessage }}</div>
+    <Breadcrumbs
+      section="Fields"
+      section-to="/fields"
+      current="My Reservations"
+    />
 
-    <AquaPanel title="My Court & Field Reservations">
-      <div v-if="isLoading" class="loading-state">Loading your reservations...</div>
+    <PageHeader
+      title="My Reservations"
+      subtitle="View and manage your sports field bookings"
+    />
 
-      <div v-else-if="bookings.length === 0" class="empty-state">
-        <p>You currently have no booked fields.</p>
-        <div class="empty-action">
+    <AppBanner
+      v-if="successMessage"
+      type="success"
+      :message="successMessage"
+    />
+
+    <AppBanner
+      v-if="errorMessage"
+      type="error"
+      :message="errorMessage"
+    />
+
+    <Panel title="Court & Field Reservations">
+      <LoadingState
+        v-if="isLoading"
+        message="Loading your reservations..."
+      />
+
+      <EmptyState
+        v-else-if="bookings.length === 0"
+        title="No Reservations"
+        message="You currently have no booked fields."
+      >
+        <template #action>
           <router-link to="/fields">
-            <AquaButton>Book a Sports Field Now</AquaButton>
+            <Button>
+              Book a Sports Field
+            </Button>
           </router-link>
-        </div>
-      </div>
+        </template>
+      </EmptyState>
 
-      <div v-else class="table-container">
-        <table class="aqua-table">
+      <div
+        v-else
+        class="table-container"
+      >
+        <table class="bookings-table">
           <thead>
-            <tr>
-              <th>Field / Sport</th>
-              <th>Date</th>
-              <th>Time Slot</th>
-              <th>Type</th>
-              <th>Status</th>
-              <th style="text-align: center">Actions</th>
-            </tr>
+          <tr>
+            <th>Field / Sport</th>
+            <th>Date</th>
+            <th>Time Slot</th>
+            <th>Type</th>
+            <th>Status</th>
+            <th class="actions-column">Actions</th>
+          </tr>
           </thead>
+
           <tbody>
-            <tr
-              v-for="booking in bookings"
-              :key="booking._id"
-              :class="{ 'past-row': isBookingPast(booking.date, booking.slot) }"
-            >
-              <td>
-                <div class="field-title">
-                  {{ booking.fieldDetails?.name || 'Field ' + booking.fieldId }}
-                </div>
-                <div class="field-sub">
-                  {{ booking.fieldDetails?.sport ? `(${booking.fieldDetails.sport})` : '' }}
-                  {{ booking.fieldDetails?.address ? `— ${booking.fieldDetails.address}` : '' }}
-                </div>
-              </td>
-              <td>{{ booking.date }}</td>
-              <td>
-                <strong>{{ booking.slot }}</strong>
-              </td>
-              <td>
-                <span class="type-badge">{{ booking.type || 'Standard' }}</span>
-              </td>
-              <td>
-                <span
-                  :class="[
-                    'status-pill',
-                    isBookingPast(booking.date, booking.slot) ? 'status-past' : 'status-upcoming',
-                  ]"
-                >
-                  {{ isBookingPast(booking.date, booking.slot) ? 'Completed' : 'Active' }}
+          <tr
+            v-for="booking in bookings"
+            :key="booking._id"
+            :class="{ 'past-row': isPast(booking) }"
+          >
+            <!-- Field -->
+            <td>
+              <div class="field-title">
+                {{ getFieldName(booking) }}
+              </div>
+
+              <div
+                v-if="getFieldDescription(booking)"
+                class="field-sub"
+              >
+                {{ getFieldDescription(booking) }}
+              </div>
+            </td>
+
+            <!-- Date -->
+            <td>
+              {{ booking.date }}
+            </td>
+
+            <!-- Slot -->
+            <td>
+              <strong>{{ booking.slot }}</strong>
+            </td>
+
+            <!-- Type -->
+            <td>
+              <Pill :variant="getBookingTypeVariant(booking)">
+                {{ getBookingType(booking) }}
+              </Pill>
+            </td>
+
+            <!-- Status -->
+            <td>
+              <Pill
+                :status="
+                    isPast(booking)
+                      ? 'completed'
+                      : 'active'
+                  "
+              >
+                {{ isPast(booking) ? 'Completed' : 'Active' }}
+              </Pill>
+            </td>
+
+            <!-- Actions -->
+            <td class="actions-column">
+              <Button
+                v-if="!isPast(booking)"
+                variant="danger"
+                :disabled="cancellingId === booking._id"
+                @click="handleCancel(booking)"
+              >
+                {{
+                  cancellingId === booking._id
+                    ? 'Cancelling...'
+                    : 'Cancel'
+                }}
+              </Button>
+
+              <span
+                v-else
+                class="hint-text"
+              >
+                  —
                 </span>
-              </td>
-              <td style="text-align: center">
-                <AquaButton
-                  v-if="!isBookingPast(booking.date, booking.slot)"
-                  variant="danger"
-                  :disabled="cancellingId === booking._id"
-                  @click="handleCancel(booking)"
-                >
-                  {{ cancellingId === booking._id ? 'Cancelling...' : 'Cancel' }}
-                </AquaButton>
-                <span v-else class="hint-text"> — </span>
-              </td>
-            </tr>
+            </td>
+          </tr>
           </tbody>
         </table>
       </div>
-    </AquaPanel>
+    </Panel>
   </div>
 </template>
 
@@ -159,120 +270,93 @@ onMounted(() => {
 .user-bookings-view {
   display: flex;
   flex-direction: column;
-  gap: 16px;
-}
-
-.banner {
-  padding: 8px 12px;
-  border-radius: 4px;
-  font-size: 12px;
-}
-
-.success-banner {
-  background-color: #e6f7ec;
-  border: 1px solid #70c995;
-  color: #155724;
-}
-
-.error-banner {
-  background-color: #ffe6e6;
-  border: 1px solid #ff9999;
-  color: #990000;
-}
-
-.loading-state,
-.empty-state {
-  padding: 20px;
-  text-align: center;
-  font-size: 12px;
-  color: #555;
-}
-
-.empty-action {
-  margin-top: 14px;
+  gap: 24px;
+  max-width: 1200px;
+  margin: 0 auto;
+  width: 100%;
 }
 
 .table-container {
+  width: 100%;
   overflow-x: auto;
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
 }
 
-/* Zebra Striped Aqua Table */
-.aqua-table {
+.bookings-table {
   width: 100%;
   border-collapse: collapse;
   font-size: 12px;
-  background: #fff;
-  border: 1px solid #b4b4b4;
-  border-radius: 4px;
-  overflow: hidden;
+  background: transparent;
 }
 
-.aqua-table th {
-  background: linear-gradient(180deg, #f0f0f0 0%, #d8d8d8 100%);
-  border-bottom: 1px solid #a6a6a6;
-  border-right: 1px solid #d0d0d0;
-  padding: 6px 10px;
+.bookings-table th {
+  background: rgba(0, 0, 0, 0.04);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+  padding: 10px 14px;
   text-align: left;
-  font-weight: bold;
-  color: #333;
-  text-shadow: 0 1px 0 #fff;
+  font-weight: 700;
+  color: var(--color-black);
+  text-transform: uppercase;
+  font-size: 10px;
+  letter-spacing: 1px;
+  white-space: nowrap;
 }
 
-.aqua-table td {
-  padding: 8px 10px;
-  border-bottom: 1px solid #e0e0e0;
-  border-right: 1px solid #f0f0f0;
+.bookings-table td {
+  padding: 12px 14px;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
   vertical-align: middle;
+  color: var(--color-black);
 }
 
-.aqua-table tr:nth-child(even) {
-  background-color: #edf4f9; /* OS X Table Alternating Blue Tint */
+.bookings-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.bookings-table tbody tr:nth-child(even) {
+  background: rgba(0, 81, 199, 0.02);
+}
+
+.bookings-table tbody tr:hover {
+  background: rgba(0, 113, 227, 0.04);
 }
 
 .past-row {
-  opacity: 0.65;
+  opacity: 0.6;
 }
 
 .field-title {
-  font-weight: bold;
-  color: #0044bb;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--color-black);
 }
 
 .field-sub {
+  margin-top: 3px;
   font-size: 11px;
-  color: #666;
+  font-weight: 500;
+  color: var(--color-lightgray-text);
 }
 
-.type-badge {
-  background: #e8e8e8;
-  border: 1px solid #c0c0c0;
-  padding: 2px 6px;
-  border-radius: 4px;
-  font-size: 10px;
-  text-transform: capitalize;
-}
-
-.status-pill {
-  padding: 2px 8px;
-  border-radius: 10px;
-  font-size: 10px;
-  font-weight: bold;
-}
-
-.status-upcoming {
-  background: #d4edda;
-  color: #155724;
-  border: 1px solid #c3e6cb;
-}
-
-.status-past {
-  background: #e2e3e5;
-  color: #383d41;
-  border: 1px solid #d6d8db;
+.actions-column {
+  text-align: center !important;
+  white-space: nowrap;
 }
 
 .hint-text {
   font-size: 11px;
-  color: #888;
+  color: var(--color-lightgray-text);
+  font-weight: 500;
+}
+
+@media (max-width: 700px) {
+  .bookings-table {
+    min-width: 750px;
+  }
 }
 </style>

@@ -1,12 +1,14 @@
 <script setup>
-import { ref, onMounted } from 'vue'
-import { useRoute } from 'vue-router'
+import {onMounted, ref} from 'vue'
+import {useRoute} from 'vue-router'
 
-import { fetchTournamentById, fetchTournamentStandings } from '@/api/tournaments'
+import {fetchTournamentById, fetchTournamentStandings} from '@/api/tournaments'
 
-import AquaPanel from '@/components/AquaPanel.vue'
-import AquaButton from '@/components/AquaButton.vue'
+import Panel from '@/components/Panel.vue'
 import Breadcrumbs from '@/components/Breadcrumbs.vue'
+import AppBanner from '@/components/AppBanner.vue'
+import SportBadge from '@/components/SportBadge.vue'
+import Pill from '@/components/Pill.vue'
 
 const route = useRoute()
 
@@ -50,6 +52,30 @@ function getPositionClass(index) {
   return ''
 }
 
+function getStatusVariant(status) {
+  switch (status) {
+    case 'active':
+      return 'success'
+
+    case 'registration':
+    case 'upcoming':
+      return 'warning'
+
+    case 'completed':
+    case 'played':
+      return 'muted'
+
+    default:
+      return 'default'
+  }
+}
+
+function formatStatus(status) {
+  if (!status) return ''
+
+  return status.charAt(0).toUpperCase() + status.slice(1)
+}
+
 onMounted(() => {
   loadStandings()
 })
@@ -57,160 +83,134 @@ onMounted(() => {
 
 <template>
   <div class="standings-view">
-    <!-- Breadcrumbs row  -->
+    <!-- Breadcrumbs row -->
     <Breadcrumbs
       section="Tournaments"
       section-to="/tournaments"
       :parent="{
-      label: tournament?.name,
-      to: `/tournaments/${tournament?._id}`,
-    }"
+        label: tournament?.name,
+        to: `/tournaments/${tournament?._id}`,
+      }"
       current="Standings"
     />
 
-    <!-- Error Banner -->
-    <div v-if="errorMessage" class="banner error-banner">⚠️ {{ errorMessage }}</div>
+    <!-- Feedback Banner -->
+    <AppBanner v-if="errorMessage" type="error" :message="errorMessage" />
 
     <!-- Header -->
-    <AquaPanel :title="`Standings — ${tournament?.name || 'Tournament'}`">
+    <Panel :title="`Standings — ${tournament?.name || 'Tournament'}`">
       <div class="header-content">
         <div class="header-info">
-          <span v-if="tournament?.sport" class="sport-badge">
-            {{ tournament.sport }}
-          </span>
-
-          <span v-if="tournament?.status" :class="['status-pill', `status-${tournament.status}`]">
-            {{ tournament.status }}
-          </span>
+          <SportBadge v-if="tournament?.sport" :sport="tournament.sport" />
+          <Pill
+            v-if="tournament?.status"
+            :variant="getStatusVariant(tournament.status)"
+          >
+            {{ formatStatus(tournament.status) }}
+          </Pill>
         </div>
       </div>
-    </AquaPanel>
+    </Panel>
 
     <!-- Loading -->
     <div v-if="isLoading" class="loading-state">Loading tournament standings...</div>
 
     <!-- Empty -->
     <div v-else-if="standings.length === 0" class="empty-state">
-      <AquaPanel title="Standings">
+      <Panel title="Standings">
         <p>No teams are currently registered in this tournament.</p>
-      </AquaPanel>
+      </Panel>
     </div>
 
-    <!-- Standings -->
-    <AquaPanel v-else title="Tournament Table">
+    <!-- Standings Table -->
+    <Panel v-else title="Tournament Table">
       <div class="table-wrapper">
         <table class="standings-table">
           <thead>
-            <tr>
-              <th class="position-column">#</th>
-
-              <th class="team-column">Team</th>
-
-              <th>P</th>
-
-              <th>W</th>
-
-              <th>D</th>
-
-              <th>L</th>
-
-              <th>GF</th>
-
-              <th>GA</th>
-
-              <th>GD</th>
-
-              <th class="points-column">Pts</th>
-            </tr>
+          <tr>
+            <th class="position-column">#</th>
+            <th class="team-column">Team</th>
+            <th>P</th>
+            <th>W</th>
+            <th>D</th>
+            <th>L</th>
+            <th>GF</th>
+            <th>GA</th>
+            <th>GD</th>
+            <th class="points-column">Pts</th>
+          </tr>
           </thead>
 
           <tbody>
-            <tr
-              v-for="(team, index) in standings"
-              :key="team.teamId"
-              :class="['standing-row', getPositionClass(index)]"
-            >
-              <!-- Position -->
-              <td class="position-cell">
-                {{ index + 1 }}
-              </td>
+          <tr
+            v-for="(team, index) in standings"
+            :key="team.teamId"
+            :class="['standing-row', getPositionClass(index)]"
+          >
+            <!-- Position -->
+            <td class="position-cell">
+                <span class="pos-badge">
+                  <span class="pos-badge">{{ index + 1 }}</span>
+                </span>
+            </td>
 
-              <!-- Team -->
-              <td class="team-cell">
-                {{ team.name }}
-              </td>
+            <!-- Team -->
+            <td class="team-cell">
+              {{ team.name }}
+            </td>
 
-              <!-- Played -->
-              <td>
-                {{ team.played }}
-              </td>
+            <!-- Played -->
+            <td>{{ team.played }}</td>
 
-              <!-- Won -->
-              <td>
-                {{ team.won }}
-              </td>
+            <!-- Won -->
+            <td>{{ team.won }}</td>
 
-              <!-- Drawn -->
-              <td>
-                {{ team.drawn }}
-              </td>
+            <!-- Drawn -->
+            <td>{{ team.drawn }}</td>
 
-              <!-- Lost -->
-              <td>
-                {{ team.lost }}
-              </td>
+            <!-- Lost -->
+            <td>{{ team.lost }}</td>
 
-              <!-- Goals / Points scored -->
-              <td>
-                {{ team.scored }}
-              </td>
+            <!-- Goals / Points scored -->
+            <td>{{ team.scored }}</td>
 
-              <!-- Goals / Points conceded -->
-              <td>
-                {{ team.conceded }}
-              </td>
+            <!-- Goals / Points conceded -->
+            <td>{{ team.conceded }}</td>
 
-              <!-- Difference -->
-              <td
-                :class="[
+            <!-- Difference -->
+            <td
+              :class="[
                   'difference-cell',
                   {
                     positive: team.diff > 0,
                     negative: team.diff < 0,
                   },
                 ]"
-              >
-                {{ formatDifference(team.diff) }}
-              </td>
+            >
+              {{ formatDifference(team.diff) }}
+            </td>
 
-              <!-- Points -->
-              <td class="points-cell">
-                {{ team.points }}
-              </td>
-            </tr>
+            <!-- Points -->
+            <td class="points-cell">
+              {{ team.points }}
+            </td>
+          </tr>
           </tbody>
         </table>
       </div>
 
       <!-- Legend -->
       <div class="table-legend">
-        <span> P = Played </span>
-
-        <span> W = Won </span>
-
-        <span> D = Drawn </span>
-
-        <span> L = Lost </span>
-
-        <span> GF = Scored </span>
-
-        <span> GA = Conceded </span>
-
-        <span> GD = Difference </span>
-
-        <span> Pts = Points </span>
+        <span>P = Played</span>
+        <span>W = Won</span>
+        <span>D = Drawn</span>
+        <span>L = Lost</span>
+        <span>GF = Scored</span>
+        <span>GA = Conceded</span>
+        <span>GD = Difference</span>
+        <span>Pts = Points</span>
       </div>
-    </AquaPanel>
+    </Panel>
   </div>
 </template>
 
@@ -218,23 +218,10 @@ onMounted(() => {
 .standings-view {
   display: flex;
   flex-direction: column;
-  gap: 16px;
-}
-
-/* --------------------------------------------------
-   Feedback
--------------------------------------------------- */
-
-.banner {
-  padding: 8px 12px;
-  border-radius: 4px;
-  font-size: 12px;
-}
-
-.error-banner {
-  background-color: #ffe6e6;
-  border: 1px solid #ff9999;
-  color: #990000;
+  gap: 20px;
+  max-width: 1200px;
+  margin: 0 auto;
+  width: 100%;
 }
 
 /* --------------------------------------------------
@@ -251,60 +238,7 @@ onMounted(() => {
 .header-info {
   display: flex;
   align-items: center;
-  gap: 8px;
-}
-
-.header-actions {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.sport-badge {
-  display: inline-block;
-  padding: 3px 9px;
-  border-radius: 10px;
-
-  background: #e7f2ff;
-  border: 1px solid #a9ccef;
-
-  color: #245b8d;
-  font-size: 10px;
-  font-weight: bold;
-
-  text-transform: capitalize;
-}
-
-/* --------------------------------------------------
-   Status
--------------------------------------------------- */
-
-.status-pill {
-  padding: 3px 9px;
-  border-radius: 10px;
-
-  font-size: 10px;
-  font-weight: bold;
-
-  text-transform: capitalize;
-}
-
-.status-registration {
-  background: #fff3cd;
-  color: #856404;
-  border: 1px solid #ffeeba;
-}
-
-.status-active {
-  background: #d4edda;
-  color: #155724;
-  border: 1px solid #c3e6cb;
-}
-
-.status-completed {
-  background: #e8e8e8;
-  color: #666;
-  border: 1px solid #ccc;
+  gap: 10px;
 }
 
 /* --------------------------------------------------
@@ -314,9 +248,10 @@ onMounted(() => {
 .loading-state,
 .empty-state {
   text-align: center;
-  font-size: 12px;
-  color: #666;
-  padding: 16px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-lightgray-text);
+  padding: 32px;
 }
 
 /* --------------------------------------------------
@@ -332,73 +267,58 @@ onMounted(() => {
   width: 100%;
   border-collapse: separate;
   border-spacing: 0;
-
-  font-size: 12px;
-
-  border: 1px solid #c8c8c8;
-  border-radius: 6px;
+  font-size: 13px;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-radius: 12px;
   overflow: hidden;
-
-  background: #ffffff;
+  background: var(--color-white);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02);
 }
 
 /* Header */
 
 .standings-table thead th {
-  padding: 8px 7px;
-
-  background: linear-gradient(180deg, #f7f7f7 0%, #dedede 100%);
-
-  border-bottom: 1px solid #bcbcbc;
-
-  color: #444;
-
-  font-size: 10px;
-  font-weight: bold;
-
+  padding: 10px 12px;
+  background: rgba(0, 0, 0, 0.02);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+  color: var(--color-darkgray);
+  font-size: 11px;
+  font-weight: 700;
   text-align: center;
-
   white-space: nowrap;
 }
 
 .standings-table thead th:first-child {
-  border-top-left-radius: 5px;
+  border-top-left-radius: 11px;
 }
 
 .standings-table thead th:last-child {
-  border-top-right-radius: 5px;
+  border-top-right-radius: 11px;
 }
 
 /* Body */
 
 .standing-row td {
-  padding: 9px 7px;
-
-  border-bottom: 1px solid #e6e6e6;
-
-  color: #444;
-
+  padding: 12px 10px;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+  color: var(--color-black);
   text-align: center;
-
   white-space: nowrap;
+  font-weight: 500;
 }
 
 .standing-row:last-child td {
   border-bottom: none;
 }
 
-/* Zebra striping */
+/* Zebra striping & hover */
 
 .standing-row:nth-child(even) {
-  background: #f7f9fb;
-}
-
-.standing-row:nth-child(odd) {
-  background: #ffffff;
+  background: rgba(0, 0, 0, 0.01);
 }
 
 .standing-row:hover {
-  background: #edf6ff;
+  background: rgb(232 232 232 / 0.75);
 }
 
 /* --------------------------------------------------
@@ -406,59 +326,70 @@ onMounted(() => {
 -------------------------------------------------- */
 
 .position-column {
-  width: 42px;
+  width: 48px;
 }
 
 .position-cell {
-  width: 42px;
+  width: 48px;
+  font-weight: 700;
+}
 
-  font-weight: bold;
-  color: #666;
+.pos-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.05);
+  font-size: 11px;
+  color: var(--color-lightgray-text);
+  font-weight: 700;
 }
 
 .team-column {
-  min-width: 180px;
+  min-width: 200px;
   text-align: left !important;
 }
 
 .team-cell {
-  min-width: 180px;
-
-  font-weight: bold;
-  color: #222;
-
+  min-width: 200px;
+  font-weight: 700;
+  color: var(--color-black);
   text-align: left !important;
 }
 
 .points-column {
-  width: 60px;
+  width: 70px;
 }
 
 .points-cell {
-  width: 60px;
-
-  color: #174f9c !important;
-  font-size: 13px;
-  font-weight: bold;
+  width: 70px;
+  color: var(--color-primary) !important;
+  font-size: 14px;
+  font-weight: 800;
 }
 
 /* --------------------------------------------------
    Positions
 -------------------------------------------------- */
 
-.position-first .position-cell {
-  color: #c28a00;
-  font-size: 13px;
+.position-first .pos-badge {
+  background: linear-gradient(135deg, #ffd700 0%, #ffaa00 100%);
+  color: #ffffff;
+  box-shadow: 0 2px 4px rgba(255, 170, 0, 0.3);
 }
 
-.position-second .position-cell {
-  color: #777;
-  font-size: 13px;
+.position-second .pos-badge {
+  background: linear-gradient(135deg, #d0d0d0 0%, #9e9e9e 100%);
+  color: #ffffff;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15);
 }
 
-.position-third .position-cell {
-  color: #a15c32;
-  font-size: 13px;
+.position-third .pos-badge {
+  background: linear-gradient(135deg, #cd7f32 0%, #a0522d 100%);
+  color: #ffffff;
+  box-shadow: 0 2px 4px rgba(205, 127, 50, 0.3);
 }
 
 /* --------------------------------------------------
@@ -466,15 +397,15 @@ onMounted(() => {
 -------------------------------------------------- */
 
 .difference-cell {
-  font-weight: bold;
+  font-weight: 700;
 }
 
 .difference-cell.positive {
-  color: #287a45;
+  color: #1b5e20;
 }
 
 .difference-cell.negative {
-  color: #b33a3a;
+  color: var(--color-danger-banner);
 }
 
 /* --------------------------------------------------
@@ -484,15 +415,12 @@ onMounted(() => {
 .table-legend {
   display: flex;
   flex-wrap: wrap;
-
-  gap: 5px 14px;
-
-  margin-top: 10px;
-  padding-top: 8px;
-
-  border-top: 1px solid #e5e5e5;
-
-  color: #777;
-  font-size: 10px;
+  gap: 6px 16px;
+  margin-top: 14px;
+  padding-top: 12px;
+  border-top: 1px solid rgba(0, 0, 0, 0.06);
+  color: var(--color-lightgray-text);
+  font-size: 11px;
+  font-weight: 600;
 }
 </style>

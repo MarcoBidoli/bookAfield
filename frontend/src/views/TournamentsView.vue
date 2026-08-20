@@ -1,20 +1,22 @@
 <script setup>
-import { ref, reactive, onMounted } from 'vue'
-import { useRouter } from 'vue-router'
-import { useAuthStore } from '@/stores/auth'
-import {
-  fetchTournaments,
-  createTournament,
-  deleteTournament
-} from '@/api/tournaments'
+import {onMounted, reactive, ref} from 'vue'
+import {useRouter} from 'vue-router'
+import {useAuthStore} from '@/stores/auth'
+import {createTournament, deleteTournament, fetchTournaments} from '@/api/tournaments'
 
-import AquaPanel from '@/components/AquaPanel.vue'
-import AquaButton from '@/components/AquaButton.vue'
+import Panel from '@/components/Panel.vue'
+import Button from '@/components/Button.vue'
+import Breadcrumbs from '@/components/Breadcrumbs.vue'
+import PageHeader from '@/components/PageHeader.vue'
+import FilterToolbar from '@/components/FilterToolbar.vue'
+import EmptyState from '@/components/EmptyState.vue'
+import LoadingState from '@/components/LoadingState.vue'
+import AppBanner from '@/components/AppBanner.vue'
+import TournamentCard from '@/components/TournamentCard.vue'
 
 const router = useRouter()
 const authStore = useAuthStore()
 
-// State
 const tournaments = ref([])
 const searchQuery = ref('')
 const selectedSportFilter = ref('all')
@@ -22,6 +24,15 @@ const isLoading = ref(true)
 const isSubmitting = ref(false)
 const errorMessage = ref('')
 const successMessage = ref('')
+const tomorrowDate = getTomorrowDate()
+
+const tournamentsFilter = [
+  { label: 'All', value: 'all' },
+  { label: 'My Tournaments', value: 'myTournaments'},
+  { label: 'Football', value: 'football' },
+  { label: 'Basketball', value: 'basketball' },
+  { label: 'Volleyball', value: 'volleyball' }
+]
 
 const newTournament = reactive({
   name: '',
@@ -31,22 +42,42 @@ const newTournament = reactive({
 })
 
 function getTomorrowDate() {
-  const d = new Date()
-  d.setDate(d.getDate() + 1)
-  return d.toISOString().split('T')[0]
+  const date = new Date()
+  date.setDate(date.getDate() + 1)
+  return date.toISOString().split('T')[0]
 }
 
 async function loadTournaments() {
   isLoading.value = true
   errorMessage.value = ''
+
   try {
-    const list = await fetchTournaments(searchQuery.value)
-    tournaments.value = list
+    tournaments.value = await fetchTournaments(searchQuery.value)
   } catch (err) {
-    errorMessage.value = err.message || 'Failed to load tournaments'
+    errorMessage.value = err.message || 'Error loading tournaments'
   } finally {
     isLoading.value = false
   }
+}
+
+function filteredTournaments() {
+  if (selectedSportFilter.value === 'all') {
+    return tournaments.value
+  }
+
+  if (selectedSportFilter.value === 'myTournaments') {
+    return tournaments.value.filter(tournament =>
+      isCreator(tournament)
+    )
+  }
+
+  return tournaments.value.filter(
+    tournament => tournament.sport === selectedSportFilter.value
+  )
+}
+
+function openTournament(tournamentId) {
+  router.push(`/tournaments/${tournamentId}`)
 }
 
 async function handleCreateTournament() {
@@ -68,11 +99,12 @@ async function handleCreateTournament() {
     })
 
     successMessage.value = `Tournament "${created.name}" created successfully!`
-    // Reset form
+
     newTournament.name = ''
     newTournament.maxTeams = 4
+    newTournament.sport = 'football'
+    newTournament.startDate = getTomorrowDate()
 
-    // Refresh list
     await loadTournaments()
   } catch (err) {
     errorMessage.value = err.message || 'Failed to create tournament'
@@ -81,32 +113,37 @@ async function handleCreateTournament() {
   }
 }
 
-async function handleDelete(t) {
-  const confirmDelete = window.confirm(`Delete tournament "${t.name}" and all scheduled matches?`)
-  if (!confirmDelete) return
+async function handleDelete(tournament) {
+  const confirmed = window.confirm(
+    `Delete tournament "${tournament.name}" and all scheduled matches?`
+  )
+
+  if (!confirmed) return
 
   errorMessage.value = ''
   successMessage.value = ''
+
   try {
-    await deleteTournament(t._id)
-    successMessage.value = `Tournament "${t.name}" deleted.`
-    tournaments.value = tournaments.value.filter(item => item._id !== t._id)
+    await deleteTournament(tournament._id)
+
+    successMessage.value = `Tournament "${tournament.name}" deleted.`
+
+    tournaments.value = tournaments.value.filter(
+      item => item._id !== tournament._id
+    )
   } catch (err) {
     errorMessage.value = err.message || 'Failed to delete tournament'
   }
 }
 
-function isCreator(t) {
-  if (!authStore.isAuthenticated || !authStore.user) return false
-  const currentUserId = authStore.user._id || authStore.user.id
-  return String(t.creatorId) === String(currentUserId)
-}
-
-function filteredTournaments() {
-  if (selectedSportFilter.value === 'all') {
-    return tournaments.value
+function isCreator(tournament) {
+  if (!authStore.isAuthenticated || !authStore.user) {
+    return false
   }
-  return tournaments.value.filter(t => t.sport === selectedSportFilter.value)
+
+  const currentUserId = authStore.user._id || authStore.user.id
+
+  return String(tournament.creatorId) === String(currentUserId)
 }
 
 onMounted(() => {
@@ -116,27 +153,48 @@ onMounted(() => {
 
 <template>
   <div class="tournaments-view">
-    <!-- Feedback Alerts -->
-    <div v-if="successMessage" class="banner success-banner">
-      ✓ {{ successMessage }}
-    </div>
-    <div v-if="errorMessage" class="banner error-banner">
-      ⚠️ {{ errorMessage }}
-    </div>
+    <Breadcrumbs
+      section="Tournaments"
+      section-to="/tournaments"
+      current="Available Tournaments"
+    />
 
-    <!-- Create Tournament Panel (Authenticated users) -->
-    <AquaPanel title="Create New Tournament">
+    <PageHeader
+      title="Sports Tournaments"
+      subtitle="Discover, join and host sports tournaments"
+    />
+
+    <AppBanner
+      v-if="successMessage"
+      type="success"
+      :message="successMessage"
+    />
+
+    <AppBanner
+      v-if="errorMessage"
+      type="error"
+      :message="errorMessage"
+    />
+
+    <!-- Create Tournament -->
+    <Panel title="Create New Tournament">
       <div v-if="!authStore.isAuthenticated" class="auth-notice">
         <span>Sign in to host and manage sports tournaments.</span>
+
         <router-link to="/login">
-          <AquaButton style="margin-left: 10px;">Sign In</AquaButton>
+          <Button>Sign In</Button>
         </router-link>
       </div>
 
-      <form v-else @submit.prevent="handleCreateTournament" class="create-form">
+      <form
+        v-else
+        class="create-form"
+        @submit.prevent="handleCreateTournament"
+      >
         <div class="form-row">
-          <div class="form-group flex-2">
-            <label for="t-name">Tournament Name:</label>
+          <div class="form-group form-name">
+            <label for="t-name">Tournament Name</label>
+
             <input
               id="t-name"
               v-model="newTournament.name"
@@ -146,17 +204,22 @@ onMounted(() => {
             />
           </div>
 
-          <div class="form-group flex-1">
-            <label for="t-sport">Sport:</label>
-            <select id="t-sport" v-model="newTournament.sport">
+          <div class="form-group">
+            <label for="t-sport">Sport</label>
+
+            <select
+              id="t-sport"
+              v-model="newTournament.sport"
+            >
               <option value="football">Football</option>
-              <option value="volleyball">Volleyball</option>
               <option value="basketball">Basketball</option>
+              <option value="volleyball">Volleyball</option>
             </select>
           </div>
 
-          <div class="form-group flex-1">
-            <label for="t-teams">Max Teams:</label>
+          <div class="form-group">
+            <label for="t-teams">Max Teams</label>
+
             <input
               id="t-teams"
               v-model.number="newTournament.maxTeams"
@@ -167,128 +230,64 @@ onMounted(() => {
             />
           </div>
 
-          <div class="form-group flex-1">
-            <label for="t-date">Start Date:</label>
+          <div class="form-group">
+            <label for="t-date">Start Date</label>
+
             <input
               id="t-date"
               v-model="newTournament.startDate"
               type="date"
+              :min="tomorrowDate"
               required
             />
           </div>
         </div>
 
-        <div class="actions-right">
-          <AquaButton type="submit" :disabled="isSubmitting || !newTournament.name">
-            {{ isSubmitting ? 'Creating...' : 'Create Tournament' }}
-          </AquaButton>
+        <div class="form-actions">
+          <Button
+            type="submit"
+            :disabled="isSubmitting || !newTournament.name"
+          >
+            {{ isSubmitting ? 'Creating...' : 'Post Tournament' }}
+          </Button>
         </div>
       </form>
-    </AquaPanel>
+    </Panel>
 
-    <!-- Tournaments Directory & Management -->
-    <AquaPanel title="Tournaments & League Cups">
-      <!-- Search & Filter Bar -->
-      <div class="filter-bar">
-        <input
-          v-model="searchQuery"
-          type="text"
-          class="search-pill"
-          placeholder="Search tournament, team or player name..."
-          @input="loadTournaments"
+    <!-- Tournament Directory -->
+    <Panel>
+      <FilterToolbar
+        v-model="searchQuery"
+        v-model:modelFilter="selectedSportFilter"
+        search-placeholder="Search tournaments..."
+        :filters="tournamentsFilter"
+      />
+
+      <LoadingState
+        v-if="isLoading"
+        message="Loading available tournaments..."
+      />
+
+      <EmptyState
+        v-else-if="filteredTournaments().length === 0"
+        title="No Tournaments Found"
+        message="Try adjusting your search criteria or sport filters."
+      />
+
+      <div
+        v-else
+        class="tournaments-grid"
+      >
+        <TournamentCard
+          v-for="tournament in filteredTournaments()"
+          :key="tournament._id"
+          :tournament="tournament"
+          :is-creator="isCreator(tournament)"
+          @click="openTournament(tournament._id)"
+          @delete="handleDelete"
         />
-
-        <div class="sport-filters">
-          <button
-            type="button"
-            :class="['filter-btn', { active: selectedSportFilter === 'all' }]"
-            @click="selectedSportFilter = 'all'"
-          >
-            All
-          </button>
-          <button
-            type="button"
-            :class="['filter-btn', { active: selectedSportFilter === 'football' }]"
-            @click="selectedSportFilter = 'football'"
-          >
-            Football
-          </button>
-          <button
-            type="button"
-            :class="['filter-btn', { active: selectedSportFilter === 'basketball' }]"
-            @click="selectedSportFilter = 'basketball'"
-          >
-            Basketball
-          </button>
-          <button
-            type="button"
-            :class="['filter-btn', { active: selectedSportFilter === 'volleyball' }]"
-            @click="selectedSportFilter = 'volleyball'"
-          >
-            Volleyball
-          </button>
-        </div>
       </div>
-
-      <div v-if="isLoading" class="hint-state">
-        Loading tournaments...
-      </div>
-
-      <div v-else-if="filteredTournaments().length === 0" class="hint-state">
-        No tournaments found.
-      </div>
-
-      <!-- Tournament Cards Grid -->
-      <div v-else class="tournament-list">
-        <div
-          v-for="t in filteredTournaments()"
-          :key="t._id"
-          class="tournament-card"
-        >
-          <div class="card-main">
-            <div class="card-title-row">
-              <router-link :to="`/tournaments/${t._id}`" class="card-title">
-                {{ t.name }}
-              </router-link>
-              <span class="sport-badge">{{ t.sport }}</span>
-              <span :class="['status-badge', `status-${t.status}`]">
-                {{ t.status }}
-              </span>
-            </div>
-
-            <div class="card-meta">
-              <span>📅 Starts: <strong>{{ t.startDate }}</strong></span>
-              <span>👥 Teams: <strong>{{ t.teams ? t.teams.length : 0 }} / {{ t.maxTeams }}</strong></span>
-            </div>
-          </div>
-
-          <!-- Action Links -->
-          <div class="card-actions">
-            <router-link :to="`/tournaments/${t._id}`" class="action-link">
-              Details & Teams
-            </router-link>
-            <span class="divider">|</span>
-            <router-link :to="`/tournaments/${t._id}/matches`" class="action-link">
-              Matches
-            </router-link>
-            <span class="divider">|</span>
-            <router-link :to="`/tournaments/${t._id}/standings`" class="action-link">
-              Standings
-            </router-link>
-            <template v-if="isCreator(t)">
-              <span class="divider">|</span>
-              <button
-                type="button"
-                class="btn-delete"
-                @click="handleDelete(t)"
-              >
-                Delete
-              </button>
-            </template>
-          </div>
-        </div>
-      </div>
-    </AquaPanel>
+    </Panel>
   </div>
 </template>
 
@@ -296,241 +295,104 @@ onMounted(() => {
 .tournaments-view {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 24px;
+  max-width: 1200px;
+  margin: 0 auto;
+  width: 100%;
 }
 
-.banner {
-  padding: 8px 12px;
-  border-radius: 4px;
-  font-size: 12px;
-}
-
-.success-banner {
-  background-color: #e6f7ec;
-  border: 1px solid #70c995;
-  color: #155724;
-}
-
-.error-banner {
-  background-color: #ffe6e6;
-  border: 1px solid #ff9999;
-  color: #990000;
-}
+/* Create form */
 
 .auth-notice {
-  font-size: 12px;
-  color: #555;
   display: flex;
   align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  font-size: 13px;
+  color: #48484a;
+  font-weight: 600;
 }
 
 .create-form {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 16px;
 }
 
 .form-row {
   display: flex;
-  gap: 12px;
+  gap: 14px;
   flex-wrap: wrap;
 }
 
 .form-group {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 6px;
+  flex: 1;
+  min-width: 150px;
 }
 
-.flex-1 { flex: 1; min-width: 130px; }
-.flex-2 { flex: 2; min-width: 200px; }
+.form-name {
+  flex: 2;
+  min-width: 240px;
+}
 
-label {
+.form-group label {
   font-size: 11px;
-  font-weight: bold;
-  color: #333;
+  font-weight: 700;
+  color: var(--color-black);
+  text-transform: uppercase;
+  letter-spacing: 1px;
 }
 
-input, select {
-  background: #ffffff;
-  border: 1px solid #8e8e8e;
-  border-radius: 4px;
-  padding: 5px 8px;
+.form-group input,
+.form-group select {
+  width: 100%;
+  height: 38px;
+  padding: 0 12px;
+  border: 1px solid rgba(0, 0, 0, 0.15);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.95);
+  color: var(--color-black);
   font-size: 12px;
+  font-weight: 600;
   outline: none;
-  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.15);
+  box-sizing: border-box;
 }
 
-input:focus, select:focus {
-  border-color: #38a5e8;
-  box-shadow: 0 0 5px #70c3ff, inset 0 1px 2px rgba(0, 0, 0, 0.2);
+.form-group input:focus,
+.form-group select:focus {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px rgba(0, 113, 227, 0.12);
 }
 
-.actions-right {
+.form-actions {
   display: flex;
   justify-content: flex-end;
 }
 
-.filter-bar {
-  display: flex;
-  gap: 12px;
-  margin-bottom: 14px;
-  align-items: center;
-  flex-wrap: wrap;
+/* Tournament grid */
+
+.tournaments-grid {
+  display: grid;
+  grid-template-columns: repeat(
+    auto-fill,
+    minmax(320px, 1fr)
+  );
+  gap: 20px;
 }
 
-.search-pill {
-  flex: 1;
-  min-width: 220px;
-  border-radius: 14px !important;
-  padding-left: 26px !important;
-  background: #ffffff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23888' stroke-width='3'%3E%3Ccircle cx='11' cy='11' r='8'/%3E%3Cline x1='21' y1='21' x2='16.65' y2='16.65'/%3E%3C/svg%3E") 8px center no-repeat !important;
-}
+/* Responsive */
 
-.sport-filters {
-  display: flex;
-  gap: 4px;
-  background: #d8d8d8;
-  border: 1px solid #b2b2b2;
-  border-radius: 6px;
-  padding: 2px;
-}
+@media (max-width: 700px) {
+  .tournaments-grid {
+    grid-template-columns: 1fr;
+  }
 
-.filter-btn {
-  background: transparent;
-  border: none;
-  font-size: 11px;
-  font-weight: bold;
-  color: #444;
-  padding: 4px 10px;
-  border-radius: 4px;
-  cursor: pointer;
-}
-
-.filter-btn.active {
-  background: linear-gradient(180deg, #ffffff 0%, #e2e2e2 100%);
-  color: #111;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
-}
-
-.tournament-list {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.tournament-card {
-  background: #fff;
-  border: 1px solid #ccc;
-  border-radius: 5px;
-  padding: 10px 14px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
-  flex-wrap: wrap;
-  gap: 10px;
-}
-
-.card-title-row {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin-bottom: 4px;
-}
-
-.card-title {
-  color: #0044bb;
-  font-weight: bold;
-  font-size: 13px;
-  text-decoration: none;
-}
-
-.card-title:hover {
-  text-decoration: underline;
-}
-
-.sport-badge {
-  background: #f0f0f0;
-  border: 1px solid #c0c0c0;
-  border-radius: 8px;
-  padding: 1px 6px;
-  font-size: 10px;
-  text-transform: capitalize;
-}
-
-.status-badge {
-  padding: 1px 8px;
-  border-radius: 8px;
-  font-size: 10px;
-  font-weight: bold;
-  text-transform: capitalize;
-}
-
-.status-registration {
-  background: #fff3cd;
-  color: #856404;
-  border: 1px solid #ffeeba;
-}
-
-.status-active {
-  background: #d4edda;
-  color: #155724;
-  border: 1px solid #c3e6cb;
-}
-
-.status-completed {
-  background: #e2e3e5;
-  color: #383d41;
-  border: 1px solid #d6d8db;
-}
-
-.card-meta {
-  display: flex;
-  gap: 16px;
-  font-size: 11px;
-  color: #666;
-}
-
-.card-actions {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 11px;
-}
-
-.action-link {
-  color: #0044bb;
-  text-decoration: none;
-  font-weight: 500;
-}
-
-.action-link:hover {
-  text-decoration: underline;
-}
-
-.divider {
-  color: #aaa;
-}
-
-.btn-delete {
-  background: none;
-  border: none;
-  color: #c02020;
-  cursor: pointer;
-  font-size: 11px;
-  font-weight: bold;
-  padding: 0;
-}
-
-.btn-delete:hover {
-  text-decoration: underline;
-}
-
-.hint-state {
-  text-align: center;
-  font-size: 12px;
-  color: #666;
-  padding: 16px;
+  .form-group,
+  .form-name {
+    min-width: 100%;
+  }
 }
 </style>

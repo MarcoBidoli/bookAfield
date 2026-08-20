@@ -1,15 +1,21 @@
 <script setup>
-import { ref, computed, onMounted, watch } from 'vue'
-import { useRouter, useRoute } from 'vue-router'
+import { computed, onMounted, ref, watch } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 
-import { fetchFieldById, fetchFieldSlots, bookFieldSlot } from '@/api/fields'
-
+import { bookFieldSlot, fetchFieldById, fetchFieldSlots } from '@/api/fields'
 import { fetchTournaments } from '@/api/tournaments'
 
-import AquaPanel from '@/components/AquaPanel.vue'
-import AquaButton from '@/components/AquaButton.vue'
+import Panel from '@/components/Panel.vue'
+import Button from '@/components/Button.vue'
 import Breadcrumbs from '@/components/Breadcrumbs.vue'
+import AppBanner from '@/components/AppBanner.vue'
+import SportBadge from '@/components/SportBadge.vue'
+import Switcher from '@/components/Switcher.vue'
+import Pill from '@/components/Pill.vue'
+
+import ClockIcon from '@/components/icons/ClockIcon.vue'
+import PinPointIcon from '@/components/icons/PinPointIcon.vue'
 
 const router = useRouter()
 const route = useRoute()
@@ -17,20 +23,16 @@ const authStore = useAuthStore()
 
 const fieldId = route.params.id
 
-// Field
 const field = ref(null)
-
-// Tournaments
 const tournaments = ref([])
+
 const bookingType = ref('standard')
 const selectedTournamentId = ref('')
 
-// Booking
 const selectedDate = ref(getTomorrowDate())
 const availableSlots = ref([])
 const selectedSlot = ref('')
 
-// State
 const isLoading = ref(true)
 const isLoadingSlots = ref(false)
 const isSubmitting = ref(false)
@@ -38,17 +40,27 @@ const isSubmitting = ref(false)
 const successMessage = ref('')
 const errorMessage = ref('')
 
+const bookingTypeOptions = [
+  {
+    value: 'standard',
+    label: 'Standard / Casual Booking',
+  },
+  {
+    value: 'tournament',
+    label: 'Tournament Match Booking',
+  },
+]
+
 function getTomorrowDate() {
-  const d = new Date()
-  d.setDate(d.getDate() + 1)
-  return d.toISOString().split('T')[0]
+  const date = new Date()
+  date.setDate(date.getDate() + 1)
+  return date.toISOString().split('T')[0]
 }
 
 function getTodayDate() {
   return new Date().toISOString().split('T')[0]
 }
 
-// User's active tournaments where they are creator
 const myActiveTournaments = computed(() => {
   if (!authStore.isAuthenticated || !authStore.user) {
     return []
@@ -62,18 +74,12 @@ const myActiveTournaments = computed(() => {
   )
 })
 
-// Currently selected tournament
 const currentSelectedTournament = computed(() => {
-  if (!selectedTournamentId.value) {
-    return null
-  }
-
   return (
     tournaments.value.find((tournament) => tournament._id === selectedTournamentId.value) || null
   )
 })
 
-// Tournament bookings cannot be before tournament start
 const minimumBookingDate = computed(() => {
   if (bookingType.value === 'tournament' && currentSelectedTournament.value?.startDate) {
     return currentSelectedTournament.value.startDate
@@ -87,12 +93,8 @@ async function loadField() {
   errorMessage.value = ''
 
   try {
-    const fieldData = await fetchFieldById(fieldId)
+    field.value = await fetchFieldById(fieldId)
 
-    field.value = fieldData
-
-    // Tournaments are only needed for authenticated users
-    // because only tournament creators can make tournament bookings.
     if (authStore.isAuthenticated) {
       tournaments.value = await fetchTournaments()
     }
@@ -138,6 +140,7 @@ async function handleBooking() {
 
   if (bookingType.value === 'tournament' && !selectedTournamentId.value) {
     errorMessage.value = 'Please select which tournament this match booking is for'
+
     return
   }
 
@@ -147,15 +150,13 @@ async function handleBooking() {
     await bookFieldSlot(fieldId, {
       date: selectedDate.value,
       slot: selectedSlot.value,
-      type: bookingType.value === 'tournament' ? 'tournament' : 'standard',
+      type: bookingType.value,
       tournamentId: bookingType.value === 'tournament' ? selectedTournamentId.value : null,
     })
 
     successMessage.value =
       `Successfully booked ${field.value.name} for ` +
       `${selectedDate.value} at ${selectedSlot.value}.`
-
-    selectedSlot.value = ''
 
     await loadSlots()
   } catch (err) {
@@ -169,39 +170,53 @@ function goBackToFields() {
   router.push('/fields')
 }
 
-// When changing booking type
+function goToTournaments() {
+  router.push('/tournaments')
+}
+
 watch(bookingType, () => {
   errorMessage.value = ''
   successMessage.value = ''
 
-  if (bookingType.value === 'tournament') {
-    if (myActiveTournaments.value.length > 0 && !selectedTournamentId.value) {
-      selectedTournamentId.value = myActiveTournaments.value[0]._id
-    }
+  // Clear tournament selection when switching back
+  // to standard booking.
+  if (bookingType.value !== 'tournament') {
+    selectedTournamentId.value = ''
+    return
+  }
 
-    const tournament = currentSelectedTournament.value
+  if (myActiveTournaments.value.length > 0 && !selectedTournamentId.value) {
+    selectedTournamentId.value = myActiveTournaments.value[0]._id
+  }
 
-    if (tournament?.startDate && selectedDate.value < tournament.startDate) {
-      selectedDate.value = tournament.startDate
-    }
+  const tournament = currentSelectedTournament.value
+
+  if (!tournament?.startDate) {
+    return
+  }
+
+  const tournamentStartDate = tournament.startDate
+
+  if (selectedDate.value < tournamentStartDate) {
+    selectedDate.value = tournamentStartDate
   }
 })
 
-// When changing tournament
 watch(selectedTournamentId, () => {
   errorMessage.value = ''
   successMessage.value = ''
 
-  if (bookingType.value === 'tournament' && currentSelectedTournament.value?.startDate) {
-    const tournamentStart = currentSelectedTournament.value.startDate
+  if (bookingType.value !== 'tournament' || !currentSelectedTournament.value?.startDate) {
+    return
+  }
 
-    if (selectedDate.value < tournamentStart) {
-      selectedDate.value = tournamentStart
-    }
+  const startDate = currentSelectedTournament.value.startDate
+
+  if (selectedDate.value < startDate) {
+    selectedDate.value = startDate
   }
 })
 
-// Reload slots when date changes
 watch(selectedDate, () => {
   if (field.value) {
     loadSlots()
@@ -219,45 +234,46 @@ onMounted(async () => {
 
 <template>
   <div class="field-booking-view">
-    <!-- Breadcrumb -->
     <Breadcrumbs section="Fields" section-to="/fields" current="Book a Field" />
 
-    <!-- Feedback -->
-    <div v-if="successMessage" class="banner success-banner">✓ {{ successMessage }}</div>
+    <AppBanner v-if="successMessage" type="success" :message="successMessage" />
 
-    <div v-if="errorMessage" class="banner error-banner">⚠️ {{ errorMessage }}</div>
+    <AppBanner v-if="errorMessage" type="error" :message="errorMessage" />
 
     <!-- Loading -->
     <div v-if="isLoading" class="loading-state">Loading field...</div>
 
     <!-- Field not found -->
-    <AquaPanel v-else-if="!field" title="Field Booking">
+    <Panel v-else-if="!field" title="Field Booking">
       <div class="empty-state">The requested field could not be found.</div>
 
       <div class="actions-row">
-        <AquaButton variant="secondary" @click="goBackToFields"> ← Back to Fields </AquaButton>
+        <Button variant="secondary" @click="goBackToFields"> ← Back to Fields </Button>
       </div>
-    </AquaPanel>
+    </Panel>
 
-    <!-- Booking -->
     <template v-else>
-      <AquaPanel :title="`Book ${field.name}`">
-        <!-- Selected field -->
+      <Panel :title="`Book ${field.name}`">
+        <!-- Field summary -->
         <div class="selected-field">
           <div class="selected-field-main">
             <span class="field-name">
               {{ field.name }}
             </span>
 
-            <span class="field-sport-badge">
-              {{ field.sport }}
-            </span>
+            <SportBadge :sport="field.sport" />
           </div>
 
           <div class="field-meta">
-            <span> 📍 {{ field.address || 'Main Sports Complex' }} </span>
+            <span>
+              <PinPointIcon />
+              {{ field.address || 'Main Sports Complex' }}
+            </span>
 
-            <span> ⏱ {{ field.slots?.length || 0 }} Daily Slots </span>
+            <span>
+              <ClockIcon />
+              {{ field.slots?.length || 0 }} Daily Slots
+            </span>
           </div>
         </div>
 
@@ -265,69 +281,65 @@ onMounted(async () => {
         <div class="type-switcher-container">
           <label class="section-label"> Reservation Purpose: </label>
 
-          <div class="segmented-control">
-            <button
-              type="button"
-              :class="[
-                'tab-btn',
-                {
-                  active: bookingType === 'standard',
-                },
-              ]"
-              @click="bookingType = 'standard'"
-            >
-              Standard / Casual Booking
-            </button>
+          <Switcher v-model="bookingType" :options="bookingTypeOptions" />
+        </div>
 
-            <button
+        <!-- TOURNAMENT SECTION -->
+        <div v-if="bookingType === 'tournament'" class="tournament-section">
+          <div class="section-heading">
+            <span class="section-label"> Your active tournaments </span>
+          </div>
+
+          <!-- No active tournaments -->
+          <div v-if="myActiveTournaments.length === 0" class="tournament-empty">
+            <div class="tournament-empty-content">
+              <div class="tournament-empty-title">No active tournaments</div>
+
+              <div class="tournament-empty-text">
+                Create a tournament, add all teams, and generate the matches before booking a field
+                for a tournament match.
+              </div>
+            </div>
+
+            <div class="quick-actions">
+              <Button type="button" variant="secondary" @click="goToTournaments">
+                Go to Tournaments
+              </Button>
+            </div>
+          </div>
+
+          <!-- Active tournaments -->
+          <div v-else class="tournament-picker">
+            <select id="tournament-select" v-model="selectedTournamentId" :disabled="isSubmitting">
+              <option
+                v-for="tournament in myActiveTournaments"
+                :key="tournament._id"
+                :value="tournament._id"
+              >
+                {{ tournament.name }}
+                ({{ tournament.sport }}) —
+                {{ tournament.teams?.length || 0 }}
+                Teams
+              </option>
+            </select>
+
+            <Button
               type="button"
-              :class="[
-                'tab-btn',
-                {
-                  active: bookingType === 'tournament',
-                },
-              ]"
-              @click="bookingType = 'tournament'"
+              variant="secondary"
+              :disabled="isSubmitting"
+              @click="goToTournaments"
             >
-              Tournament Match Booking
-            </button>
+              Manage Tournaments
+            </Button>
           </div>
         </div>
 
-        <!-- Tournament -->
-        <div v-if="bookingType === 'tournament'" class="tournament-select-box">
-          <label for="tournament-select"> Select Your Active Tournament: </label>
-
-          <div v-if="myActiveTournaments.length === 0" class="no-tournaments-warn">
-            You have no active tournaments created.
-
-            <router-link to="/tournaments"> Create or manage a tournament </router-link>
-            .
-          </div>
-
-          <select
-            v-else
-            id="tournament-select"
-            v-model="selectedTournamentId"
-            :disabled="isSubmitting"
-          >
-            <option
-              v-for="tournament in myActiveTournaments"
-              :key="tournament._id"
-              :value="tournament._id"
-            >
-              {{ tournament.name }}
-              ({{ tournament.sport }}) — {{ tournament.teams?.length || 0 }} Teams
-            </option>
-          </select>
-        </div>
-
-        <!-- Date -->
+        <!-- BOOKING FORM -->
         <form class="booking-form" @submit.prevent="handleBooking">
-          <div class="form-grid">
+          <!-- Date -->
+          <div class="date-section">
+            <label class="section-label"> Date: </label>
             <div class="form-group">
-              <label for="date-select"> Date: </label>
-
               <input
                 id="date-select"
                 v-model="selectedDate"
@@ -357,7 +369,6 @@ onMounted(async () => {
                   'slot-card',
                   {
                     'slot-selected': selectedSlot === slotInfo.slot,
-
                     'slot-disabled': !slotInfo.available,
                   },
                 ]"
@@ -374,27 +385,25 @@ onMounted(async () => {
                   {{ slotInfo.slot }}
                 </span>
 
-                <span
-                  :class="['slot-status', slotInfo.available ? 'status-free' : 'status-booked']"
-                >
+                <Pill :variant="slotInfo.available ? 'success' : 'danger'">
                   {{ slotInfo.available ? 'Available' : 'Booked' }}
-                </span>
+                </Pill>
               </label>
             </div>
           </div>
 
           <!-- Actions -->
           <div class="actions-row">
-            <AquaButton
+            <Button
               type="button"
               variant="secondary"
               :disabled="isSubmitting"
               @click="goBackToFields"
             >
               ← Back to Fields
-            </AquaButton>
+            </Button>
 
-            <AquaButton
+            <Button
               type="submit"
               variant="primary"
               :disabled="
@@ -412,10 +421,10 @@ onMounted(async () => {
                       : 'Confirm Standard Booking'
                     : 'Sign In to Book'
               }}
-            </AquaButton>
+            </Button>
           </div>
         </form>
-      </AquaPanel>
+      </Panel>
     </template>
   </div>
 </template>
@@ -424,295 +433,344 @@ onMounted(async () => {
 .field-booking-view {
   display: flex;
   flex-direction: column;
-  gap: 16px;
-}
-
-.banner {
-  padding: 8px 12px;
-  border-radius: 4px;
-  font-size: 12px;
-}
-
-.success-banner {
-  background-color: #e6f7ec;
-  border: 1px solid #70c995;
-  color: #155724;
-}
-
-.error-banner {
-  background-color: #ffe6e6;
-  border: 1px solid #ff9999;
-  color: #990000;
+  gap: 24px;
+  max-width: 1200px;
+  margin: 0 auto;
+  width: 100%;
 }
 
 .loading-state,
 .empty-state {
   text-align: center;
-  font-size: 12px;
-  color: #666;
-  padding: 16px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-danger-banner);
+  padding: 32px;
 }
 
-/* Selected field */
+/* --------------------------------------------------
+   Field summary
+-------------------------------------------------- */
 
 .selected-field {
-  background: #f4f8fe;
-  border: 1px solid #c0d4ec;
-  border-radius: 5px;
-  padding: 10px 12px;
-  margin-bottom: 14px;
+  background: var(--color-white);
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-radius: 12px;
+  padding: 16px 20px;
+  margin-bottom: 20px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02);
 }
 
 .selected-field-main {
   display: flex;
   align-items: center;
-  gap: 8px;
-  margin-bottom: 5px;
+  gap: 10px;
+  margin-bottom: 6px;
 }
 
 .field-name {
-  color: #0044bb;
-  font-size: 13px;
-  font-weight: bold;
-}
-
-.field-sport-badge {
-  background: linear-gradient(180deg, #f0f0f0 0%, #d8d8d8 100%);
-  border: 1px solid #b2b2b2;
-  border-radius: 10px;
-  padding: 2px 8px;
-  font-size: 10px;
-  font-weight: bold;
-  text-transform: capitalize;
+  color: var(--color-black);
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: -0.2px;
 }
 
 .field-meta {
   display: flex;
   gap: 16px;
   flex-wrap: wrap;
-  font-size: 11px;
-  color: #666;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--color-darkgray);
 }
 
-/* Booking type */
+.field-meta span {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.field-meta :deep(svg) {
+  width: 14px;
+  height: 14px;
+}
+
+/* --------------------------------------------------
+   Booking type
+-------------------------------------------------- */
 
 .type-switcher-container {
-  margin-bottom: 14px;
+  margin-bottom: 20px;
 }
 
-.section-label,
-.form-group label {
-  font-size: 11px;
-  font-weight: bold;
-  color: #333;
+.section-label {
+  display: block;
+  margin-bottom: 8px;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--color-black);
 }
 
-.segmented-control {
-  display: flex;
-  background: #d8d8d8;
-  border-radius: 6px;
-  padding: 2px;
-  margin-top: 4px;
-  border: 1px solid #b2b2b2;
-  max-width: 420px;
-}
+/* --------------------------------------------------
+   Tournament
+-------------------------------------------------- */
 
-.tab-btn {
-  flex: 1;
-  background: transparent;
-  border: none;
-  font-size: 11px;
-  font-weight: bold;
-  color: #555;
-  padding: 5px 10px;
-  border-radius: 4px;
-  cursor: pointer;
-  transition: all 0.15s ease;
-}
-
-.tab-btn.active {
-  background: linear-gradient(180deg, #ffffff 0%, #e2e2e2 100%);
-  color: #111;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
-}
-
-.tab-btn:hover:not(.active) {
-  background: #c8c8c8;
-}
-
-/* Tournament */
-
-.tournament-select-box {
-  background: #fff;
-  border: 1px solid #c0d4ec;
-  padding: 10px 12px;
-  border-radius: 5px;
-  margin-bottom: 14px;
+.tournament-section {
   display: flex;
   flex-direction: column;
-  gap: 5px;
+  gap: 10px;
+  margin-bottom: 20px;
 }
 
-.tournament-select-box label {
-  font-size: 11px;
-  font-weight: bold;
-  color: #333;
+.section-heading {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
 }
 
-.no-tournaments-warn {
-  font-size: 11px;
-  color: #a05000;
-  font-style: italic;
+.section-heading .section-label {
+  margin-bottom: 0;
 }
 
-.no-tournaments-warn a {
-  color: #0044bb;
-  font-style: normal;
-  font-weight: bold;
+/* Empty state */
+
+.tournament-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 14px;
+  padding: 18px 20px;
+
+  background: rgba(0, 113, 227, 0.04);
+  border: 1px solid rgba(0, 113, 227, 0.12);
+  border-radius: 12px;
 }
 
-/* Form */
+.tournament-empty-content {
+  min-width: 0;
+}
+
+.tournament-empty-title {
+  color: var(--color-black);
+  font-size: 14px;
+  font-weight: 700;
+  margin-bottom: 4px;
+}
+
+.tournament-empty-text {
+  color: var(--color-lightgray-text);
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1.5;
+}
+
+.quick-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+/* Picker */
+.tournament-picker {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  border-radius: 10px;
+
+  transition: border-color 0.15s ease;
+}
+
+.tournament-picker:hover {
+  border-color: rgba(0, 0, 0, 0.14);
+}
+
+.tournament-picker select {
+  flex: 1;
+  min-width: 0;
+  height: 36px;
+
+  padding: 0 32px 0 11px;
+
+  background: var(--color-white);
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  border-radius: 7px;
+
+  outline: none;
+
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--color-black);
+
+  cursor: pointer;
+
+  transition:
+    border-color 0.15s ease,
+    box-shadow 0.15s ease;
+}
+
+.tournament-picker select:hover {
+  border-color: rgba(0, 0, 0, 0.18);
+}
+
+.tournament-picker select:focus {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 2px rgba(0, 113, 227, 0.1);
+}
+
+.tournament-picker select:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* --------------------------------------------------
+   Form
+-------------------------------------------------- */
 
 .booking-form {
   display: flex;
   flex-direction: column;
-  gap: 14px;
-}
-
-.form-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 16px;
+  gap: 20px;
 }
 
 .form-group {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 6px;
 }
 
 select,
 input[type='date'] {
-  background: #ffffff;
-  border: 1px solid #8e8e8e;
-  border-radius: 4px;
-  padding: 5px 8px;
-  font-size: 12px;
+  background: var(--color-white);
+  border: 1px solid rgba(0, 0, 0, 0.15);
+  border-radius: 8px;
+  padding: 10px 14px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--color-black);
   outline: none;
-  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.15);
+  transition: all 0.1s ease;
 }
 
 select:focus,
 input[type='date']:focus {
-  border-color: #38a5e8;
-  box-shadow:
-    0 0 5px #70c3ff,
-    inset 0 1px 2px rgba(0, 0, 0, 0.2);
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px rgba(0, 113, 227, 0.15);
 }
 
 select:disabled,
 input[type='date']:disabled {
-  background: #f2f2f2;
-  color: #777;
+  background: rgba(0, 0, 0, 0.04);
+  color: #8e8e93;
+  cursor: not-allowed;
 }
 
-/* Slots */
+/* --------------------------------------------------
+   Slots
+-------------------------------------------------- */
 
 .slots-section {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 10px;
+}
+
+.slots-section .section-label {
+  margin-bottom: 0;
+}
+
+.slots-hint {
+  font-size: 13px;
+  color: var(--color-lightgray-text);
 }
 
 .slots-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
-  gap: 8px;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 12px;
 }
 
 .slot-card {
   display: flex;
   align-items: center;
-  gap: 6px;
-  background: #fff;
-  border: 1px solid #ccc;
-  padding: 6px 10px;
-  border-radius: 5px;
+  gap: 10px;
+  padding: 12px 16px;
+  background: var(--color-white);
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-radius: 12px;
   cursor: pointer;
-  font-size: 12px;
-  transition: all 0.15s ease;
+  font-size: 13px;
+  font-weight: 500;
+
+  transition: 0.1s ease;
 }
 
 .slot-card:hover:not(.slot-disabled) {
-  border-color: #38a5e8;
-  background-color: #f2f8fc;
+  border-color: rgba(0, 113, 227, 0.4);
 }
 
 .slot-selected {
-  border-color: #1a62d6 !important;
-  background-color: #e9f2ff !important;
-  font-weight: bold;
+  border-color: var(--color-primary-dark);
 }
 
 .slot-disabled {
-  background: #eaeaea;
-  border-color: #d0d0d0;
   opacity: 0.6;
   cursor: not-allowed;
+  background: rgba(0, 0, 0, 0.02);
 }
 
 .slot-time {
-  flex-grow: 1;
+  flex: 1;
+  font-weight: 600;
 }
 
-.slot-status {
-  font-size: 10px;
-  padding: 2px 6px;
-  border-radius: 8px;
-}
-
-.status-free {
-  background: #d4edda;
-  color: #155724;
-}
-
-.status-booked {
-  background: #f8d7da;
-  color: #721c24;
-}
-
-/* Actions */
+/* --------------------------------------------------
+   Actions
+-------------------------------------------------- */
 
 .actions-row {
   display: flex;
   justify-content: flex-end;
   align-items: center;
-  gap: 8px;
-  margin-top: 6px;
+  gap: 12px;
+  margin-top: 12px;
   flex-wrap: wrap;
 }
 
+/* --------------------------------------------------
+   Responsive
+-------------------------------------------------- */
+
 @media (max-width: 650px) {
-  .form-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .segmented-control {
-    max-width: none;
-    flex-direction: column;
-  }
-
   .field-meta {
     flex-direction: column;
     gap: 4px;
+  }
+
+  .tournament-empty {
+    align-items: stretch;
+  }
+
+  .tournament-picker {
+    align-items: stretch;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .tournament-picker select {
+    width: 100%;
   }
 
   .actions-row {
     justify-content: stretch;
   }
 
-  .actions-row :deep(.aqua-btn) {
+  .actions-row :deep(.btn) {
     flex: 1;
+  }
+
+  .slots-grid {
+    grid-template-columns: 1fr;
   }
 }
 </style>

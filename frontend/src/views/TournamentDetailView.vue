@@ -1,55 +1,114 @@
 <script setup>
-import { computed, onMounted, reactive, ref } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
-import { useAuthStore } from '@/stores/auth'
-import {
-  fetchTournamentById,
-  generateTournamentSchedule,
-  updateTournament,
-} from '@/api/tournaments'
+import {computed, onMounted, reactive, ref} from 'vue'
+import {useRoute, useRouter} from 'vue-router'
+import {useAuthStore} from '@/stores/auth'
+import {fetchTournamentById, generateTournamentSchedule, updateTournament,} from '@/api/tournaments'
 
-import AquaPanel from '@/components/AquaPanel.vue'
-import AquaButton from '@/components/AquaButton.vue'
+import Panel from '@/components/Panel.vue'
+import Button from '@/components/Button.vue'
 import Breadcrumbs from '@/components/Breadcrumbs.vue'
+import PageHeader from '@/components/PageHeader.vue'
+import EmptyState from '@/components/EmptyState.vue'
+import LoadingState from '@/components/LoadingState.vue'
+import AppBanner from '@/components/AppBanner.vue'
+import SportBadge from '@/components/SportBadge.vue'
+import UserIcon from '@/components/icons/UserIcon.vue'
+import UsersIcon from '@/components/icons/UsersIcon.vue'
+import CalendarIcon from '@/components/icons/CalendarIcon.vue'
+import MatchesIcon from '@/components/icons/MatchesIcon.vue'
+import StandingsIcon from '@/components/icons/StandingsIcon.vue'
+import TeamCard from '@/components/TeamCard.vue'
+import PencilIcon from '@/components/icons/PencilIcon.vue'
+import AddIcon from '@/components/icons/AddIcon.vue'
+import BoltIcon from "@/components/icons/BoltIcon.vue";
 
 const route = useRoute()
 const router = useRouter()
 const authStore = useAuthStore()
 
 const tournamentId = route.params.id
+
 const tournament = ref(null)
 const isLoading = ref(true)
 const isUpdating = ref(false)
+
 const errorMessage = ref('')
 const successMessage = ref('')
 
 const newTeamName = ref('')
+const selectedTeamId = ref(null);
+
 const newPlayer = reactive({
   name: '',
   surname: '',
   jerseyNumber: '',
 })
-const selectedTeamIndex = ref(0)
 
 const isOwner = computed(() => {
-  if (!tournament.value || !authStore.isAuthenticated || !authStore.user) return false
+  if (!tournament.value || !authStore.isAuthenticated || !authStore.user) {
+    return false
+  }
+
   const currentUserId = authStore.user._id || authStore.user.id
+
   return String(tournament.value.creatorId) === String(currentUserId)
 })
 
+const teams = computed(() => {
+  return Array.isArray(tournament.value?.teams)
+    ? tournament.value.teams
+    : []
+})
+
+const numberOfTeams = computed(() => teams.value.length)
+
+const numberOfPlayers = computed(() => {
+  return teams.value.reduce((total, team) => {
+    return total + (Array.isArray(team.players) ? team.players.length : 0)
+  }, 0)
+})
+
+const isRegistrationOpen = computed(() => {
+  return tournament.value?.status === 'registration'
+})
+
+const canManageTournament = computed(() => {
+  return isOwner.value && isRegistrationOpen.value
+})
+
 const canAddTeams = computed(() => {
-  if (!tournament.value) return false
   return (
-    tournament.value.status === 'registration' &&
-    (tournament.value.teams || []).length < tournament.value.maxTeams
+    canManageTournament.value &&
+    numberOfTeams.value < tournament.value.maxTeams
+  )
+})
+
+const canManagePlayers = computed(() => {
+  return canManageTournament.value && numberOfTeams.value > 0
+})
+
+const canStartTournament = computed(() => {
+  return (
+    canManageTournament.value &&
+    numberOfTeams.value === tournament.value.maxTeams
+  )
+})
+
+const selectedTeam = computed(() => {
+  return teams.value.find(
+    (team) => String(team._id) === String(selectedTeamId.value),
   )
 })
 
 async function loadTournament() {
   isLoading.value = true
   errorMessage.value = ''
+
   try {
     tournament.value = await fetchTournamentById(tournamentId)
+    if(!selectedTeam.value && teams.value.length) {
+      selectedTeamId.value = teams.value[0]._id
+    }
   } catch (err) {
     errorMessage.value = err.message || 'Tournament not found'
   } finally {
@@ -58,13 +117,19 @@ async function loadTournament() {
 }
 
 async function handleAddTeam() {
-  if (!newTeamName.value.trim()) return
+  const teamName = newTeamName.value.trim()
 
-  const updatedTeams = [...(tournament.value.teams || [])]
-  updatedTeams.push({
-    name: newTeamName.value.trim(),
-    players: [],
-  })
+  if (!teamName || !canAddTeams.value) {
+    return
+  }
+
+  const updatedTeams = [
+    ...teams.value,
+    {
+      name: teamName,
+      players: [],
+    },
+  ]
 
   isUpdating.value = true
   errorMessage.value = ''
@@ -74,8 +139,9 @@ async function handleAddTeam() {
     tournament.value = await updateTournament(tournamentId, {
       teams: updatedTeams,
     })
+
     newTeamName.value = ''
-    successMessage.value = 'Team registered successfully!'
+    successMessage.value = 'Team registered successfully.'
   } catch (err) {
     errorMessage.value = err.message || 'Failed to add team'
   } finally {
@@ -83,17 +149,37 @@ async function handleAddTeam() {
   }
 }
 
-async function handleRemoveTeam(index) {
-  const updatedTeams = [...(tournament.value.teams || [])]
-  updatedTeams.splice(index, 1)
+async function handleRemoveTeam(team) {
+  if (!canManageTournament.value || !team) {
+    return
+  }
+
+  const confirmed = window.confirm(
+    `Remove "${team.name}" from this tournament?`,
+  )
+
+  if (!confirmed) {
+    return
+  }
+
+  const updatedTeams = teams.value.filter(
+    (currentTeam) => String(currentTeam._id) !== String(team._id),
+  )
 
   isUpdating.value = true
+  errorMessage.value = ''
+  successMessage.value = ''
+
   try {
-    const updated = await updateTournament(tournamentId, {
+    tournament.value = await updateTournament(tournamentId, {
       teams: updatedTeams,
     })
-    tournament.value = updated
-    successMessage.value = 'Team removed.'
+
+    if (String(selectedTeamId.value) === String(team._id)) {
+      selectedTeamId.value = updatedTeams[0]?._id ?? null
+    }
+
+    successMessage.value = 'Team removed successfully.'
   } catch (err) {
     errorMessage.value = err.message || 'Failed to remove team'
   } finally {
@@ -102,34 +188,43 @@ async function handleRemoveTeam(index) {
 }
 
 async function handleAddPlayer() {
-  if (!newPlayer.name.trim() || !newPlayer.surname.trim()) return
+  if (!canManagePlayers.value) return
 
-  const currentTeams = [...(tournament.value.teams || [])]
-  if (!currentTeams[selectedTeamIndex.value]) return
+  const name = newPlayer.name.trim()
+  const surname = newPlayer.surname.trim()
 
-  const team = currentTeams[selectedTeamIndex.value]
-  const players = Array.isArray(team.players) ? [...team.players] : []
+  if (!name || !surname || !selectedTeamId.value) return
 
-  players.push({
-    userId: authStore.user?._id || authStore.user?.id,
-    name: newPlayer.name.trim(),
-    surname: newPlayer.surname.trim(),
-    jerseyNumber: newPlayer.jerseyNumber ? String(newPlayer.jerseyNumber).trim() : null,
+  const teamsToUpdate = teams.value.map((team) => ({
+    ...team,
+    players: [...(team.players || [])],
+  }))
+
+  const team = teamsToUpdate.find(
+    (team) => String(team._id) === String(selectedTeamId.value),
+  )
+
+  if (!team) return
+
+  team.players.push({
+    userId: authStore.user?._id || authStore.user?.id || null,
+    name,
+    surname,
+    jerseyNumber: newPlayer.jerseyNumber.trim() || null,
   })
-
-  team.players = players
 
   isUpdating.value = true
   errorMessage.value = ''
+  successMessage.value = ''
+
   try {
-    const updated = await updateTournament(tournamentId, {
-      teams: currentTeams,
+    tournament.value = await updateTournament(tournamentId, {
+      teams: teamsToUpdate,
     })
-    tournament.value = updated
-    newPlayer.name = ''
-    newPlayer.surname = ''
-    newPlayer.jerseyNumber = ''
-    successMessage.value = 'Player registered to team!'
+
+    resetPlayerForm()
+
+    successMessage.value = `Player added to ${team.name}.`
   } catch (err) {
     errorMessage.value = err.message || 'Failed to register player'
   } finally {
@@ -137,421 +232,631 @@ async function handleAddPlayer() {
   }
 }
 
+function resetPlayerForm() {
+  newPlayer.name = ''
+  newPlayer.surname = ''
+  newPlayer.jerseyNumber = ''
+}
+
 async function handleGenerateSchedule() {
-  const confirmGen = window.confirm(
-    'Generating match schedule will close team registrations and activate the tournament. Proceed?',
+  const confirmed = window.confirm(
+    'Generating the match schedule will close team registration and activate the tournament. Continue?',
   )
-  if (!confirmGen) return
+
+  if (!confirmed) {
+    return
+  }
 
   isUpdating.value = true
   errorMessage.value = ''
   successMessage.value = ''
+
   try {
     await generateTournamentSchedule(tournamentId)
-    successMessage.value = 'Matches generated and tournament is now active!'
     await loadTournament()
+
     router.push(`/tournaments/${tournamentId}/matches`)
   } catch (err) {
-    errorMessage.value = err.message || 'Failed to generate schedule'
+    errorMessage.value =
+      err.message || 'Failed to generate tournament schedule'
   } finally {
     isUpdating.value = false
   }
 }
 
-onMounted(() => {
-  loadTournament()
-})
+function goToEdit() {
+  router.push(`/tournaments/${tournamentId}/edit`)
+}
+
+function goToMatches() {
+  router.push(`/tournaments/${tournamentId}/matches`)
+}
+
+function goToStandings() {
+  router.push(`/tournaments/${tournamentId}/standings`)
+}
+
+onMounted(loadTournament)
 </script>
 
 <template>
-  <div class="tournament-detail-view">
-    <!-- Back to Tournaments -->
-    <Breadcrumbs section="Tournaments" section-to="/tournaments" :current="tournament?.name" />
+  <div class="tournament-view">
+    <Breadcrumbs
+      section="Tournaments"
+      section-to="/tournaments"
+      :current="tournament?.name || 'Tournament'"
+    />
 
-    <!-- Status Banners -->
-    <div v-if="successMessage" class="banner success-banner">✓ {{ successMessage }}</div>
-    <div v-if="errorMessage" class="banner error-banner">⚠️ {{ errorMessage }}</div>
+    <PageHeader
+      v-if="!isLoading && tournament"
+      :title="tournament.name"
+    />
 
-    <div v-if="isLoading" class="loading-box">Loading tournament details...</div>
+    <AppBanner
+      v-if="errorMessage"
+      type="error"
+      :message="errorMessage"
+    />
+
+    <AppBanner
+      v-if="successMessage"
+      type="success"
+      :message="successMessage"
+    />
+
+    <LoadingState
+      v-if="isLoading"
+      message="Loading tournament..."
+    />
 
     <template v-else-if="tournament">
-      <!-- Tournament Header Panel -->
-      <AquaPanel :title="`${tournament.name}`">
-        <div class="summary-grid">
-          <div class="summary-item">
-            <span class="summary-label">Sport</span>
-            <span class="summary-val text-capitalize">{{ tournament.sport }}</span>
+      <!-- Overview -->
+      <Panel class="overview-panel">
+        <div class="overview-header">
+          <SportBadge :sport="tournament.sport" />
+        </div>
+
+        <div class="overview-stats">
+          <div class="stat">
+            <div class="stat-icon">
+              <CalendarIcon />
+            </div>
+
+            <div>
+              <span class="stat-label">Start Date</span>
+              <strong>{{ tournament.startDate }}</strong>
+            </div>
           </div>
-          <div class="summary-item">
-            <span class="summary-label">Status</span>
-            <span :class="['status-pill', `status-${tournament.status}`]">
-              {{ tournament.status }}
-            </span>
+
+          <div class="stat">
+            <div class="stat-icon">
+              <UsersIcon />
+            </div>
+
+            <div>
+              <span class="stat-label">Teams</span>
+              <strong>
+                {{ numberOfTeams }}
+                <span class="stat-muted">
+                  / {{ tournament.maxTeams }}
+                </span>
+              </strong>
+            </div>
           </div>
-          <div class="summary-item">
-            <span class="summary-label">Start Date</span>
-            <span class="summary-val">{{ tournament.startDate }}</span>
-          </div>
-          <div class="summary-item">
-            <span class="summary-label">Teams Capacity</span>
-            <span class="summary-val">
-              {{ tournament.teams ? tournament.teams.length : 0 }} / {{ tournament.maxTeams }}
-            </span>
+
+          <div class="stat">
+            <div class="stat-icon">
+              <UserIcon />
+            </div>
+
+            <div>
+              <span class="stat-label">Players</span>
+              <strong>{{ numberOfPlayers }}</strong>
+            </div>
           </div>
         </div>
 
-        <div class="nav-links-row">
-          <router-link :to="`/tournaments/${tournament._id}/matches`">
-            <AquaButton>View Match Schedule</AquaButton>
-          </router-link>
-          <router-link :to="`/tournaments/${tournament._id}/standings`" style="margin-left: 10px">
-            <AquaButton>View Standings</AquaButton>
-          </router-link>
-          <router-link
-            v-if="isOwner && tournament.status === 'registration'"
-            :to="`/tournaments/${tournament._id}/edit`"
+        <div class="overview-actions">
+          <Button
+            variant="secondary"
+            class="navigation-button"
+            @click="goToMatches"
           >
-            <AquaButton> Edit Tournament </AquaButton>
-          </router-link>
-          <AquaButton
-            v-if="
-              isOwner &&
-              tournament.status === 'registration' &&
-              tournament.teams?.length === tournament.maxTeams
-            "
-            style="margin-left: 10px"
+            <MatchesIcon />
+            Matches
+          </Button>
+
+          <Button
+            variant="secondary"
+            class="navigation-button"
+            @click="goToStandings"
+          >
+            <StandingsIcon />
+            Standings
+          </Button>
+
+          <div class="overview-spacer"></div>
+
+          <Button
+            v-if="isOwner"
+            variant="secondary"
+            class="navigation-button"
+            :disabled="!isRegistrationOpen"
+            @click="goToEdit"
+          >
+            <PencilIcon />
+            Edit
+          </Button>
+
+          <Button
+            v-if="canStartTournament"
+            variant="primary"
+            class="start-button"
             :disabled="isUpdating"
             @click="handleGenerateSchedule"
           >
-            Generate Matches & Start Cup
-          </AquaButton>
+            <BoltIcon/>
+
+            {{ isUpdating ? 'Starting...' : 'Start Tournament' }}
+          </Button>
         </div>
-      </AquaPanel>
+      </Panel>
 
-      <!-- Manage Teams & Rosters (Registration Mode) -->
-      <AquaPanel title="Registered Teams & Rosters">
-        <!-- Add Team Form (If Owner & In Registration) -->
-        <div v-if="isOwner && canAddTeams" class="add-team-box">
-          <label class="form-title">Register Team:</label>
-          <form @submit.prevent="handleAddTeam" class="inline-form">
-            <input
-              v-model="newTeamName"
-              type="text"
-              placeholder="Team Name (e.g. FC Barcelona)"
-              required
-              style="flex: 2"
-            />
-            <AquaButton type="submit" :disabled="isUpdating || !newTeamName.trim()">
-              Add Team
-            </AquaButton>
-          </form>
-        </div>
-
-        <div v-if="!tournament.teams || tournament.teams.length === 0" class="empty-hint">
-          No teams registered yet.
-        </div>
-
-        <!-- Teams Grid -->
-        <div v-else class="teams-container">
-          <div v-for="(team, idx) in tournament.teams" :key="team._id || idx" class="team-card">
-            <div class="team-header">
-              <span class="team-name">{{ idx + 1 }}. {{ team.name }}</span>
-              <button
-                v-if="isOwner && tournament.status === 'registration'"
-                type="button"
-                class="remove-team-btn"
-                @click="handleRemoveTeam(idx)"
-              >
-                Remove
-              </button>
-            </div>
-
-            <!-- Player list for this team -->
-            <div class="roster-section">
-              <span class="roster-label">Players</span>
-              <ul v-if="team.players && team.players.length > 0" class="player-list">
-                <li v-for="(p, pIdx) in team.players" :key="pIdx">
-                  {{ p.name }} {{ p.surname }}
-                  <span v-if="p.jerseyNumber" class="jersey">#{{ p.jerseyNumber }}</span>
-                </li>
-              </ul>
-              <div v-else class="no-players">No players assigned</div>
-            </div>
+      <!-- Registration -->
+      <template v-if="tournament.status === 'registration'">
+        <div class="section-heading">
+          <div>
+            <h2>Teams</h2>
+            <p>
+              Manage the teams and player rosters registered for this
+              tournament.
+            </p>
           </div>
         </div>
 
-        <!-- Add Player Form (If in registration) -->
-        <div
-          v-if="isOwner && tournament.status === 'registration' && tournament.teams?.length > 0"
-          class="add-player-box"
+        <!-- Add Team -->
+        <Panel
+          v-if="canAddTeams"
+          class="management-panel"
         >
-          <label class="form-title">Add Player to Team Roster:</label>
-          <form @submit.prevent="handleAddPlayer" class="player-form">
-            <select v-model="selectedTeamIndex" style="flex: 1">
-              <option v-for="(team, idx) in tournament.teams" :key="idx" :value="idx">
+          <div class="panel-heading">
+            <div class="heading-icon">
+              <AddIcon />
+            </div>
+
+            <div>
+              <h3>Add Team</h3>
+              <p>
+                {{ tournament.maxTeams - numberOfTeams }}
+                team{{ tournament.maxTeams - numberOfTeams === 1 ? '' : 's' }}
+                remaining
+              </p>
+            </div>
+          </div>
+
+          <form
+            class="team-form"
+            @submit.prevent="handleAddTeam"
+          >
+            <input
+              v-model="newTeamName"
+              class="form-input"
+              type="text"
+              placeholder="Enter team name"
+              :disabled="isUpdating"
+            />
+
+            <Button
+              type="submit"
+              variant="primary"
+              :disabled="isUpdating || !newTeamName.trim()"
+            >
+              Add Team
+            </Button>
+          </form>
+        </Panel>
+
+        <!-- Add Player -->
+        <Panel
+          v-if="canManagePlayers"
+          class="management-panel"
+        >
+          <div class="panel-heading">
+            <div class="heading-icon">
+              <UserIcon />
+            </div>
+
+            <div>
+              <h3>Add Player</h3>
+              <p>Add a player to one of the registered teams.</p>
+            </div>
+          </div>
+
+          <form
+            class="player-form"
+            @submit.prevent="handleAddPlayer"
+          >
+            <select
+              v-model="selectedTeamId"
+              class="form-input"
+              :disabled="isUpdating"
+            >
+              <option
+                v-for="team in teams"
+                :key="team._id"
+                :value="team._id"
+              >
                 {{ team.name }}
               </option>
             </select>
 
             <input
               v-model="newPlayer.name"
+              class="form-input"
               type="text"
-              placeholder="First Name"
-              required
-              style="flex: 1"
-            />
-            <input
-              v-model="newPlayer.surname"
-              type="text"
-              placeholder="Surname"
-              required
-              style="flex: 1"
-            />
-            <input
-              v-model="newPlayer.jerseyNumber"
-              type="text"
-              placeholder="Jersey #"
-              style="width: 80px"
+              placeholder="First name"
+              :disabled="isUpdating"
             />
 
-            <AquaButton type="submit" :disabled="isUpdating"> Add Player </AquaButton>
+            <input
+              v-model="newPlayer.surname"
+              class="form-input"
+              type="text"
+              placeholder="Surname"
+              :disabled="isUpdating"
+            />
+
+            <input
+              v-model="newPlayer.jerseyNumber"
+              class="form-input jersey-input"
+              type="text"
+              placeholder="Number"
+              :disabled="isUpdating"
+            />
+
+            <Button
+              type="submit"
+              variant="secondary"
+              :disabled="
+                isUpdating ||
+                !newPlayer.name.trim() ||
+                !newPlayer.surname.trim()
+              "
+            >
+              Add Player
+            </Button>
           </form>
-        </div>
-      </AquaPanel>
+        </Panel>
+      </template>
+
+      <!-- Teams -->
+      <div
+        v-if="teams.length"
+        class="teams-grid"
+      >
+        <TeamCard
+          v-for="team in teams"
+          :key="team._id"
+          :team="team"
+          :can-remove="canManageTournament"
+          :disabled="isUpdating"
+          @remove="handleRemoveTeam(team)"
+        />
+      </div>
+
+      <EmptyState
+        v-else
+        title="No Teams Registered"
+        message="Add teams to start building the tournament."
+      />
     </template>
   </div>
 </template>
 
 <style scoped>
-.tournament-detail-view {
+.tournament-view {
   display: flex;
   flex-direction: column;
+  gap: 24px;
+  width: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+  box-sizing: border-box;
+}
+
+/* Overview */
+
+.overview-panel {
+  padding: 28px;
+  border-radius: 18px;
+}
+
+.overview-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
   gap: 16px;
 }
 
-.banner {
-  padding: 8px 12px;
-  border-radius: 4px;
-  font-size: 12px;
-}
-
-.success-banner {
-  background-color: #e6f7ec;
-  border: 1px solid #70c995;
-  color: #155724;
-}
-
-.error-banner {
-  background-color: #ffe6e6;
-  border: 1px solid #ff9999;
-  color: #990000;
-}
-
-.summary-grid {
+.overview-stats {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  grid-template-columns: repeat(3, 1fr);
   gap: 14px;
-  margin-bottom: 16px;
-  background: #fff;
-  border: 1px solid #ddd;
-  padding: 12px 16px;
-  border-radius: 5px;
+  margin-top: 24px;
 }
 
-.summary-item {
+.stat {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 15px;
+  border: 1px solid rgba(0, 0, 0, 0.05);
+  border-radius: 12px;
+}
+
+.stat-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  flex-shrink: 0;
+  border-radius: 10px;
+  color: var(--color-primary);
+  background: rgba(0, 113, 227, 0.08);
+}
+
+.stat-icon svg {
+  width: 20px;
+  height: 20px;
+}
+
+.stat > div:last-child {
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 3px;
 }
 
-.summary-label {
+.stat-label {
+  color: #8e8e93;
   font-size: 10px;
-  font-weight: bold;
-  color: #666;
+  font-weight: 700;
+  letter-spacing: 1px;
   text-transform: uppercase;
 }
 
-.summary-val {
-  font-size: 13px;
-  font-weight: bold;
-  color: #222;
+.stat strong {
+  color: var(--color-black);
+  font-size: 14px;
 }
 
-.text-capitalize {
-  text-transform: capitalize;
-}
-
-.status-pill {
-  display: inline-block;
-  padding: 2px 8px;
-  border-radius: 10px;
-  font-size: 11px;
-  font-weight: bold;
-  text-transform: capitalize;
-  width: fit-content;
-}
-
-.status-registration {
-  background: #fff3cd;
-  color: #856404;
-  border: 1px solid #ffeeba;
-}
-
-.status-active {
-  background: #d4edda;
-  color: #155724;
-  border: 1px solid #c3e6cb;
-}
-
-.status-completed {
-  background: #e2e3e5;
-  color: #383d41;
-  border: 1px solid #d6d8db;
-}
-
-.nav-links-row {
-  display: flex;
-  align-items: center;
-  margin-top: 10px;
-  flex-wrap: wrap;
-  gap: 8px;
-}
-
-.form-title {
-  display: block;
-  font-size: 11px;
-  font-weight: bold;
-  color: #333;
-  margin-bottom: 6px;
-}
-
-.add-team-box,
-.add-player-box {
-  background: #fff;
-  border: 1px solid #ddd;
-  padding: 12px;
-  border-radius: 5px;
-  margin-bottom: 14px;
-}
-
-.inline-form,
-.player-form {
-  display: flex;
-  gap: 8px;
-  align-items: center;
-  flex-wrap: wrap;
-}
-
-input,
-select {
-  background: #ffffff;
-  border: 1px solid #8e8e8e;
-  border-radius: 4px;
-  padding: 5px 8px;
+.stat-muted {
   font-size: 12px;
-  outline: none;
-  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.15);
+  vertical-align: central;
+  color: #8e8e93;
+  font-weight: 600;
 }
 
-input:focus,
-select:focus {
-  border-color: #38a5e8;
-  box-shadow:
-    0 0 5px #70c3ff,
-    inset 0 1px 2px rgba(0, 0, 0, 0.2);
-}
-
-.teams-container {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
-  gap: 12px;
-  margin-bottom: 14px;
-}
-
-.team-card {
-  background: #fff;
-  border: 1px solid #ccc;
-  border-radius: 5px;
-  padding: 10px 12px;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
-}
-
-.team-header {
+.overview-actions {
   display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 24px;
+  padding-top: 20px;
+  border-top: 1px solid rgba(0, 0, 0, 0.06);
+}
+
+.overview-spacer {
+  flex: 1;
+}
+
+.navigation-button,
+.start-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.navigation-button svg,
+.start-button svg {
+  width: 16px;
+  height: 16px;
+}
+
+/* Section heading */
+
+.section-heading {
+  display: flex;
+  align-items: center;
   justify-content: space-between;
-  align-items: center;
-  border-bottom: 1px solid #eee;
-  padding-bottom: 6px;
-  margin-bottom: 6px;
+  gap: 20px;
+  padding: 0 4px;
 }
 
-.team-name {
-  font-weight: bold;
-  color: #0044bb;
+.section-heading h2 {
+  margin: 0;
+  color: var(--color-black);
+  font-size: 20px;
+  font-weight: 750;
+  letter-spacing: -0.3px;
+}
+
+.section-heading p {
+  margin: 5px 0 0;
+  color: #8e8e93;
   font-size: 12px;
+  font-weight: 500;
 }
 
-.remove-team-btn {
-  background: none;
-  border: none;
-  color: #c02020;
-  cursor: pointer;
-  font-size: 10px;
-  font-weight: bold;
+/* Management panels */
+
+.management-panel {
+  padding: 22px 24px;
+  border-radius: 16px;
 }
 
-.remove-team-btn:hover {
-  text-decoration: underline;
+.panel-heading {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 18px;
 }
 
-.roster-section {
+.heading-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  flex-shrink: 0;
+  border-radius: 10px;
+  color: var(--color-primary-dark);
+  background: rgba(0, 113, 227, 0.08);
+}
+
+.heading-icon svg {
+  width: 19px;
+  height: 19px;
+}
+
+.panel-heading h3 {
+  margin: 0;
+  color: var(--color-black);
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.panel-heading p {
+  margin: 3px 0 0;
+  color: #8e8e93;
   font-size: 11px;
 }
 
-.roster-label {
-  color: #777;
-  display: block;
-  margin-bottom: 4px;
-}
+/* Forms */
 
-.player-list {
-  list-style: square;
-  padding-left: 18px;
-  color: #333;
-}
-
-.jersey {
-  font-size: 10px;
-  color: #666;
-  font-weight: bold;
-}
-
-.no-players {
-  color: #999;
-  font-style: italic;
-}
-
-.loading-box,
-.empty-hint {
-  font-size: 12px;
-  color: #666;
-  padding: 16px;
-  text-align: center;
-}
-
-.back-link-row {
+.team-form {
   display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.player-form {
+  display: grid;
+  grid-template-columns: 1.2fr 1fr 1fr 100px auto;
+  gap: 10px;
   align-items: center;
 }
 
-.back-link {
-  color: #0044bb;
+.form-input {
+  width: 100%;
+  height: 40px;
+  box-sizing: border-box;
+  padding: 0 12px;
+  border: 1px solid rgba(0, 0, 0, 0.14);
+  border-radius: 9px;
+  outline: none;
+  color: var(--color-black);
+  background: rgba(255, 255, 255, 0.95);
   font-size: 12px;
-  font-weight: bold;
-  text-decoration: none;
+  font-weight: 600;
+  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.03);
 }
 
-.back-link:hover {
-  text-decoration: underline;
+.form-input:focus {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px rgba(0, 113, 227, 0.12);
+}
+
+.form-input:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.team-form .form-input {
+  flex: 1;
+}
+
+/* Teams */
+
+.teams-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+  gap: 18px;
+}
+
+/* Responsive */
+
+@media (max-width: 800px) {
+  .overview-stats {
+    grid-template-columns: 1fr;
+  }
+
+  .player-form {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .player-form .form-input:first-child {
+    grid-column: 1 / -1;
+  }
+}
+
+@media (max-width: 600px) {
+  .overview-panel {
+    padding: 20px;
+  }
+
+  .overview-header {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .overview-actions {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .overview-spacer {
+    display: none;
+  }
+
+  .navigation-button,
+  .start-button {
+    justify-content: center;
+    width: 100%;
+  }
+
+  .team-form {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .team-form .form-input {
+    width: 100%;
+  }
+
+  .team-form button {
+    width: 100%;
+  }
+
+  .player-form {
+    grid-template-columns: 1fr;
+  }
+
+  .player-form .form-input:first-child {
+    grid-column: auto;
+  }
+
+  .player-form button {
+    width: 100%;
+  }
+
+  .section-heading {
+    align-items: flex-start;
+  }
+
+  .teams-grid {
+    grid-template-columns: 1fr;
+  }
 }
 </style>

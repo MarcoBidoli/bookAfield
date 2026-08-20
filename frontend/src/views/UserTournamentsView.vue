@@ -1,11 +1,15 @@
 <script setup>
-import { ref, computed, onMounted } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
+import {computed, onMounted, ref} from 'vue'
+import {useRoute, useRouter} from 'vue-router'
 
-import { fetchUserById } from '@/api/users'
+import {fetchUserById} from '@/api/users'
 
-import AquaPanel from '@/components/AquaPanel.vue'
+import Panel from '@/components/Panel.vue'
 import Breadcrumbs from '@/components/Breadcrumbs.vue'
+import AppBanner from '@/components/AppBanner.vue'
+import LoadingState from '@/components/LoadingState.vue'
+import EmptyState from '@/components/EmptyState.vue'
+import TournamentCard from '@/components/TournamentCard.vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -27,20 +31,11 @@ async function loadData() {
     user.value = data.user
     tournaments.value = data.tournaments || []
   } catch (err) {
-    errorMessage.value = err.message || 'Failed to load user tournaments'
+    errorMessage.value =
+      err.message || 'Failed to load user tournaments'
   } finally {
     isLoading.value = false
   }
-}
-
-function openTournament(tournamentId) {
-  router.push(`/tournaments/${tournamentId}`)
-}
-
-function formatDate(date) {
-  if (!date) return '-'
-
-  return new Date(date).toLocaleDateString('en-GB')
 }
 
 onMounted(() => {
@@ -50,67 +45,78 @@ onMounted(() => {
 
 <template>
   <div class="user-tournaments-view">
-    <!-- Breadcrumbs -->
     <Breadcrumbs
       section="Users"
       section-to="/users"
       :current="user ? `${user.name} ${user.surname}` : 'User'"
     />
 
-    <!-- Error -->
-    <div v-if="errorMessage" class="banner error-banner">⚠️ {{ errorMessage }}</div>
+    <AppBanner
+      v-if="errorMessage"
+      type="error"
+      :message="errorMessage"
+    />
 
-    <!-- Header -->
-    <AquaPanel
-      :title="
-        user
-          ? `Tournaments created by ${user.name} ${user.surname} [@${user.username}]`
-          : 'User Tournaments'
-      "
-    >
-    </AquaPanel>
+    <LoadingState
+      v-if="isLoading"
+      message="Loading profile and tournaments..."
+    />
 
-    <!-- Loading -->
-    <div v-if="isLoading" class="hint-state">Loading tournaments...</div>
+    <template v-else>
+      <!-- User profile -->
+      <div
+        v-if="user"
+        class="user-profile-card"
+      >
+        <div class="profile-avatar">
+          {{ user.name?.charAt(0) || 'U' }}{{ user.surname?.charAt(0) || '' }}
+        </div>
 
-    <!-- Empty -->
-    <AquaPanel v-else-if="tournaments.length === 0" title="Tournaments">
-      <div class="hint-state">This user has not created any tournaments.</div>
-    </AquaPanel>
+        <div class="profile-info">
+          <h2 class="profile-name">
+            {{ user.name }} {{ user.surname }}
+          </h2>
 
-    <!-- Tournaments -->
-    <AquaPanel v-else title="Tournaments">
-      <div class="tournament-list">
-        <div
-          v-for="tournament in tournaments"
-          :key="tournament._id"
-          class="tournament-item"
-          @click="openTournament(tournament._id)"
-        >
-          <div class="tournament-header">
-            <div class="tournament-title">
-              <span class="tournament-name">
-                {{ tournament.name }}
-              </span>
+          <span class="profile-username">
+            @{{ user.username }}
+          </span>
 
-              <span class="sport-badge">
-                {{ tournament.sport }}
-              </span>
-            </div>
+        </div>
 
-            <span :class="['status-pill', `status-${tournament.status}`]">
-              {{ tournament.status }}
+        <div class="profile-stats">
+          <div class="stat-box">
+            <span class="stat-value">
+              {{ tournaments.length }}
             </span>
-          </div>
 
-          <div class="tournament-meta">
-            <span> 📅 {{ formatDate(tournament.startDate) }} </span>
-
-            <span> 🏆 {{ tournament.teams?.length || 0 }} / {{ tournament.maxTeams }} teams </span>
+            <span class="stat-label">
+              Tournaments
+            </span>
           </div>
         </div>
       </div>
-    </AquaPanel>
+
+      <!-- Tournaments -->
+      <Panel title="Tournaments">
+        <EmptyState
+          v-if="tournaments.length === 0"
+          title="No Tournaments found"
+          message="This user hasn't hosted any tournaments yet."
+        />
+
+        <div
+          v-else
+          class="tournaments-grid"
+        >
+          <TournamentCard
+            v-for="tournament in tournaments"
+            :key="tournament._id"
+            :tournament="tournament"
+            @click="router.push(`/tournaments/${tournament._id}`)"
+          />
+        </div>
+      </Panel>
+    </template>
   </div>
 </template>
 
@@ -118,131 +124,142 @@ onMounted(() => {
 .user-tournaments-view {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 20px;
+  max-width: 1200px;
+  margin: 0 auto;
+  width: 100%;
 }
 
-.banner {
-  padding: 8px 12px;
-  border-radius: 4px;
-  font-size: 12px;
-}
+/* User Profile */
 
-.error-banner {
-  background-color: #ffe6e6;
-  border: 1px solid #ff9999;
-  color: #990000;
-}
+.user-profile-card {
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-radius: 16px;
+  padding: 24px;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.06);
 
-.user-info {
   display: flex;
   align-items: center;
-  gap: 10px;
-  font-size: 12px;
+  gap: 20px;
 }
 
-.user-name {
-  font-weight: bold;
-  color: #222;
+.profile-avatar {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+
+  background: linear-gradient(
+    135deg,
+    var(--color-primary-dark) 0%,
+    var(--color-primary-hover-light) 100%
+  );
+
+  color: var(--color-white);
+  font-size: 24px;
+  font-weight: 700;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  flex-shrink: 0;
+
+  box-shadow: 0 4px 12px rgba(0, 113, 227, 0.3);
 }
 
-.user-username {
-  color: #666;
-}
-
-.hint-state {
-  text-align: center;
-  font-size: 12px;
-  color: #666;
-  padding: 16px;
-}
-
-.tournament-list {
+.profile-info {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 4px;
+  flex: 1;
 }
 
-.tournament-item {
-  background: #fff;
-  border: 1px solid #ccc;
-  border-radius: 5px;
-  padding: 10px 12px;
-  cursor: pointer;
-  transition:
-    border-color 0.15s ease,
-    background-color 0.15s ease,
-    box-shadow 0.15s ease;
+.profile-name {
+  margin: 0;
+
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--color-black);
+  letter-spacing: -0.3px;
 }
 
-.tournament-item:hover {
-  border-color: #38a5e8;
-  background: #f8fbff;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
-}
-
-.tournament-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 12px;
-  margin-bottom: 6px;
-}
-
-.tournament-title {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  min-width: 0;
-}
-
-.tournament-name {
-  color: #0044bb;
-  font-weight: bold;
+.profile-username {
   font-size: 13px;
+  font-weight: 600;
+  color: var(--color-primary);
 }
 
-.sport-badge {
-  background: #f0f0f0;
-  border: 1px solid #c0c0c0;
-  border-radius: 8px;
-  padding: 1px 6px;
-  font-size: 10px;
-  text-transform: capitalize;
-  white-space: nowrap;
-}
-
-.tournament-meta {
+.profile-stats {
   display: flex;
-  gap: 16px;
-  font-size: 11px;
-  color: #666;
-  flex-wrap: wrap;
+  gap: 12px;
 }
 
-.status-pill {
-  padding: 2px 8px;
-  border-radius: 10px;
+.stat-box {
+  min-width: 90px;
+
+  background: rgba(0, 0, 0, 0.03);
+  border: 1px solid rgba(0, 0, 0, 0.06);
+
+  padding: 10px 16px;
+  border-radius: 12px;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+}
+
+.stat-value {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--color-black);
+}
+
+.stat-label {
   font-size: 10px;
-  font-weight: bold;
-  text-transform: capitalize;
-  white-space: nowrap;
+  font-weight: 700;
+  color: #8e8e93;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
-.status-registration {
-  background: #fff3cd;
-  color: #856404;
-  border: 1px solid #ffeeba;
+/* Tournaments */
+
+.tournaments-grid {
+  display: grid;
+  grid-template-columns: repeat(
+    auto-fill,
+    minmax(320px, 1fr)
+  );
+  gap: 20px;
 }
 
-.status-active {
-  background: #d4edda;
-  color: #155724;
-  border: 1px solid #c3e6cb;
-}
+/* Mobile */
 
-.status-completed {
-  background: #e8e8e8;
-  color: #555;
-  border: 1px solid #ccc;
+@media (max-width: 600px) {
+  .user-profile-card {
+    align-items: flex-start;
+    flex-wrap: wrap;
+  }
+
+  .profile-info {
+    min-width: 0;
+  }
+
+  .profile-stats {
+    width: 100%;
+    margin-top: 4px;
+  }
+
+  .stat-box {
+    width: 100%;
+  }
+
+  .tournaments-grid {
+    grid-template-columns: 1fr;
+  }
 }
 </style>

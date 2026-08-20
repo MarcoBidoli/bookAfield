@@ -1,7 +1,7 @@
 <script setup>
-import { ref, reactive, computed, onMounted } from 'vue'
-import { useRoute } from 'vue-router'
-import { useAuthStore } from '@/stores/auth'
+import {computed, onMounted, reactive, ref} from 'vue'
+import {useRoute, useRouter} from 'vue-router'
+import {useAuthStore} from '@/stores/auth'
 import {
   assignMatchBooking,
   fetchTournamentBookings,
@@ -10,40 +10,67 @@ import {
   recordMatchScore,
 } from '@/api/tournaments'
 
-import AquaPanel from '@/components/AquaPanel.vue'
-import AquaButton from '@/components/AquaButton.vue'
+import Panel from '@/components/Panel.vue'
+import Button from '@/components/Button.vue'
 import Breadcrumbs from '@/components/Breadcrumbs.vue'
+import AppBanner from '@/components/AppBanner.vue'
+import Pill from '@/components/Pill.vue'
+
+import CalendarIcon from '@/components/icons/CalendarIcon.vue'
+import ClockIcon from '@/components/icons/ClockIcon.vue'
+import TrophyIcon from '@/components/icons/TrophyIcon.vue'
+import PinPointIcon from '@/components/icons/PinPointIcon.vue'
+import StandingsIcon from "@/components/icons/StandingsIcon.vue";
 
 const route = useRoute()
 const authStore = useAuthStore()
 
 const tournamentId = route.params.id
+
 const tournament = ref(null)
 const matches = ref([])
+const bookings = ref([])
+
 const isLoading = ref(true)
+const isSubmitting = ref(false)
+
 const errorMessage = ref('')
 const successMessage = ref('')
-const isSubmitting = ref(false)
-const bookings = ref([])
-const selectedBookings = reactive({})
 
-// State for recording score
+const selectedBookings = reactive({})
 const scoreInputs = reactive({})
 
 const isOwner = computed(() => {
-  if (!tournament.value || !authStore.isAuthenticated || !authStore.user) return false
-  const currentUserId = authStore.user._id || authStore.user.id
-  return String(tournament.value.creatorId) === String(currentUserId)
+  if (
+    !tournament.value ||
+    !authStore.isAuthenticated ||
+    !authStore.user
+  ) {
+    return false
+  }
+
+  const currentUserId =
+    authStore.user._id || authStore.user.id
+
+  return (
+    String(tournament.value.creatorId) ===
+    String(currentUserId)
+  )
 })
 
-// Group matches by round
 const matchesByRound = computed(() => {
   const groups = {}
+
   for (const match of matches.value) {
     const round = match.round || 1
-    if (!groups[round]) groups[round] = []
+
+    if (!groups[round]) {
+      groups[round] = []
+    }
+
     groups[round].push(match)
   }
+
   return groups
 })
 
@@ -52,42 +79,47 @@ async function loadMatches() {
   errorMessage.value = ''
 
   try {
-    const [tData, mData] = await Promise.all([
-      fetchTournamentById(tournamentId),
-      fetchTournamentMatches(tournamentId),
-    ])
+    const [tournamentData, matchesData] =
+      await Promise.all([
+        fetchTournamentById(tournamentId),
+        fetchTournamentMatches(tournamentId),
+      ])
 
-    tournament.value = tData
-    matches.value = mData
+    tournament.value = tournamentData
+    matches.value = matchesData
 
-    // Only the tournament owner needs booking data.
-    // /:id/bookings is protected by JWT + requireOwner().
     if (isOwner.value) {
-      bookings.value = await fetchTournamentBookings(tournamentId)
+      bookings.value =
+        await fetchTournamentBookings(tournamentId)
     } else {
       bookings.value = []
     }
 
-    for (const match of mData) {
+    for (const match of matchesData) {
       scoreInputs[match._id] = {
         scoreA: match.result?.scoreA ?? '',
         scoreB: match.result?.scoreB ?? '',
       }
 
-      selectedBookings[match._id] = match.bookingId ? String(match.bookingId) : ''
+      selectedBookings[match._id] = match.bookingId
+        ? String(match.bookingId)
+        : ''
     }
   } catch (err) {
-    errorMessage.value = err.message || 'Failed to load matches'
+    errorMessage.value =
+      err.message || 'Failed to load matches'
   } finally {
     isLoading.value = false
   }
 }
 
 async function handleAssignBooking(match) {
-  const bookingId = selectedBookings[match._id]
+  const bookingId =
+    selectedBookings[match._id]
 
   if (!bookingId) {
-    errorMessage.value = 'Please select a booking'
+    errorMessage.value =
+      'Please select a booking'
     return
   }
 
@@ -96,13 +128,19 @@ async function handleAssignBooking(match) {
   successMessage.value = ''
 
   try {
-    await assignMatchBooking(match._id, bookingId)
+    await assignMatchBooking(
+      match._id,
+      bookingId
+    )
 
-    successMessage.value = `Field booking successfully assigned to ${match.teamAName} vs ${match.teamBName}`
+    successMessage.value =
+      `Field booking successfully assigned to ` +
+      `${match.teamAName} vs ${match.teamBName}`
 
     await loadMatches()
   } catch (err) {
-    errorMessage.value = err.message || 'Failed to assign booking'
+    errorMessage.value =
+      err.message || 'Failed to assign booking'
   } finally {
     isSubmitting.value = false
   }
@@ -110,8 +148,13 @@ async function handleAssignBooking(match) {
 
 async function handleSaveScore(match) {
   const input = scoreInputs[match._id]
-  if (input.scoreA === '' || input.scoreB === '') {
-    errorMessage.value = 'Please enter both scores'
+
+  if (
+    input.scoreA === '' ||
+    input.scoreB === ''
+  ) {
+    errorMessage.value =
+      'Please enter both scores'
     return
   }
 
@@ -125,27 +168,44 @@ async function handleSaveScore(match) {
       scoreB: Number(input.scoreB),
     })
 
-    successMessage.value = `Score updated for ${match.teamAName} vs ${match.teamBName}!`
+    successMessage.value =
+      `Score updated for ${match.teamAName} vs ` +
+      `${match.teamBName}!`
+
     await loadMatches()
   } catch (err) {
-    errorMessage.value = err.message || 'Failed to save score'
+    errorMessage.value =
+      err.message || 'Failed to save score'
   } finally {
     isSubmitting.value = false
   }
 }
 
 function isMatchScheduled(match) {
-  return !!(match.bookingId && match.date && match.slot)
+  return Boolean(
+    match.bookingId &&
+    match.date &&
+    match.slot
+  )
 }
 
-onMounted(() => {
-  loadMatches()
-})
+const router = useRouter()
+
+function goToStandings() {
+  router.push(`/tournaments/${route.params.id}/standings`)
+}
+
+function goToBookField() {
+  router.push(`/fields?tournamentId=${tournamentId}`)
+}
+
+onMounted(loadMatches)
 </script>
 
 <template>
   <div class="matches-view">
-    <!-- Breadcrumbs row  -->
+
+    <!-- Breadcrumbs -->
     <Breadcrumbs
       section="Tournaments"
       section-to="/tournaments"
@@ -156,79 +216,140 @@ onMounted(() => {
       current="Matches"
     />
 
-    <!-- Feedback Banners -->
-    <div v-if="successMessage" class="banner success-banner">✓ {{ successMessage }}</div>
+    <!-- Feedback -->
+    <AppBanner
+      v-if="successMessage"
+      type="success"
+      :message="successMessage"
+    />
 
-    <div v-if="errorMessage" class="banner error-banner">⚠️ {{ errorMessage }}</div>
+    <AppBanner
+      v-if="errorMessage"
+      type="error"
+      :message="errorMessage"
+    />
 
-    <!-- Header Panel -->
-    <AquaPanel :title="`Fixtures & Scores — ${tournament?.name || 'Tournament'}`">
+    <!-- Header -->
+    <Panel
+      :title="
+        `Fixtures & Scores — ${
+          tournament?.name || 'Tournament'
+        }`
+      "
+    >
       <div class="header-actions">
-        <!-- Tournament owner only -->
-        <router-link
+        <Button
           v-if="isOwner && tournament?.status === 'active'"
-          :to="`/fields?tournamentId=${tournamentId}`"
-          style="margin-left: 8px"
+          variant="primary"
+          @click="goToBookField"
         >
-          <AquaButton>Book a Field</AquaButton>
-        </router-link>
+          Book a Field
+        </Button>
+        <Button
+          variant="secondary"
+          class="navigation-button"
+          @click="goToStandings"
+        >
+          <StandingsIcon />
+          Standings
+        </Button>
       </div>
-    </AquaPanel>
+    </Panel>
 
     <!-- Loading -->
-    <div v-if="isLoading" class="loading-state">Loading tournament match fixtures...</div>
+    <div
+      v-if="isLoading"
+      class="loading-state"
+    >
+      Loading tournament match fixtures...
+    </div>
 
-    <!-- No Matches -->
-    <div v-else-if="matches.length === 0" class="empty-state">
-      <AquaPanel title="Schedule">
+    <!-- Empty -->
+    <div
+      v-else-if="matches.length === 0"
+      class="empty-state"
+    >
+      <Panel title="Schedule">
         <p>No matches generated yet.</p>
 
-        <p v-if="isOwner" style="margin-top: 8px">
-          Once all teams are registered in the tournament details page, generate the match fixtures
-          to start the tournament.
+        <p
+          v-if="isOwner"
+          class="empty-description"
+        >
+          Once all teams are registered in the
+          tournament details page, generate the
+          match fixtures to start the tournament.
         </p>
-      </AquaPanel>
+      </Panel>
     </div>
 
     <!-- Matches -->
     <template v-else>
-      <AquaPanel
+
+      <Panel
         v-for="(roundMatches, roundNum) in matchesByRound"
         :key="roundNum"
         :title="`Round ${roundNum} Fixtures`"
       >
+
         <div class="matches-grid">
+
           <div
             v-for="match in roundMatches"
             :key="match._id"
             :class="[
               'match-card',
               {
-                'match-played': match.status === 'played',
+                'match-played':
+                  match.status === 'played',
               },
             ]"
           >
-            <!-- BYE Match -->
-            <div v-if="!match.teamA || !match.teamB" class="bye-row">
+
+            <!-- BYE -->
+            <div
+              v-if="
+                !match.teamA ||
+                !match.teamB
+              "
+              class="bye-row"
+            >
               <span class="bye-team">
-                {{ match.teamAName === 'BYE' ? match.teamBName : match.teamAName }}
+                {{
+                  match.teamAName === 'BYE'
+                    ? match.teamBName
+                    : match.teamAName
+                }}
               </span>
 
-              <span class="bye-badge"> Rest Day (BYE) </span>
+              <Pill variant="secondary">
+                Rest Day
+              </Pill>
             </div>
 
-            <!-- Standard Match -->
-            <div v-else class="match-content">
-              <!-- Teams + Score -->
+            <!-- STANDARD MATCH -->
+            <div
+              v-else
+              class="match-content"
+            >
+
+              <!-- Teams / Score -->
               <div class="teams-versus">
-                <span class="team-name team-home">
+
+                <span
+                  class="team-name team-home"
+                >
                   {{ match.teamAName }}
                 </span>
 
                 <div class="score-container">
-                  <!-- Match already played:
-                       everyone can see the score -->
-                  <template v-if="match.status === 'played'">
+
+                  <!-- Played -->
+                  <template
+                    v-if="
+                      match.status === 'played'
+                    "
+                  >
                     <span class="score-badge">
                       {{ match.result?.scoreA }}
                       -
@@ -236,140 +357,246 @@ onMounted(() => {
                     </span>
                   </template>
 
-                  <!-- Tournament owner can enter score -->
-                  <template v-else-if="isOwner">
+                  <!-- Owner enters score -->
+                  <template
+                    v-else-if="isOwner"
+                  >
                     <div class="score-form">
+
                       <input
-                        v-model.number="scoreInputs[match._id].scoreA"
+                        v-model.number="
+                          scoreInputs[
+                            match._id
+                          ].scoreA
+                        "
                         type="number"
                         min="0"
                         class="score-input"
                         placeholder="0"
                       />
 
-                      <span class="score-colon"> : </span>
+                      <span class="score-colon">
+                        :
+                      </span>
 
                       <input
-                        v-model.number="scoreInputs[match._id].scoreB"
+                        v-model.number="
+                          scoreInputs[
+                            match._id
+                          ].scoreB
+                        "
                         type="number"
                         min="0"
                         class="score-input"
                         placeholder="0"
                       />
 
-                      <button
+                      <Button
                         type="button"
+                        variant="primary"
                         class="btn-enter"
-                        :disabled="isSubmitting"
-                        @click="handleSaveScore(match)"
+                        :disabled="
+                          isSubmitting
+                        "
+                        @click="
+                          handleSaveScore(match)
+                        "
                       >
                         Enter
-                      </button>
+                      </Button>
+
                     </div>
                   </template>
 
-                  <!-- Everyone else sees VS -->
+                  <!-- Everyone else -->
                   <template v-else>
-                    <span class="vs-badge"> VS </span>
+                    <Pill variant="secondary">
+                      VS
+                    </Pill>
                   </template>
+
                 </div>
 
-                <span class="team-name team-away">
+                <span
+                  class="team-name team-away"
+                >
                   {{ match.teamBName }}
                 </span>
+
               </div>
 
-              <!-- Match Schedule + Status
-                   Everyone can see this -->
+              <!-- Match metadata -->
               <div class="match-meta">
+
                 <div class="match-info">
-                  <template v-if="isMatchScheduled(match)">
-                    <span class="meta-item"> 📅 {{ match.date }} | ⏱ {{ match.slot }} </span>
 
-                    <span v-if="match.field" class="meta-item"> 🏟️ {{ match.field.name }} </span>
+                  <!-- Scheduled -->
+                  <template
+                    v-if="
+                      isMatchScheduled(match)
+                    "
+                  >
 
-                    <span v-if="match.field?.address" class="meta-item">
-                      📍 {{ match.field.address }}
+                    <span class="meta-item">
+                      <CalendarIcon />
+                      {{ match.date }}
                     </span>
+
+                    <span class="meta-item">
+                      <ClockIcon />
+                      {{ match.slot }}
+                    </span>
+
+                    <span
+                      v-if="match.field"
+                      class="meta-item"
+                    >
+                      <TrophyIcon />
+                      {{ match.field.name }}
+                    </span>
+
+                    <span
+                      v-if="
+                        match.field?.address
+                      "
+                      class="meta-item"
+                    >
+                      <PinPointIcon />
+                      {{ match.field.address }}
+                    </span>
+
                   </template>
 
-                  <span v-else class="meta-item unscheduled">
-                    Unscheduled (Field booking required)
+                  <!-- Not scheduled -->
+                  <span
+                    v-else-if="isOwner"
+                    class="meta-item unscheduled"
+                  >
+                    <CalendarIcon />
+                    Unscheduled
+                    <span>
+                      (Field booking required)
+                    </span>
                   </span>
+
                 </div>
 
-                <span :class="['status-pill', `status-${match.status}`]">
-                  {{ match.status }}
-                </span>
+                <Pill
+                  :variant="
+                    match.status === 'played'
+                      ? 'success'
+                      : 'warning'
+                  "
+                >
+                  {{
+                    match.status === 'played'
+                      ? 'Played'
+                      : 'Upcoming'
+                  }}
+                </Pill>
+
               </div>
 
-              <!-- Booking Assignment
-                   Tournament owner only -->
-              <div v-if="isOwner && tournament?.status === 'active'" class="booking-assignment">
-                <label class="booking-label"> Field booking assignment: </label>
+              <!-- Booking assignment -->
+              <div
+                v-if="
+                  isOwner &&
+                  tournament?.status === 'active'
+                "
+                class="booking-assignment"
+              >
+
+                <label class="booking-label">
+                  Field booking assignment
+                </label>
 
                 <div class="booking-controls">
+
                   <select
-                    v-model="selectedBookings[match._id]"
+                    v-model="
+                      selectedBookings[
+                        match._id
+                      ]
+                    "
                     class="booking-select"
                     :disabled="isSubmitting"
                   >
-                    <option value="">-- Select a tournament booking --</option>
+
+                    <option value="">
+                      -- Select a tournament
+                      booking --
+                    </option>
 
                     <option
                       v-for="booking in bookings"
                       :key="booking._id"
-                      :value="String(booking._id)"
+                      :value="
+                        String(booking._id)
+                      "
                     >
                       {{ booking.date }}
                       |
                       {{ booking.slot }}
 
-                      <template v-if="booking.fieldName"> — {{ booking.fieldName }} </template>
+                      <template
+                        v-if="
+                          booking.fieldName
+                        "
+                      >
+                        —
+                        {{ booking.fieldName }}
+                      </template>
                     </option>
+
                   </select>
 
-                  <button
+                  <Button
                     type="button"
+                    variant="primary"
                     class="btn-assign"
-                    :disabled="isSubmitting || !selectedBookings[match._id]"
-                    @click="handleAssignBooking(match)"
+                    :disabled="
+                      isSubmitting ||
+                      !selectedBookings[
+                        match._id
+                      ]
+                    "
+                    @click="
+                      handleAssignBooking(match)
+                    "
                   >
                     Assign
-                  </button>
+                  </Button>
+
                 </div>
               </div>
+
             </div>
           </div>
+
         </div>
-      </AquaPanel>
+      </Panel>
+
     </template>
+
   </div>
 </template>
 
 <style scoped>
+
+.navigation-button,
+.start-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+}
+
 .matches-view {
   display: flex;
   flex-direction: column;
-  gap: 16px;
-}
-
-.banner {
-  padding: 8px 12px;
-  border-radius: 4px;
-  font-size: 12px;
-}
-
-.success-banner {
-  background-color: #e6f7ec;
-  border: 1px solid #70c995;
-  color: #155724;
-}
-
-.error-banner {
-  background-color: #ffe6e6;
-  border: 1px solid #ff9999;
-  color: #990000;
+  gap: 20px;
+  max-width: 1200px;
+  margin: 0 auto;
+  width: 100%;
 }
 
 .header-actions {
@@ -382,53 +609,74 @@ onMounted(() => {
 .loading-state,
 .empty-state {
   text-align: center;
-  font-size: 12px;
-  color: #666;
-  padding: 16px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-lightgray-text);
+  padding: 32px;
 }
 
+.empty-description {
+  margin-top: 8px;
+  color: var(--color-lightgray-text);
+  line-height: 1.5;
+}
+
+/* --------------------------------------------------
+   Matches
+-------------------------------------------------- */
+
 .matches-grid {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
+  display: grid;
+  grid-template-columns: repeat(
+    auto-fit,
+    minmax(320px, 1fr)
+  );
+  gap: 16px;
 }
 
 .match-card {
-  background: #ffffff;
-  border: 1px solid #c8c8c8;
-  border-radius: 6px;
-  padding: 14px 16px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  background: var(--color-white);
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-radius: 16px;
+  padding: 20px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02);
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 16px;
+  transition: all 0.1s ease;
+}
+
+.match-card:hover {
+  border-color: rgba(0, 113, 227, 0.3);
+  box-shadow: 0 6px 16px rgba(0, 113, 227, 0.08);
 }
 
 .match-played {
-  background: #fbfbfb;
-  border-color: #b8c8d8;
+  background: rgba(0, 0, 0, 0.01);
+  border-color: rgba(0, 0, 0, 0.06);
 }
 
-.match-info {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  flex-wrap: wrap;
-}
+/* --------------------------------------------------
+   Teams
+-------------------------------------------------- */
 
 .teams-versus {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  gap: 16px;
-  margin: 10px auto 12px auto;
+  gap: 12px;
+  margin: 4px 0;
 }
 
 .team-name {
-  font-size: 13px;
-  font-weight: bold;
-  color: #222;
   flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+
+  color: var(--color-black);
+  font-size: 13px;
+  font-weight: 700;
 }
 
 .team-home {
@@ -439,31 +687,31 @@ onMounted(() => {
   text-align: left;
 }
 
+/* --------------------------------------------------
+   Score
+-------------------------------------------------- */
+
 .score-container {
   display: flex;
   align-items: center;
   justify-content: center;
-  min-width: 140px;
+
+  min-width: 110px;
+  margin-bottom: 10px;
 }
 
 .score-badge {
-  background: linear-gradient(180deg, #5ca0f2 0%, #1a62d6 100%);
-  color: #ffffff;
-  font-weight: bold;
-  font-size: 13px;
-  padding: 4px 16px;
-  border-radius: 12px;
-  text-shadow: 0 1px 1px rgba(0, 0, 0, 0.4);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.4);
-}
+  background: var(--color-primary);
+  color: var(--color-white);
 
-.vs-badge {
-  color: #888;
-  font-size: 11px;
-  font-weight: bold;
-  background: #eaeaea;
-  padding: 2px 8px;
-  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 700;
+
+  padding: 4px 12px;
+  border-radius: 980px;
+
+  box-shadow:
+    0 2px 6px rgba(0, 113, 227, 0.2);
 }
 
 .score-form {
@@ -473,176 +721,200 @@ onMounted(() => {
 }
 
 .score-input {
-  width: 36px;
-  height: 26px;
+  width: 40px;
+  height: 32px;
+
+  padding: 2px;
+
   text-align: center;
-  padding: 3px;
-  font-size: 12px;
-  border: 1px solid #8e8e8e;
-  border-radius: 4px;
+
+  font-size: 13px;
+  font-weight: 600;
+
+  border: 1px solid rgba(0, 0, 0, 0.15);
+  border-radius: 8px;
+
   outline: none;
-  background: #fff;
+
+  background: var(--color-white);
+  color: var(--color-black);
 }
 
 .score-input:focus {
-  border-color: #38a5e8;
-  box-shadow: 0 0 4px #70c3ff;
+  border-color: var(--color-primary);
+  box-shadow:
+    0 0 0 3px
+    rgba(0, 113, 227, 0.15);
 }
 
 .score-colon {
-  font-weight: bold;
-  color: #444;
+  font-weight: 700;
+  color: var(--color-lightgray-text);
 }
 
 .btn-enter {
-  background: linear-gradient(180deg, #8bcbfc 0%, #3092f7 48%, #0d6fe3 50%, #1e87f0 100%);
-  border: 1px solid #08489b;
-  border-radius: 6px;
-  color: #ffffff;
   font-size: 11px;
-  font-weight: bold;
-  padding: 5px 10px;
-  cursor: pointer;
-  height: 26px;
-  text-shadow: 0 -1px 1px rgba(0, 0, 0, 0.4);
+  padding: 4px 10px;
+  height: 32px;
 }
 
-.btn-enter:hover {
-  background: linear-gradient(180deg, #0d6fe3 0%, #3092f7 100%);
-}
-
-.btn-enter:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-/* Isolated Inset Well for Booking Controls */
-.booking-assignment {
-  background: #f0f3f7;
-  border: 1px solid #d0dbe5;
-  border-radius: 5px;
-  padding: 8px 12px;
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  margin-top: 15px;
-}
-
-.booking-label {
-  font-size: 11px;
-  font-weight: bold;
-  color: #445566;
-}
-
-.booking-controls {
-  display: flex;
-  gap: 8px;
-  align-items: center;
-}
-
-.booking-select {
-  flex: 1;
-  background: #fff;
-  border: 1px solid #8e8e8e;
-  border-radius: 4px;
-  padding: 4px 8px;
-  font-size: 12px;
-  height: 26px;
-}
-
-.btn-assign {
-  background: linear-gradient(180deg, #8bcbfc 0%, #3092f7 48%, #0d6fe3 50%, #1e87f0 100%);
-  border: 1px solid #08489b;
-  border-radius: 6px;
-  color: #fff;
-  font-size: 11px;
-  font-weight: bold;
-  padding: 4px 12px;
-  cursor: pointer;
-  height: 26px;
-}
-
-.btn-assign:hover {
-  background: linear-gradient(180deg, #0d6fe3 0%, #3092f7 100%);
-}
-
-.btn-assign:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
+/* --------------------------------------------------
+   Match metadata
+-------------------------------------------------- */
 
 .match-meta {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding-top: 15px;
-  border-top: 1px solid #eee;
-  font-size: 11px;
+
+  padding-top: 12px;
+
+  border-top: 1px solid
+  rgba(0, 0, 0, 0.06);
+
+  font-size: 12px;
+  font-weight: 500;
+
+  gap: 12px;
+}
+
+.match-info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
 }
 
 .meta-item {
-  color: #666;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+
+  color: var(--color-lightgray-text);
+}
+
+.meta-item :deep(svg) {
+  width: 13px;
+  height: 13px;
+  flex-shrink: 0;
 }
 
 .unscheduled {
-  color: #b06000;
+  color: var(--color-lightgray-text);
+  font-weight: 600;
+}
+
+/* --------------------------------------------------
+   Booking assignment
+-------------------------------------------------- */
+
+.booking-assignment {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+
+  margin-top: 10px;
+  padding: 12px;
+
+  border: 1px solid
+  rgba(0, 0, 0, 0.06);
+
+  border-radius: 12px;
+}
+
+.booking-label {
+  color: var(--color-lightgray-text);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.booking-controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.booking-select {
+  flex: 1;
+  min-width: 0;
+
+  height: 32px;
+
+  padding: 6px 10px;
+
+  background: var(--color-white);
+  color: var(--color-black);
+
+  border: 1px solid
+  rgba(0, 0, 0, 0.15);
+
+  border-radius: 8px;
+
+  font-size: 12px;
   font-weight: 500;
+
+  outline: none;
 }
 
-.status-pill {
-  padding: 2px 8px;
-  border-radius: 10px;
-  font-size: 10px;
-  font-weight: bold;
-  text-transform: capitalize;
+.booking-select:focus {
+  border-color: var(--color-primary);
+  box-shadow:
+    0 0 0 3px
+    rgba(0, 113, 227, 0.15);
 }
 
-.status-upcoming {
-  background: #fff3cd;
-  color: #856404;
-  border: 1px solid #ffeeba;
+.btn-assign {
+  height: 32px;
+  padding: 4px 10px;
+  font-size: 11px;
 }
 
-.status-played {
-  background: #d4edda;
-  color: #155724;
-  border: 1px solid #c3e6cb;
-}
+/* --------------------------------------------------
+   BYE
+-------------------------------------------------- */
 
 .bye-row {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  font-size: 12px;
+  gap: 12px;
 }
 
 .bye-team {
-  font-weight: bold;
-  color: #555;
+  color: var(--color-black);
+  font-size: 13px;
+  font-weight: 700;
 }
 
-.bye-badge {
-  background: #e8e8e8;
-  border: 1px solid #ccc;
-  padding: 2px 8px;
-  border-radius: 8px;
-  font-size: 11px;
-  color: #666;
-}
+/* --------------------------------------------------
+   Responsive
+-------------------------------------------------- */
 
-.back-link-row {
-  display: flex;
-  align-items: center;
-}
+@media (max-width: 700px) {
+  .matches-grid {
+    grid-template-columns: 1fr;
+  }
 
-.back-link {
-  color: #0044bb;
-  font-size: 12px;
-  font-weight: bold;
-  text-decoration: none;
-}
+  .match-meta {
+    align-items: flex-start;
+    flex-direction: column;
+  }
 
-.back-link:hover {
-  text-decoration: underline;
+  .match-info {
+    width: 100%;
+  }
+
+  .booking-controls {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .booking-select {
+    width: 100%;
+  }
+
+  .booking-controls :deep(.btn) {
+    width: 100%;
+  }
 }
 </style>

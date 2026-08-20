@@ -55,8 +55,8 @@ defineProps({
 }
 
 .breadcrumb-link {
-  color: #0044bb;
-  font-weight: bold;
+  color: var(--color-primary-dark);
+  font-weight: 700;
   text-decoration: none;
 }
 
@@ -65,12 +65,12 @@ defineProps({
 }
 
 .breadcrumb-separator {
-  color: #888;
-  font-weight: bold;
+  color: var(--color-darkgray);
+  font-weight: 600;
 }
 
 .breadcrumb-current {
-  color: #666;
-  font-weight: bold;
+  color: var(--color-darkgray);
+  font-weight: 700;
 }
 </style>

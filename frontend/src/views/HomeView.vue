@@ -1,31 +1,84 @@
 <script setup>
-import AquaPanel from '../components/AquaPanel.vue'
-import AquaButton from '../components/AquaButton.vue'
+import {onMounted, ref} from 'vue'
+import Panel from '@/components/Panel.vue'
+import Button from '@/components/Button.vue'
+import {fetchFields} from '@/api/fields'
+import {fetchTournaments} from '@/api/tournaments'
+import {fetchUsers} from "@/api/users.js";
+
+const stats = ref({
+  fieldsCount: 0,
+  tournamentsCount: 0,
+  usersCount: 0,
+})
+const isLoadingStats = ref(true)
+
+onMounted(async () => {
+  try {
+    const [fields, tournaments, users] = await Promise.all([
+      fetchFields().catch(() => []),
+      fetchTournaments().catch(() => []),
+      fetchUsers().catch(() => []),
+    ])
+    stats.value.fieldsCount = Array.isArray(fields) ? fields.length : 0
+    stats.value.tournamentsCount = Array.isArray(tournaments) ? tournaments.length : 0
+    stats.value.usersCount = Array.isArray(users) ? users.length : 0
+  } catch (err) {
+    console.error('Failed to load dashboard stats', err)
+  } finally {
+    isLoadingStats.value = false
+  }
+})
 </script>
 
 <template>
   <div class="dashboard">
-    <AquaPanel title="bookAfield Dashboard">
+    <!-- Welcome Panel -->
+    <Panel title="bookAfield Dashboard">
       <div class="welcome-section">
         <h2>Welcome to bookAfield</h2>
-
         <p>
           Manage your tournaments, book sports fields, and keep track of your matches in one place.
         </p>
 
         <div class="quick-actions">
           <router-link to="/tournaments">
-            <AquaButton> View Tournaments </AquaButton>
+            <Button variant="primary"> View Tournaments </Button>
           </router-link>
 
           <router-link to="/fields">
-            <AquaButton variant="secondary"> Find a Field </AquaButton>
+            <Button variant="secondary"> Find a Field </Button>
           </router-link>
         </div>
       </div>
-    </AquaPanel>
+    </Panel>
 
-    <AquaPanel title="What can you do?">
+    <!-- Stats Overview Section -->
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-content">
+          <div class="stat-value">{{ isLoadingStats ? '...' : stats.fieldsCount }}</div>
+          <div class="stat-label">Available Fields</div>
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-content">
+          <div class="stat-value">{{ isLoadingStats ? '...' : stats.tournamentsCount }}</div>
+          <div class="stat-label">Tournaments</div>
+        </div>
+      </div>
+
+      <div class="stat-card">
+        <div class="stat-content">
+          <div class="stat-value">{{ stats.usersCount }}</div>
+          <div class="stat-label">Users</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Features Panel -->
+    <Panel title="What can you do?">
       <div class="features">
         <div class="feature">
           <div class="feature-title">Tournaments</div>
@@ -48,7 +101,7 @@ import AquaButton from '../components/AquaButton.vue'
           </div>
         </div>
       </div>
-    </AquaPanel>
+    </Panel>
   </div>
 </template>
 
@@ -56,7 +109,10 @@ import AquaButton from '../components/AquaButton.vue'
 .dashboard {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 20px;
+  max-width: 1200px;
+  margin: 0 auto;
+  width: 100%;
 }
 
 .welcome-section {
@@ -66,20 +122,23 @@ import AquaButton from '../components/AquaButton.vue'
 .welcome-section h2 {
   margin: 0 0 8px;
   font-size: 18px;
-  color: #222;
+  font-weight: 800;
+  color: var(--color-black);
+  letter-spacing: -0.3px;
 }
 
 .welcome-section p {
   margin: 0;
-  font-size: 12px;
-  color: #666;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--color-lightgray-text);
   line-height: 1.5;
 }
 
 .quick-actions {
   display: flex;
-  gap: 8px;
-  margin-top: 16px;
+  gap: 12px;
+  margin-top: 18px;
   flex-wrap: wrap;
 }
 
@@ -87,29 +146,70 @@ import AquaButton from '../components/AquaButton.vue'
   text-decoration: none;
 }
 
+/* Stats Grid */
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 16px;
+}
+
+.stat-card {
+  background: var(--color-white);
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-radius: 16px;
+  padding: 20px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02);
+  transition: all 0.1s ease;
+}
+
+.stat-card:hover {
+  box-shadow: 0 6px 16px rgba(0, 113, 227, 0.08);
+}
+
+.stat-value {
+  font-size: 24px;
+  font-weight: 800;
+  color: var(--color-black);
+  letter-spacing: -0.4px;
+}
+
+.stat-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--color-lightgray-text);
+  margin-top: 2px;
+}
+
+/* Features */
 .features {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
-  gap: 12px;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 16px;
 }
 
 .feature {
-  background: #fff;
-  border: 1px solid #ddd;
-  border-radius: 5px;
-  padding: 12px;
+  background: var(--color-white);
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  border-radius: 12px;
+  padding: 18px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.02);
+  transition: all 0.1s ease;
 }
 
 .feature-title {
-  font-size: 12px;
-  font-weight: bold;
-  color: #0044bb;
-  margin-bottom: 5px;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--color-primary);
+  margin-bottom: 6px;
 }
 
 .feature-text {
-  font-size: 11px;
-  color: #666;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--color-lightgray-text);
   line-height: 1.5;
 }
 </style>

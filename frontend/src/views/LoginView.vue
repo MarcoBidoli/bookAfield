@@ -1,21 +1,34 @@
 <script setup>
-import { ref, reactive } from 'vue'
-import { useRouter } from 'vue-router'
-import { useAuthStore } from '@/stores/auth'
+import {reactive, ref, watch} from 'vue'
+import {useRouter} from 'vue-router'
+import {useAuthStore} from '@/stores/auth'
 
-import AquaPanel from '@/components/AquaPanel.vue'
-import AquaButton from '@/components/AquaButton.vue'
+import Panel from '@/components/Panel.vue'
+import Button from '@/components/Button.vue'
+import AppBanner from '@/components/AppBanner.vue'
+import Switcher from '@/components/Switcher.vue'
 
 const router = useRouter()
 const authStore = useAuthStore()
 
-const activeTab = ref('login') // 'login' | 'register'
+const activeTab = ref('login')
 const errorMessage = ref('')
 const isLoading = ref(false)
 
+const authTabs = [
+  {
+    value: 'login',
+    label: 'Sign In',
+  },
+  {
+    value: 'register',
+    label: 'Register New Account',
+  },
+]
+
 const loginForm = reactive({
   username: '',
-  password: ''
+  password: '',
 })
 
 const registerForm = reactive({
@@ -23,17 +36,23 @@ const registerForm = reactive({
   name: '',
   surname: '',
   password: '',
-  confirmPassword: ''
+  confirmPassword: '',
+})
+
+watch(activeTab, () => {
+  errorMessage.value = ''
 })
 
 async function handleLogin() {
   errorMessage.value = ''
   isLoading.value = true
+
   try {
     await authStore.performLogin({
       username: loginForm.username,
-      password: loginForm.password
+      password: loginForm.password,
     })
+
     router.push('/')
   } catch (err) {
     errorMessage.value = err.message || 'Login failed'
@@ -44,19 +63,22 @@ async function handleLogin() {
 
 async function handleRegister() {
   errorMessage.value = ''
+
   if (registerForm.password !== registerForm.confirmPassword) {
     errorMessage.value = 'Passwords do not match'
     return
   }
 
   isLoading.value = true
+
   try {
     await authStore.performSignup({
       username: registerForm.username,
       name: registerForm.name,
       surname: registerForm.surname,
-      password: registerForm.password
+      password: registerForm.password,
     })
+
     router.push('/')
   } catch (err) {
     errorMessage.value = err.message || 'Registration failed'
@@ -68,34 +90,33 @@ async function handleRegister() {
 
 <template>
   <div class="auth-container">
-    <AquaPanel :title="activeTab === 'login' ? 'System Login' : 'User Registration'">
-      <!-- Segmented Tab Switcher -->
-      <div class="segmented-control">
-        <button
-          type="button"
-          :class="['tab-btn', { active: activeTab === 'login' }]"
-          @click="activeTab = 'login'; errorMessage = ''"
-        >
-          Sign In
-        </button>
-        <button
-          type="button"
-          :class="['tab-btn', { active: activeTab === 'register' }]"
-          @click="activeTab = 'register'; errorMessage = ''"
-        >
-          Register New Account
-        </button>
-      </div>
+    <Panel
+      :title="
+        activeTab === 'login'
+          ? 'System Login'
+          : 'User Registration'
+      "
+    >
+      <Switcher
+        v-model="activeTab"
+        :options="authTabs"
+      />
 
-      <!-- Error Alert -->
-      <div v-if="errorMessage" class="error-banner">
-        ⚠️ {{ errorMessage }}
-      </div>
+      <AppBanner
+        v-if="errorMessage"
+        type="error"
+        :message="errorMessage"
+      />
 
-      <!-- Login Form -->
-      <form v-if="activeTab === 'login'" @submit.prevent="handleLogin" class="auth-form">
+      <!-- Login -->
+      <form
+        v-if="activeTab === 'login'"
+        class="auth-form"
+        @submit.prevent="handleLogin"
+      >
         <div class="form-group">
           <label for="login-username">Username</label>
+
           <input
             id="login-username"
             v-model="loginForm.username"
@@ -108,6 +129,7 @@ async function handleRegister() {
 
         <div class="form-group">
           <label for="login-password">Password</label>
+
           <input
             id="login-password"
             v-model="loginForm.password"
@@ -119,16 +141,25 @@ async function handleRegister() {
         </div>
 
         <div class="form-actions">
-          <AquaButton type="submit" :disabled="isLoading">
+          <Button
+            type="submit"
+            variant="primary"
+            :disabled="isLoading"
+          >
             {{ isLoading ? 'Signing In...' : 'Sign In' }}
-          </AquaButton>
+          </Button>
         </div>
       </form>
 
-      <!-- Registration Form -->
-      <form v-else @submit.prevent="handleRegister" class="auth-form">
+      <!-- Registration -->
+      <form
+        v-else
+        class="auth-form"
+        @submit.prevent="handleRegister"
+      >
         <div class="form-group">
           <label for="reg-username">Username</label>
+
           <input
             id="reg-username"
             v-model="registerForm.username"
@@ -142,6 +173,7 @@ async function handleRegister() {
         <div class="form-row">
           <div class="form-group">
             <label for="reg-name">First Name</label>
+
             <input
               id="reg-name"
               v-model="registerForm.name"
@@ -154,6 +186,7 @@ async function handleRegister() {
 
           <div class="form-group">
             <label for="reg-surname">Last Name / Surname</label>
+
             <input
               id="reg-surname"
               v-model="registerForm.surname"
@@ -167,6 +200,7 @@ async function handleRegister() {
 
         <div class="form-group">
           <label for="reg-password">Password</label>
+
           <input
             id="reg-password"
             v-model="registerForm.password"
@@ -178,7 +212,10 @@ async function handleRegister() {
         </div>
 
         <div class="form-group">
-          <label for="reg-confirm-password">Confirm Password</label>
+          <label for="reg-confirm-password">
+            Confirm Password
+          </label>
+
           <input
             id="reg-confirm-password"
             v-model="registerForm.confirmPassword"
@@ -190,102 +227,80 @@ async function handleRegister() {
         </div>
 
         <div class="form-actions">
-          <AquaButton type="submit" :disabled="isLoading">
-            {{ isLoading ? 'Registering...' : 'Register Account' }}
-          </AquaButton>
+          <Button
+            type="submit"
+            variant="primary"
+            :disabled="isLoading"
+          >
+            {{
+              isLoading
+                ? 'Registering...'
+                : 'Register Account'
+            }}
+          </Button>
         </div>
       </form>
-    </AquaPanel>
+    </Panel>
   </div>
 </template>
 
 <style scoped>
 .auth-container {
   max-width: 460px;
-  margin: 20px auto;
-}
-
-.segmented-control {
-  display: flex;
-  background: #d8d8d8;
-  border-radius: 6px;
-  padding: 2px;
-  margin-bottom: 16px;
-  border: 1px solid #b2b2b2;
-}
-
-.tab-btn {
-  flex: 1;
-  background: transparent;
-  border: none;
-  font-size: 11px;
-  font-weight: bold;
-  color: #555;
-  padding: 5px 0;
-  border-radius: 4px;
-  cursor: pointer;
-  transition: all 0.15s ease;
-}
-
-.tab-btn.active {
-  background: linear-gradient(180deg, #ffffff 0%, #e2e2e2 100%);
-  color: #111;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
-}
-
-.error-banner {
-  background-color: #ffe6e6;
-  border: 1px solid #ff9999;
-  color: #990000;
-  padding: 6px 10px;
-  border-radius: 4px;
-  font-size: 11px;
-  margin-bottom: 14px;
+  margin: 40px auto;
 }
 
 .auth-form {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 16px;
 }
 
 .form-group {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: 6px;
   flex: 1;
 }
 
 .form-row {
   display: flex;
-  gap: 10px;
+  gap: 12px;
 }
 
 label {
-  font-size: 11px;
-  font-weight: bold;
-  color: #333;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--color-black);
 }
 
 input {
   width: 100%;
-  border: 1px solid #8e8e8e;
-  padding: 5px 8px;
-  border-radius: 4px;
-  font-size: 12px;
-  background: #ffffff;
+  border: 1px solid rgba(0, 0, 0, 0.15);
+  padding: 10px 14px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--color-black);
+  background: var(--color-white);
   outline: none;
-  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.15);
+  transition: all 0.1s ease;
 }
 
 input:focus {
-  border-color: #38a5e8;
-  box-shadow: 0 0 5px #70c3ff, inset 0 1px 2px rgba(0, 0, 0, 0.2);
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px rgba(0, 113, 227, 0.15);
 }
 
 .form-actions {
   margin-top: 8px;
   display: flex;
   justify-content: flex-end;
+}
+
+@media (max-width: 500px) {
+  .form-row {
+    flex-direction: column;
+  }
 }
 </style>

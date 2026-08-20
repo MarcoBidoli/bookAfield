@@ -1,5 +1,5 @@
-import { closeDB, connectDB } from "./db.js";
-import { ObjectId } from "mongodb";
+import {closeDB, connectDB} from "./db.js";
+import {ObjectId} from "mongodb";
 import bcrypt from "bcryptjs";
 
 async function seedDatabase() {
@@ -324,6 +324,7 @@ async function seedDatabase() {
       },
     ];
 
+    fieldsData.sort(() => Math.random() - 0.5); // to avoid ordered fields type
     await db.collection("fields").insertMany(fieldsData);
 
     const [

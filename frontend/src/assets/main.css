@@ -1,21 +1,67 @@
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@300;400;500;600;700&display=swap');
+
+:root {
+  /* Typography */
+  --font-family:
+    'IBM Plex Sans',
+    sans-serif;
+
+  /* Primary */
+  --color-primary-light: #147ce5;
+  --color-primary: #0071e3;
+  --color-primary-dark: #0058b0;
+
+  --color-primary-hover-light: #288df8;
+  --color-primary-hover: #117fe8;
+  --color-primary-hover-dark: #0062cc;
+
+  /* Neutral */
+  --color-white: #ffffff;
+  --color-black: #111113;
+  --color-border: #e5e7eb;
+  --color-background-light: #f6f6f6;
+
+  /* Danger */
+  --color-danger: #ef4444;
+  --color-danger-hover: #dc2626;
+
+  --color-danger-banner: #b71c1c;
+
+  --color-lightgray-text: #6e6e73;
+  --color-darkgray: #48484a;
+  --unused-gray: #8e8e93;
+
+}
+
 * {
   box-sizing: border-box;
   margin: 0;
   padding: 0;
-  font-family: "Lucida Grande", "Lucida Sans Unicode", -apple-system, BlinkMacSystemFont, Helvetica, Arial, sans-serif;
-  -webkit-font-smoothing: subpixel-antialiased;
+  -webkit-font-smoothing: antialiased;
+}
+
+html,
+body {
+  min-height: 100%;
 }
 
 body {
-  background-color: #ededed;
-  color: #222;
   min-height: 100vh;
   margin: 0;
   padding: 0;
+
+  font-family: var(--font-family), sans-serif;
+
+  background: linear-gradient(
+    135deg,
+    #e4ebf2,
+    #cbd5e1
+  );
 }
 
 a {
-  color: #0044bb;
+  color: var(--color-primary);
+  font-weight: 600;
   text-decoration: none;
 }
 

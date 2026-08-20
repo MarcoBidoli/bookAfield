@@ -1,12 +1,14 @@
 <script setup>
-import { computed, onMounted, reactive, ref } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
-import { useAuthStore } from '@/stores/auth'
-import { fetchTournamentById, updateTournament } from '@/api/tournaments'
+import {computed, onMounted, reactive, ref} from 'vue'
+import {useRoute, useRouter} from 'vue-router'
+import {useAuthStore} from '@/stores/auth'
+import {fetchTournamentById, updateTournament} from '@/api/tournaments'
 
-import AquaPanel from '@/components/AquaPanel.vue'
-import AquaButton from '@/components/AquaButton.vue'
+import Panel from '@/components/Panel.vue'
+import Button from '@/components/Button.vue'
 import Breadcrumbs from '@/components/Breadcrumbs.vue'
+import AppBanner from "@/components/AppBanner.vue";
+import LoadingState from "@/components/LoadingState.vue";
 
 const route = useRoute()
 const router = useRouter()
@@ -20,6 +22,10 @@ const isSaving = ref(false)
 
 const errorMessage = ref('')
 const successMessage = ref('')
+
+const numberOfTeams = computed(() => {
+  return tournament.value?.teams?.length ?? 0
+})
 
 const form = reactive({
   name: '',
@@ -112,86 +118,104 @@ onMounted(() => {
     />
 
     <!-- Feedback -->
-    <div v-if="successMessage" class="banner success-banner">✓ {{ successMessage }}</div>
+    <AppBanner
+      v-if="successMessage"
+      type="success"
+      :message="successMessage"
+    />
 
-    <div v-if="errorMessage" class="banner error-banner">⚠️ {{ errorMessage }}</div>
+    <AppBanner
+      v-if="errorMessage"
+      type="error"
+      :message="errorMessage"
+    />
 
     <!-- Loading -->
-    <div v-if="isLoading" class="loading-box">Loading tournament...</div>
+    <LoadingState
+      v-if="isLoading"
+      message="Loading tournament..."
+    />
 
     <!-- Not owner -->
-    <AquaPanel v-else-if="!isOwner" title="Edit Tournament">
+    <Panel v-else-if="!isOwner" title="Edit Tournament">
       <div class="access-denied">You are not allowed to edit this tournament.</div>
 
       <div class="actions">
-        <AquaButton @click="handleCancel"> ← Back to Tournament </AquaButton>
+        <Button @click="handleCancel"> ← Back to Tournament </Button>
       </div>
-    </AquaPanel>
+    </Panel>
 
     <!-- Tournament already active -->
-    <AquaPanel v-else-if="tournament.status !== 'registration'" title="Edit Tournament">
+    <Panel v-else-if="tournament.status !== 'registration'" title="Edit Tournament">
       <div class="access-denied">
         Tournament details can only be edited while registration is open.
       </div>
 
       <div class="actions">
-        <AquaButton @click="handleCancel"> ← Back to Tournament </AquaButton>
+        <Button @click="handleCancel"> ← Back to Tournament </Button>
       </div>
-    </AquaPanel>
+    </Panel>
 
     <!-- Edit form -->
-    <AquaPanel v-else title="Edit Tournament">
+    <Panel v-else title="Edit Tournament">
       <div class="form-container">
         <div class="form-row">
-          <label for="name"> Tournament Name </label>
+          <label for="name">Tournament Name</label>
 
           <input
             id="name"
             v-model="form.name"
             type="text"
             placeholder="Tournament name"
+            class="form-input"
             :disabled="isSaving"
           />
         </div>
 
         <div class="form-row">
-          <label for="maxTeams"> Maximum Teams </label>
+          <label for="maxTeams">Maximum Teams</label>
 
           <input
             id="maxTeams"
             v-model.number="form.maxTeams"
             type="number"
             min="2"
+            class="form-input"
             :disabled="isSaving"
           />
 
           <span class="field-hint">
-            Current teams:
-            {{ tournament.teams?.length || 0 }}
+            Current teams: {{ numberOfTeams }}
           </span>
         </div>
 
         <div class="form-row">
-          <label for="startDate"> Start Date </label>
+          <label for="startDate">Start Date</label>
 
-          <input id="startDate" v-model="form.startDate" type="date" :disabled="isSaving" />
+          <input
+            id="startDate"
+            v-model="form.startDate"
+            type="date"
+            class="form-input"
+            :disabled="isSaving"
+          />
         </div>
       </div>
 
       <div class="actions">
-        <AquaButton variant="secondary" :disabled="isSaving" @click="handleCancel">
+        <Button variant="secondary" :disabled="isSaving" @click="handleCancel">
           Cancel
-        </AquaButton>
+        </Button>
 
-        <AquaButton
+        <Button
           variant="primary"
           :disabled="isSaving || !form.name.trim() || Number(form.maxTeams) < 2"
           @click="handleSave"
         >
           {{ isSaving ? 'Saving...' : 'Save Changes' }}
-        </AquaButton>
+        </Button>
       </div>
-    </AquaPanel>
+    </Panel>
   </div>
 </template>
 
@@ -199,96 +223,73 @@ onMounted(() => {
 .tournament-edit-view {
   display: flex;
   flex-direction: column;
-  gap: 16px;
-}
-
-.banner {
-  padding: 8px 12px;
-  border-radius: 4px;
-  font-size: 12px;
-}
-
-.success-banner {
-  background-color: #e6f7ec;
-  border: 1px solid #70c995;
-  color: #155724;
-}
-
-.error-banner {
-  background-color: #ffe6e6;
-  border: 1px solid #ff9999;
-  color: #990000;
-}
-
-.loading-box {
-  font-size: 12px;
-  color: #666;
-  padding: 16px;
-  text-align: center;
+  gap: 20px;
 }
 
 .access-denied {
-  background: #fff3cd;
-  border: 1px solid #ffeeba;
+  background: rgba(255, 193, 7, 0.15);
+  border: 1px solid rgba(255, 193, 7, 0.3);
   color: #856404;
-  border-radius: 5px;
-  padding: 12px;
+  border-radius: 10px;
+  padding: 14px;
   font-size: 12px;
+  font-weight: 600;
 }
 
 .form-container {
   display: flex;
   flex-direction: column;
-  gap: 14px;
-  background: #fff;
-  border: 1px solid #ddd;
-  border-radius: 5px;
-  padding: 14px;
+  gap: 16px;
 }
 
 .form-row {
   display: flex;
   flex-direction: column;
-  gap: 5px;
+  gap: 6px;
 }
 
 .form-row label {
   font-size: 11px;
-  font-weight: bold;
-  color: #333;
+  font-weight: 700;
+  color: #111113;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
-input {
-  background: #ffffff;
-  border: 1px solid #8e8e8e;
-  border-radius: 4px;
-  padding: 6px 8px;
+.form-input {
+  background: rgba(255, 255, 255, 0.95);
+  border: 1px solid rgba(0, 0, 0, 0.2);
+  border-radius: 6px;
+  padding: 6px 10px;
   font-size: 12px;
+  font-weight: 600;
   outline: none;
-  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.15);
+  color: #111113;
+  height: 32px;
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.08);
 }
 
-input:focus {
-  border-color: #38a5e8;
-  box-shadow:
-    0 0 5px #70c3ff,
-    inset 0 1px 2px rgba(0, 0, 0, 0.2);
+.form-input:focus {
+  border-color: var(--color-primary-dark)7;
+  box-shadow: 0 0 0 3px rgba(0, 81, 199, 0.25), inset 0 1px 3px rgba(0, 0, 0, 0.08);
 }
 
-input:disabled {
-  background: #f2f2f2;
-  color: #777;
+.form-input:disabled {
+  background: rgba(0, 0, 0, 0.04);
+  color: #48484a;
+  cursor: not-allowed;
 }
 
 .field-hint {
-  font-size: 10px;
-  color: #777;
+  font-size: 11px;
+  color: #48484a;
+  font-weight: 500;
 }
 
 .actions {
   display: flex;
-  gap: 8px;
-  margin-top: 14px;
+  gap: 10px;
+  margin-top: 16px;
   flex-wrap: wrap;
 }
 </style>
