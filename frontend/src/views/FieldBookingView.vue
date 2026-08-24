@@ -21,6 +21,8 @@ const router = useRouter()
 const route = useRoute()
 const authStore = useAuthStore()
 
+const selectedSlots = ref([])
+
 const fieldId = route.params.id
 
 const field = ref(null)
@@ -31,7 +33,6 @@ const selectedTournamentId = ref('')
 
 const selectedDate = ref(getTomorrowDate())
 const availableSlots = ref([])
-const selectedSlot = ref('')
 
 const isLoading = ref(true)
 const isLoadingSlots = ref(false)
@@ -112,7 +113,7 @@ async function loadSlots() {
   }
 
   isLoadingSlots.value = true
-  selectedSlot.value = ''
+  selectedSlots.value = []
 
   try {
     availableSlots.value = await fetchFieldSlots(fieldId, selectedDate.value)
@@ -124,7 +125,7 @@ async function loadSlots() {
   }
 }
 
-async function handleBooking() {
+async function handleMultipleBookings() {
   errorMessage.value = ''
   successMessage.value = ''
 
@@ -133,37 +134,70 @@ async function handleBooking() {
     return
   }
 
-  if (!selectedSlot.value) {
-    errorMessage.value = 'Please select a time slot'
+  if (selectedSlots.value.length === 0) {
+    errorMessage.value = 'Please select at least one time slot'
     return
   }
 
   if (bookingType.value === 'tournament' && !selectedTournamentId.value) {
     errorMessage.value = 'Please select which tournament this match booking is for'
-
     return
   }
 
   isSubmitting.value = true
 
-  try {
-    await bookFieldSlot(fieldId, {
-      date: selectedDate.value,
-      slot: selectedSlot.value,
-      type: bookingType.value,
-      tournamentId: bookingType.value === 'tournament' ? selectedTournamentId.value : null,
-    })
+  const bookingResults = []
 
-    successMessage.value =
-      `Successfully booked ${field.value.name} for ` +
-      `${selectedDate.value} at ${selectedSlot.value}.`
+  try {
+    for (const slot of selectedSlots.value) {
+      try {
+        await handleBooking(slot)
+
+        bookingResults.push({
+          slot,
+          success: true,
+          error: null,
+        })
+      } catch (err) {
+        bookingResults.push({
+          slot,
+          success: false,
+          error: err.message || 'Booking failed',
+        })
+      }
+    }
+
+    const successfulBookings = bookingResults.filter((result) => result.success)
+    const failedBookings = bookingResults.filter((result) => !result.success)
+
+    if (successfulBookings.length > 0) {
+      successMessage.value = `Successfully booked: ${successfulBookings
+        .map((result) => result.slot)
+        .join(', ')}`
+    }
+
+    if (failedBookings.length > 0) {
+      errorMessage.value = `Failed to book: ${failedBookings
+        .map((result) => `${result.slot} (${result.error})`)
+        .join(', ')}`
+    }
 
     await loadSlots()
-  } catch (err) {
-    errorMessage.value = err.message || 'Booking failed'
+
+    // Failed slots still selected so they can be retried.
+    selectedSlots.value = failedBookings.map((result) => result.slot)
   } finally {
     isSubmitting.value = false
   }
+}
+
+async function handleBooking(slot) {
+  return await bookFieldSlot(fieldId, {
+    date: selectedDate.value,
+    slot,
+    type: bookingType.value,
+    tournamentId: bookingType.value === 'tournament' ? selectedTournamentId.value : null,
+  })
 }
 
 function goBackToFields() {
@@ -335,7 +369,7 @@ onMounted(async () => {
         </div>
 
         <!-- BOOKING FORM -->
-        <form class="booking-form" @submit.prevent="handleBooking">
+        <form class="booking-form" @submit.prevent="handleMultipleBookings()">
           <!-- Date -->
           <div class="date-section">
             <label class="section-label"> Date: </label>
@@ -368,14 +402,14 @@ onMounted(async () => {
                 :class="[
                   'slot-card',
                   {
-                    'slot-selected': selectedSlot === slotInfo.slot,
+                    'slot-selected': selectedSlots.includes(slotInfo.slot),
                     'slot-disabled': !slotInfo.available,
                   },
                 ]"
               >
                 <input
-                  v-model="selectedSlot"
-                  type="radio"
+                  v-model="selectedSlots"
+                  type="checkbox"
                   name="slot"
                   :value="slotInfo.slot"
                   :disabled="!slotInfo.available || isSubmitting"
@@ -408,7 +442,7 @@ onMounted(async () => {
               variant="primary"
               :disabled="
                 isSubmitting ||
-                !selectedSlot ||
+                selectedSlots.length < 1 ||
                 (bookingType === 'tournament' && !selectedTournamentId)
               "
             >
