@@ -1,8 +1,8 @@
 <script setup>
-import {onMounted, reactive, ref} from 'vue'
-import {useRouter} from 'vue-router'
-import {useAuthStore} from '@/stores/auth'
-import {createTournament, deleteTournament, fetchTournaments} from '@/api/tournaments'
+import { onMounted, reactive, ref } from 'vue'
+import { useRouter } from 'vue-router'
+import { useAuthStore } from '@/stores/auth'
+import { createTournament, deleteTournament, fetchTournaments } from '@/api/tournaments'
 
 import Panel from '@/components/Panel.vue'
 import Button from '@/components/Button.vue'
@@ -28,17 +28,17 @@ const tomorrowDate = getTomorrowDate()
 
 const tournamentsFilter = [
   { label: 'All', value: 'all' },
-  { label: 'My Tournaments', value: 'myTournaments'},
+  ...(authStore.isAuthenticated ? [{ label: 'My Tournaments', value: 'myTournaments' }] : []),
   { label: 'Football', value: 'football' },
   { label: 'Basketball', value: 'basketball' },
-  { label: 'Volleyball', value: 'volleyball' }
+  { label: 'Volleyball', value: 'volleyball' },
 ]
 
 const newTournament = reactive({
   name: '',
   sport: 'football',
   maxTeams: 4,
-  startDate: getTomorrowDate()
+  startDate: getTomorrowDate(),
 })
 
 function getTomorrowDate() {
@@ -66,14 +66,10 @@ function filteredTournaments() {
   }
 
   if (selectedSportFilter.value === 'myTournaments') {
-    return tournaments.value.filter(tournament =>
-      isCreator(tournament)
-    )
+    return tournaments.value.filter((tournament) => isCreator(tournament))
   }
 
-  return tournaments.value.filter(
-    tournament => tournament.sport === selectedSportFilter.value
-  )
+  return tournaments.value.filter((tournament) => tournament.sport === selectedSportFilter.value)
 }
 
 function openTournament(tournamentId) {
@@ -95,7 +91,7 @@ async function handleCreateTournament() {
       name: newTournament.name,
       sport: newTournament.sport,
       maxTeams: Number(newTournament.maxTeams),
-      startDate: newTournament.startDate
+      startDate: newTournament.startDate,
     })
 
     successMessage.value = `Tournament "${created.name}" created successfully!`
@@ -115,7 +111,7 @@ async function handleCreateTournament() {
 
 async function handleDelete(tournament) {
   const confirmed = window.confirm(
-    `Delete tournament "${tournament.name}" and all scheduled matches?`
+    `Delete tournament "${tournament.name}" and all scheduled matches?`,
   )
 
   if (!confirmed) return
@@ -128,9 +124,7 @@ async function handleDelete(tournament) {
 
     successMessage.value = `Tournament "${tournament.name}" deleted.`
 
-    tournaments.value = tournaments.value.filter(
-      item => item._id !== tournament._id
-    )
+    tournaments.value = tournaments.value.filter((item) => item._id !== tournament._id)
   } catch (err) {
     errorMessage.value = err.message || 'Failed to delete tournament'
   }
@@ -153,28 +147,13 @@ onMounted(() => {
 
 <template>
   <div class="tournaments-view">
-    <Breadcrumbs
-      section="Tournaments"
-      section-to="/tournaments"
-      current="Available Tournaments"
-    />
+    <Breadcrumbs section="Tournaments" section-to="/tournaments" current="Available Tournaments" />
 
-    <PageHeader
-      title="Sports Tournaments"
-      subtitle="Discover, join and host sports tournaments"
-    />
+    <PageHeader title="Sports Tournaments" subtitle="Discover, join and host sports tournaments" />
 
-    <AppBanner
-      v-if="successMessage"
-      type="success"
-      :message="successMessage"
-    />
+    <AppBanner v-if="successMessage" type="success" :message="successMessage" />
 
-    <AppBanner
-      v-if="errorMessage"
-      type="error"
-      :message="errorMessage"
-    />
+    <AppBanner v-if="errorMessage" type="error" :message="errorMessage" />
 
     <!-- Create Tournament -->
     <Panel title="Create New Tournament">
@@ -186,11 +165,7 @@ onMounted(() => {
         </router-link>
       </div>
 
-      <form
-        v-else
-        class="create-form"
-        @submit.prevent="handleCreateTournament"
-      >
+      <form v-else class="create-form" @submit.prevent="handleCreateTournament">
         <div class="form-row">
           <div class="form-group form-name">
             <label for="t-name">Tournament Name</label>
@@ -207,10 +182,7 @@ onMounted(() => {
           <div class="form-group">
             <label for="t-sport">Sport</label>
 
-            <select
-              id="t-sport"
-              v-model="newTournament.sport"
-            >
+            <select id="t-sport" v-model="newTournament.sport">
               <option value="football">Football</option>
               <option value="basketball">Basketball</option>
               <option value="volleyball">Volleyball</option>
@@ -244,10 +216,7 @@ onMounted(() => {
         </div>
 
         <div class="form-actions">
-          <Button
-            type="submit"
-            :disabled="isSubmitting || !newTournament.name"
-          >
+          <Button type="submit" :disabled="isSubmitting || !newTournament.name">
             {{ isSubmitting ? 'Creating...' : 'Post Tournament' }}
           </Button>
         </div>
@@ -263,10 +232,7 @@ onMounted(() => {
         :filters="tournamentsFilter"
       />
 
-      <LoadingState
-        v-if="isLoading"
-        message="Loading available tournaments..."
-      />
+      <LoadingState v-if="isLoading" message="Loading available tournaments..." />
 
       <EmptyState
         v-else-if="filteredTournaments().length === 0"
@@ -274,10 +240,7 @@ onMounted(() => {
         message="Try adjusting your search criteria or sport filters."
       />
 
-      <div
-        v-else
-        class="tournaments-grid"
-      >
+      <div v-else class="tournaments-grid">
         <TournamentCard
           v-for="tournament in filteredTournaments()"
           :key="tournament._id"
@@ -376,10 +339,7 @@ onMounted(() => {
 
 .tournaments-grid {
   display: grid;
-  grid-template-columns: repeat(
-    auto-fill,
-    minmax(320px, 1fr)
-  );
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
   gap: 20px;
 }
 
