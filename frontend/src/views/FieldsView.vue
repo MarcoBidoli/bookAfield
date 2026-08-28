@@ -1,7 +1,7 @@
 <script setup>
-import {onMounted, ref} from 'vue'
-import {useRouter} from 'vue-router'
-import {fetchFields} from '@/api/fields'
+import { computed, onMounted, ref } from 'vue'
+import { useRouter, useRoute } from 'vue-router'
+import { fetchFields } from '@/api/fields'
 
 import Panel from '@/components/Panel.vue'
 import Breadcrumbs from '@/components/Breadcrumbs.vue'
@@ -16,7 +16,6 @@ const router = useRouter()
 
 const fields = ref([])
 const searchQuery = ref('')
-const selectedSportFilter = ref('all')
 const isLoading = ref(true)
 const errorMessage = ref('')
 
@@ -24,7 +23,7 @@ const sportFilters = [
   { label: 'All Fields', value: 'all' },
   { label: 'Football', value: 'football' },
   { label: 'Basketball', value: 'basketball' },
-  { label: 'Volleyball', value: 'volleyball' }
+  { label: 'Volleyball', value: 'volleyball' },
 ]
 
 async function loadFields() {
@@ -44,14 +43,31 @@ function filteredFields() {
   if (selectedSportFilter.value === 'all') {
     return fields.value
   }
-  return fields.value.filter(
-    field => field.sport === selectedSportFilter.value
-  )
+  return fields.value.filter((field) => field.sport === selectedSportFilter.value)
 }
 
 function bookField(fieldId) {
   router.push(`/fields/${fieldId}/book`)
 }
+
+const route = useRoute()
+const selectedSportFilter = computed({
+  get() {
+    const rawFilter = route.query.filter
+    const isValidFilter = sportFilters.some((f) => f.value === rawFilter)
+    return isValidFilter ? rawFilter : 'all'
+  },
+  set(newValue) {
+    const query = { ...route.query }
+    const isValidFilter = sportFilters.some((f) => f.value === newValue)
+    if (newValue && newValue !== 'all' && isValidFilter) {
+      query.filter = newValue
+    } else {
+      delete query.filter
+    }
+    router.replace({ query })
+  },
+})
 
 onMounted(() => {
   loadFields()
@@ -60,16 +76,9 @@ onMounted(() => {
 
 <template>
   <div class="fields-view">
-    <Breadcrumbs
-      section="Fields"
-      section-to="/fields"
-      current="Available Fields"
-    />
+    <Breadcrumbs section="Fields" section-to="/fields" current="Available Fields" />
 
-    <PageHeader
-      title="Sports Fields"
-      subtitle="Discover and book available sports facilities"
-    />
+    <PageHeader title="Sports Fields" subtitle="Discover and book available sports facilities" />
 
     <AppBanner v-if="errorMessage" type="error" :message="errorMessage" />
 
