@@ -1,12 +1,11 @@
 <script setup>
-import {computed} from 'vue'
+import { computed } from 'vue'
 
 import FootballIcon from '@/components/icons/FootballIcon.vue'
 import BasketIcon from '@/components/icons/BasketIcon.vue'
 import VolleyballIcon from '@/components/icons/VolleyballIcon.vue'
-import BookArrowIcon from "@/components/icons/BookArrowIcon.vue";
-import ClockIcon from "@/components/icons/ClockIcon.vue";
-import PinPointIcon from "@/components/icons/PinPointIcon.vue";
+import BookArrowIcon from '@/components/icons/BookArrowIcon.vue'
+import PinPointIcon from '@/components/icons/PinPointIcon.vue'
 
 const props = defineProps({
   field: {
@@ -32,10 +31,7 @@ const sportClass = computed(() => {
 </script>
 
 <template>
-  <div
-    :class="['field-card', sportClass]"
-    @click="$emit('click')"
-  >
+  <div :class="['field-card', sportClass]" @click="$emit('click')">
     <div class="field-card-header">
       <div class="field-info-group">
         <div class="field-sport-avatar">
@@ -55,22 +51,15 @@ const sportClass = computed(() => {
 
       <span class="book-action-indicator">
         Book
-        <BookArrowIcon/>
+        <BookArrowIcon />
       </span>
     </div>
 
     <div class="field-meta-grid">
       <div class="meta-item">
-        <PinPointIcon/>
+        <PinPointIcon />
         <span class="meta-text">
           {{ field.address || 'Main Sports Complex' }}
-        </span>
-      </div>
-
-      <div class="meta-item">
-        <ClockIcon/>
-        <span class="meta-text">
-          {{ field.slots?.length || 0 }} Slots Available
         </span>
       </div>
     </div>
@@ -118,7 +107,6 @@ const sportClass = computed(() => {
 /* Card hover */
 .field-card:hover {
   border-color: var(--sport-border);
-  box-shadow: 0 8px 24px var(--sport-bg);
 }
 
 /* Header */
@@ -140,13 +128,10 @@ const sportClass = computed(() => {
 }
 
 .field-sport-avatar {
-  width: 40px;
-  height: 40px;
-  border-radius: 12px;
+  width: 30px;
+  height: 30px;
 
-  background: var(--sport-bg);
   color: var(--sport-color);
-  border: 1px solid var(--sport-border);
 
   display: flex;
   align-items: center;

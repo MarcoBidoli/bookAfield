@@ -1,5 +1,5 @@
 <script setup>
-import {computed} from 'vue'
+import { computed } from 'vue'
 
 import BasketIcon from '@/components/icons/BasketIcon.vue'
 import FootballIcon from '@/components/icons/FootballIcon.vue'
@@ -12,15 +12,13 @@ const props = defineProps({
   },
 })
 
-const normalizedSport = computed(() =>
-  (props.sport || '').toLowerCase().trim()
-)
+const normalizedSport = computed(() => (props.sport || '').toLowerCase().trim())
 
 const sportClass = computed(() => {
   const sport = normalizedSport.value
 
   if (sport.includes('basket')) return 'sport-basketball'
-  if (sport.includes('football'))  return 'sport-football'
+  if (sport.includes('football')) return 'sport-football'
   if (sport.includes('volley')) return 'sport-volleyball'
 
   return 'sport-default'
@@ -34,20 +32,11 @@ const displaySport = computed(() => {
 
 <template>
   <span :class="['sport-badge', sportClass]">
+    <BasketIcon v-if="normalizedSport.includes('basket')" />
 
-    <BasketIcon
-      v-if="normalizedSport.includes('basket')"
-    />
+    <FootballIcon v-else-if="normalizedSport.includes('football')" />
 
-    <FootballIcon
-      v-else-if="
-        normalizedSport.includes('football')
-      "
-    />
-
-    <VolleyballIcon
-      v-else-if="normalizedSport.includes('volley')"
-    />
+    <VolleyballIcon v-else-if="normalizedSport.includes('volley')" />
 
     <slot>{{ displaySport }}</slot>
   </span>
@@ -90,5 +79,7 @@ const displaySport = computed(() => {
 
 .badge-icon {
   flex-shrink: 0;
+  width: 20px;
+  height: 20px;
 }
 </style>
