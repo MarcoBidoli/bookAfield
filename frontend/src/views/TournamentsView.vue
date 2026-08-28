@@ -1,6 +1,6 @@
 <script setup>
-import { onMounted, reactive, ref } from 'vue'
-import { useRouter } from 'vue-router'
+import { computed, onMounted, reactive, ref } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import { createTournament, deleteTournament, fetchTournaments } from '@/api/tournaments'
 
@@ -15,24 +15,41 @@ import AppBanner from '@/components/AppBanner.vue'
 import TournamentCard from '@/components/TournamentCard.vue'
 
 const router = useRouter()
+const route = useRoute()
 const authStore = useAuthStore()
 
 const tournaments = ref([])
 const searchQuery = ref('')
-const selectedSportFilter = ref('all')
-const isLoading = ref(true)
-const isSubmitting = ref(false)
-const errorMessage = ref('')
-const successMessage = ref('')
-const tomorrowDate = getTomorrowDate()
-
-const tournamentsFilter = [
+const tournamentsFilter = computed(() => [
   { label: 'All', value: 'all' },
   ...(authStore.isAuthenticated ? [{ label: 'My Tournaments', value: 'myTournaments' }] : []),
   { label: 'Football', value: 'football' },
   { label: 'Basketball', value: 'basketball' },
   { label: 'Volleyball', value: 'volleyball' },
-]
+])
+
+const selectedSportFilter = computed({
+  get() {
+    const rawFilter = route.query.filter
+    const isValidFilter = tournamentsFilter.value.some((f) => f.value === rawFilter)
+    return isValidFilter ? rawFilter : 'all'
+  },
+  set(newValue) {
+    const query = { ...route.query }
+    const isValidFilter = tournamentsFilter.value.some((f) => f.value === newValue)
+    if (newValue && newValue !== 'all' && isValidFilter) {
+      query.filter = newValue
+    } else {
+      delete query.filter
+    }
+    router.replace({ query })
+  },
+})
+const isLoading = ref(true)
+const isSubmitting = ref(false)
+const errorMessage = ref('')
+const successMessage = ref('')
+const tomorrowDate = getTomorrowDate()
 
 const newTournament = reactive({
   name: '',
