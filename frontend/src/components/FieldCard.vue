@@ -128,10 +128,14 @@ const sportClass = computed(() => {
 }
 
 .field-sport-avatar {
-  width: 30px;
-  height: 30px;
+  width: 45px;
+  height: 45px;
+  border-radius: 8px;
 
   color: var(--sport-color);
+
+  padding: 8px;
+  background-color: var(--sport-bg);
 
   display: flex;
   align-items: center;

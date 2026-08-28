@@ -192,7 +192,7 @@ onMounted(() => {
               v-model="newTournament.name"
               type="text"
               required
-              placeholder="e.g. Summer Cup 2026"
+              placeholder="e.g. DATA Cup 2026"
             />
           </div>
 
@@ -335,6 +335,7 @@ onMounted(() => {
   border-radius: 8px;
   background: rgba(255, 255, 255, 0.95);
   color: var(--color-black);
+  font-family: inherit;
   font-size: 12px;
   font-weight: 600;
   outline: none;
