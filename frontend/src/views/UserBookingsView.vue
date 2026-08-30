@@ -1,5 +1,5 @@
 <script setup>
-import { onMounted, ref } from 'vue'
+import { onMounted, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import { cancelBooking, fetchUserBookings } from '@/api/fields'
@@ -108,6 +108,16 @@ async function handleCancel(booking) {
     cancellingId.value = null
   }
 }
+
+watch(
+  () => authStore.isAuthenticated,
+  (isAuthenticated) => {
+    if (!isAuthenticated) {
+      router.push('/login')
+    }
+  },
+  { immediate: true },
+)
 
 onMounted(loadBookings)
 </script>
