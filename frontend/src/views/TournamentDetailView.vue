@@ -315,7 +315,11 @@ onMounted(loadTournament)
       :current="tournament?.name || 'Tournament'"
     />
 
-    <PageHeader v-if="!isLoading && tournament" :title="tournament.name" />
+    <PageHeader
+      v-if="!isLoading && tournament"
+      :title="tournament.name"
+      subtitle="Tournament details"
+    />
 
     <AppBanner v-if="errorMessage" type="error" :message="errorMessage" />
 
@@ -326,11 +330,13 @@ onMounted(loadTournament)
     <template v-else-if="tournament">
       <!-- Overview -->
       <Panel class="overview-panel">
-        <div class="overview-header">
-          <SportBadge :sport="tournament.sport" />
-        </div>
-
         <div class="overview-stats">
+          <div class="stat">
+            <div>
+              <span class="stat-label">Sport</span>
+              <SportBadge :sport="tournament.sport" />
+            </div>
+          </div>
           <div class="stat">
             <div class="stat-icon">
               <CalendarIcon />
@@ -538,15 +544,7 @@ onMounted(loadTournament)
 /* Overview */
 
 .overview-panel {
-  padding: 28px;
   border-radius: 18px;
-}
-
-.overview-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16px;
 }
 
 .overview-stats {
@@ -561,7 +559,7 @@ onMounted(loadTournament)
   align-items: center;
   gap: 12px;
   padding: 15px;
-  border: 1px solid rgba(0, 0, 0, 0.05);
+  border: 1px solid var(--card-border-color);
   border-radius: 12px;
 }
 
@@ -578,8 +576,8 @@ onMounted(loadTournament)
 }
 
 .stat-icon svg {
-  width: 20px;
-  height: 20px;
+  width: 24px;
+  height: 24px;
 }
 
 .stat > div:last-child {

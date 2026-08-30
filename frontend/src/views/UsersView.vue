@@ -1,7 +1,7 @@
 <script setup>
-import {computed, onMounted, ref} from 'vue'
-import {useRouter} from 'vue-router'
-import {fetchUsers} from '@/api/users'
+import { ref, watch } from 'vue'
+import { useRouter } from 'vue-router'
+import { fetchUsers } from '@/api/users'
 
 import Panel from '@/components/Panel.vue'
 import Breadcrumbs from '@/components/Breadcrumbs.vue'
@@ -16,65 +16,57 @@ const router = useRouter()
 
 const users = ref([])
 const searchQuery = ref('')
-const isLoading = ref(true)
+const isLoading = ref(false)
 const errorMessage = ref('')
+const hasSearched = ref(false)
 
-const filteredUsers = computed(() => {
-  const query = searchQuery.value.trim().toLowerCase()
+let debounceTimer = null
 
-  if (!query) {
-    return users.value
+async function searchUsers(query) {
+  const trimmedQuery = query.trim()
+
+  if (!trimmedQuery) {
+    users.value = []
+    hasSearched.value = false
+    isLoading.value = false
+    return
   }
 
-  return users.value.filter((user) => {
-    const fullName = `${user.name || ''} ${user.surname || ''}`.toLowerCase()
-    const username = (user.username || '').toLowerCase()
-
-    return (
-      fullName.includes(query) ||
-      username.includes(query)
-    )
-  })
-})
-
-async function loadUsers() {
   isLoading.value = true
   errorMessage.value = ''
+  hasSearched.value = true
 
   try {
-    users.value = await fetchUsers()
+    // Calls API with the search query (e.g. /api/users?q=searchname)
+    users.value = await fetchUsers(trimmedQuery)
   } catch (err) {
     errorMessage.value = err.message || 'Error loading users'
+    users.value = []
   } finally {
     isLoading.value = false
   }
 }
 
+// Automatically search as the user types (debounced by 300ms)
+watch(searchQuery, (newQuery) => {
+  clearTimeout(debounceTimer)
+  debounceTimer = setTimeout(() => {
+    searchUsers(newQuery)
+  }, 300)
+})
+
 function openUserTournaments(userId) {
   router.push(`/users/${userId}/tournaments`)
 }
-
-onMounted(loadUsers)
 </script>
 
 <template>
   <div class="users-view">
-    <Breadcrumbs
-      section="Users"
-      section-to="/users"
-      current="User Directory"
-    />
+    <Breadcrumbs section="Users" section-to="/users" current="Search Users" />
 
-    <PageHeader
-      title="Users"
-      subtitle="Browse users and view their tournaments"
-    />
+    <PageHeader title="Users" subtitle="Browse users and view their tournaments" />
 
-    <AppBanner
-      v-if="errorMessage"
-      type="error"
-      :message="errorMessage"
-    />
+    <AppBanner v-if="errorMessage" type="error" :message="errorMessage" />
 
     <Panel title="Users">
       <FilterToolbar
@@ -86,26 +78,26 @@ onMounted(loadUsers)
             value: 'all',
           },
         ]"
-        search-placeholder="Filter users by name or username..."
+        search-placeholder="Search users by name or username..."
       />
 
-      <LoadingState
-        v-if="isLoading"
-        message="Loading users..."
+      <LoadingState v-if="isLoading" message="Searching users..." />
+
+      <EmptyState
+        v-else-if="!hasSearched"
+        title="Search Users"
+        message="Type a name or username in the search box above."
       />
 
       <EmptyState
-        v-else-if="filteredUsers.length === 0"
+        v-else-if="users.length === 0"
         title="No Users Found"
         message="Try adjusting your search criteria."
       />
 
-      <div
-        v-else
-        class="user-list"
-      >
+      <div v-else class="user-list">
         <article
-          v-for="user in filteredUsers"
+          v-for="user in users"
           :key="user._id"
           class="user-item"
           role="button"
@@ -116,20 +108,14 @@ onMounted(loadUsers)
         >
           <div class="user-header">
             <div class="user-title">
-              <span class="user-name">
-                {{ user.name }} {{ user.surname }}
-              </span>
+              <span class="user-name"> {{ user.name }} {{ user.surname }} </span>
             </div>
 
-            <span class="user-chevron">
-              →
-            </span>
+            <span class="user-chevron"> → </span>
           </div>
 
           <div class="user-meta">
-            <Pill variant="default">
-              @{{ user.username }}
-            </Pill>
+            <Pill variant="default"> @{{ user.username }} </Pill>
           </div>
         </article>
       </div>
@@ -149,16 +135,13 @@ onMounted(loadUsers)
 
 .user-list {
   display: grid;
-  grid-template-columns: repeat(
-    auto-fill,
-    minmax(280px, 1fr)
-  );
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
   gap: 14px;
 }
 
 .user-item {
   background: var(--color-white);
-  border: 1px solid rgba(0, 0, 0, 0.08);
+  border: 1px solid var(--card-border-color);
   border-radius: 14px;
   padding: 16px 20px;
   cursor: pointer;
@@ -170,16 +153,6 @@ onMounted(loadUsers)
   gap: 10px;
 
   transition: all 0.1s ease;
-}
-
-.user-item:hover,
-.user-item:focus-visible {
-  border-color: rgba(0, 113, 227, 0.3);
-
-  box-shadow:
-    0 8px 24px rgba(0, 113, 227, 0.08);
-
-  outline: none;
 }
 
 .user-header {
@@ -218,7 +191,6 @@ onMounted(loadUsers)
 .user-item:hover .user-chevron,
 .user-item:focus-visible .user-chevron {
   color: var(--color-primary);
-  transform: translateX(2px);
 }
 
 .user-meta {

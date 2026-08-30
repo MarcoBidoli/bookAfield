@@ -73,12 +73,11 @@ const sportClass = computed(() => {
   --sport-border: rgb(128 128 128 / 0.12);
 
   background: #ffffff;
-  border: 1px solid rgba(0, 0, 0, 0.08);
+  border: 1px solid var(--card-border-color);
   border-radius: 16px;
   padding: 20px;
   cursor: pointer;
   transition: all 0.1s ease;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02);
 
   display: flex;
   flex-direction: column;
@@ -104,11 +103,6 @@ const sportClass = computed(() => {
   --sport-border: rgb(36 90 147 / 0.12);
 }
 
-/* Card hover */
-.field-card:hover {
-  border-color: var(--sport-border);
-}
-
 /* Header */
 .field-card-header {
   display: flex;
@@ -132,11 +126,10 @@ const sportClass = computed(() => {
   height: 45px;
   border-radius: 8px;
 
-  color: var(--sport-color);
+  color: var(--color-white);
+  background: var(--sport-color);
 
   padding: 8px;
-  background-color: var(--sport-bg);
-
   display: flex;
   align-items: center;
   justify-content: center;

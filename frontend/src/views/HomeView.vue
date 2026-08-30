@@ -1,10 +1,10 @@
 <script setup>
-import {onMounted, ref} from 'vue'
+import { onMounted, ref } from 'vue'
 import Panel from '@/components/Panel.vue'
 import Button from '@/components/Button.vue'
-import {fetchFields} from '@/api/fields'
-import {fetchTournaments} from '@/api/tournaments'
-import {fetchUsers} from "@/api/users.js";
+import { fetchFields } from '@/api/fields'
+import { fetchTournaments } from '@/api/tournaments'
+import { fetchUsers } from '@/api/users.js'
 
 const stats = ref({
   fieldsCount: 0,
@@ -52,30 +52,6 @@ onMounted(async () => {
         </div>
       </div>
     </Panel>
-
-    <!-- Stats Overview Section -->
-    <div class="stats-grid">
-      <div class="stat-card">
-        <div class="stat-content">
-          <div class="stat-value">{{ isLoadingStats ? '...' : stats.fieldsCount }}</div>
-          <div class="stat-label">Available Fields</div>
-        </div>
-      </div>
-
-      <div class="stat-card">
-        <div class="stat-content">
-          <div class="stat-value">{{ isLoadingStats ? '...' : stats.tournamentsCount }}</div>
-          <div class="stat-label">Tournaments</div>
-        </div>
-      </div>
-
-      <div class="stat-card">
-        <div class="stat-content">
-          <div class="stat-value">{{ stats.usersCount }}</div>
-          <div class="stat-label">Users</div>
-        </div>
-      </div>
-    </div>
 
     <!-- Features Panel -->
     <Panel title="What can you do?">
@@ -146,43 +122,6 @@ onMounted(async () => {
   text-decoration: none;
 }
 
-/* Stats Grid */
-.stats-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-  gap: 16px;
-}
-
-.stat-card {
-  background: var(--color-white);
-  border: 1px solid rgba(0, 0, 0, 0.08);
-  border-radius: 16px;
-  padding: 20px;
-  display: flex;
-  align-items: center;
-  gap: 16px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02);
-  transition: all 0.1s ease;
-}
-
-.stat-card:hover {
-  box-shadow: 0 6px 16px rgba(0, 113, 227, 0.08);
-}
-
-.stat-value {
-  font-size: 24px;
-  font-weight: 800;
-  color: var(--color-black);
-  letter-spacing: -0.4px;
-}
-
-.stat-label {
-  font-size: 12px;
-  font-weight: 600;
-  color: var(--color-lightgray-text);
-  margin-top: 2px;
-}
-
 /* Features */
 .features {
   display: grid;
@@ -192,10 +131,7 @@ onMounted(async () => {
 
 .feature {
   background: var(--color-white);
-  border: 1px solid rgba(0, 0, 0, 0.08);
-  border-radius: 12px;
   padding: 18px;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.02);
   transition: all 0.1s ease;
 }
 

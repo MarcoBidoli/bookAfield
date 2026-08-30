@@ -1,7 +1,8 @@
-// currently fetching /api/users and filtering locally
-// TODO: decide if use /api/users?q=query instead
-export async function fetchUsers() {
-  const response = await fetch('/api/users')
+export async function fetchUsers(query = '') {
+  const trimmedQuery = query.trim()
+  const endpoint = trimmedQuery ? `/api/users?q=${encodeURIComponent(trimmedQuery)}` : '/api/users'
+
+  const response = await fetch(endpoint)
 
   if (!response.ok) {
     const err = await response.json().catch(() => ({}))

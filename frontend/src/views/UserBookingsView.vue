@@ -1,8 +1,8 @@
 <script setup>
-import {onMounted, ref} from 'vue'
-import {useRouter} from 'vue-router'
-import {useAuthStore} from '@/stores/auth'
-import {cancelBooking, fetchUserBookings} from '@/api/fields'
+import { onMounted, ref } from 'vue'
+import { useRouter } from 'vue-router'
+import { useAuthStore } from '@/stores/auth'
+import { cancelBooking, fetchUserBookings } from '@/api/fields'
 
 import Panel from '@/components/Panel.vue'
 import Button from '@/components/Button.vue'
@@ -59,34 +59,23 @@ function isPast(booking) {
 }
 
 function getFieldName(booking) {
-  return (
-    booking.fieldDetails?.name ||
-    `Field ${booking.fieldId}`
-  )
+  return booking.fieldDetails?.name || `Field ${booking.fieldId}`
 }
 
 function getFieldDescription(booking) {
-  const sport = booking.fieldDetails?.sport
-    ? `(${booking.fieldDetails.sport})`
-    : ''
+  const sport = booking.fieldDetails?.sport ? `(${booking.fieldDetails.sport})` : ''
 
-  const address = booking.fieldDetails?.address
-    ? `— ${booking.fieldDetails.address}`
-    : ''
+  const address = booking.fieldDetails?.address ? `— ${booking.fieldDetails.address}` : ''
 
   return `${sport} ${address}`.trim()
 }
 
 function getBookingType(booking) {
-  return booking.type === 'tournament'
-    ? 'Tournament'
-    : 'Standard'
+  return booking.type === 'tournament' ? 'Tournament' : 'Standard'
 }
 
 function getBookingTypeVariant(booking) {
-  return booking.type === 'tournament'
-    ? 'primary'
-    : 'neutral'
+  return booking.type === 'tournament' ? 'primary' : 'neutral'
 }
 
 async function handleCancel(booking) {
@@ -96,7 +85,7 @@ async function handleCancel(booking) {
   }
 
   const confirmed = window.confirm(
-    `Are you sure you want to cancel your booking for ${getFieldName(booking)} on ${booking.date} at ${booking.slot}?`
+    `Are you sure you want to cancel your booking for ${getFieldName(booking)} on ${booking.date} at ${booking.slot}?`,
   )
 
   if (!confirmed) {
@@ -112,9 +101,7 @@ async function handleCancel(booking) {
 
     successMessage.value = 'Booking cancelled successfully'
 
-    bookings.value = bookings.value.filter(
-      bookingItem => bookingItem._id !== booking._id
-    )
+    bookings.value = bookings.value.filter((bookingItem) => bookingItem._id !== booking._id)
   } catch (err) {
     errorMessage.value = err.message || 'Failed to cancel booking'
   } finally {
@@ -127,34 +114,16 @@ onMounted(loadBookings)
 
 <template>
   <div class="user-bookings-view">
-    <Breadcrumbs
-      section="Fields"
-      section-to="/fields"
-      current="My Reservations"
-    />
+    <Breadcrumbs section="Fields" section-to="/fields" current="My Reservations" />
 
-    <PageHeader
-      title="My Reservations"
-      subtitle="View and manage your sports field bookings"
-    />
+    <PageHeader title="My Reservations" subtitle="View and manage your sports field bookings" />
 
-    <AppBanner
-      v-if="successMessage"
-      type="success"
-      :message="successMessage"
-    />
+    <AppBanner v-if="successMessage" type="success" :message="successMessage" />
 
-    <AppBanner
-      v-if="errorMessage"
-      type="error"
-      :message="errorMessage"
-    />
+    <AppBanner v-if="errorMessage" type="error" :message="errorMessage" />
 
     <Panel title="Court & Field Reservations">
-      <LoadingState
-        v-if="isLoading"
-        message="Loading your reservations..."
-      />
+      <LoadingState v-if="isLoading" message="Loading your reservations..." />
 
       <EmptyState
         v-else-if="bookings.length === 0"
@@ -163,102 +132,77 @@ onMounted(loadBookings)
       >
         <template #action>
           <router-link to="/fields">
-            <Button>
-              Book a Sports Field
-            </Button>
+            <Button> Book a Sports Field </Button>
           </router-link>
         </template>
       </EmptyState>
 
-      <div
-        v-else
-        class="table-container"
-      >
+      <div v-else class="table-container">
         <table class="bookings-table">
           <thead>
-          <tr>
-            <th>Field / Sport</th>
-            <th>Date</th>
-            <th>Time Slot</th>
-            <th>Type</th>
-            <th>Status</th>
-            <th class="actions-column">Actions</th>
-          </tr>
+            <tr>
+              <th>Field / Sport</th>
+              <th>Date</th>
+              <th>Time Slot</th>
+              <th>Type</th>
+              <th>Status</th>
+              <th class="actions-column">Actions</th>
+            </tr>
           </thead>
 
           <tbody>
-          <tr
-            v-for="booking in bookings"
-            :key="booking._id"
-            :class="{ 'past-row': isPast(booking) }"
-          >
-            <!-- Field -->
-            <td>
-              <div class="field-title">
-                {{ getFieldName(booking) }}
-              </div>
+            <tr
+              v-for="booking in bookings"
+              :key="booking._id"
+              :class="{ 'past-row': isPast(booking) }"
+            >
+              <!-- Field -->
+              <td>
+                <div class="field-title">
+                  {{ getFieldName(booking) }}
+                </div>
 
-              <div
-                v-if="getFieldDescription(booking)"
-                class="field-sub"
-              >
-                {{ getFieldDescription(booking) }}
-              </div>
-            </td>
+                <div v-if="getFieldDescription(booking)" class="field-sub">
+                  {{ getFieldDescription(booking) }}
+                </div>
+              </td>
 
-            <!-- Date -->
-            <td>
-              {{ booking.date }}
-            </td>
+              <!-- Date -->
+              <td>
+                {{ booking.date }}
+              </td>
 
-            <!-- Slot -->
-            <td>
-              <strong>{{ booking.slot }}</strong>
-            </td>
+              <!-- Slot -->
+              <td>
+                <strong>{{ booking.slot }}</strong>
+              </td>
 
-            <!-- Type -->
-            <td>
-              <Pill :variant="getBookingTypeVariant(booking)">
+              <!-- Type -->
+              <td>
                 {{ getBookingType(booking) }}
-              </Pill>
-            </td>
+              </td>
 
-            <!-- Status -->
-            <td>
-              <Pill
-                :status="
-                    isPast(booking)
-                      ? 'completed'
-                      : 'active'
-                  "
-              >
-                {{ isPast(booking) ? 'Completed' : 'Active' }}
-              </Pill>
-            </td>
+              <!-- Status -->
+              <td>
+                <Pill :status="isPast(booking) ? 'completed' : 'active'">
+                  {{ isPast(booking) ? 'Completed' : 'Active' }}
+                </Pill>
+              </td>
 
-            <!-- Actions -->
-            <td class="actions-column">
-              <Button
-                v-if="!isPast(booking)"
-                variant="danger"
-                :disabled="cancellingId === booking._id"
-                @click="handleCancel(booking)"
-              >
-                {{
-                  cancellingId === booking._id
-                    ? 'Cancelling...'
-                    : 'Cancel'
-                }}
-              </Button>
+              <!-- Actions -->
+              <td class="actions-column">
+                <Button
+                  v-if="!isPast(booking)"
+                  variant="danger"
+                  :disabled="cancellingId === booking._id"
+                  @click="handleCancel(booking)"
+                >
+                  {{ cancellingId === booking._id ? 'Cancelling...' : 'Cancel' }}
+                </Button>
 
-              <span
-                v-else
-                class="hint-text"
-              >
-                  —
-                </span>
-            </td>
-          </tr>
+                <span v-else class="hint-text"> — </span>
+              </td>
+            </tr>
           </tbody>
         </table>
       </div>

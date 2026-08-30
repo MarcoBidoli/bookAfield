@@ -291,7 +291,7 @@ const navigation = [
 
   background: rgba(240, 242, 245, 0.9);
 
-  padding: 12px;
+  padding: 12px 0px;
 
   transition:
     width 0.2s ease,
@@ -451,17 +451,22 @@ const navigation = [
   height: 30px;
   flex-shrink: 0;
 
-  display: flex;
-  align-items: center;
-  justify-content: center;
+  font-size: 10px;
+  font-weight: 800;
 
   border-radius: 50%;
 
-  background: rgba(0, 113, 227, 0.1);
-  color: var(--color-primary);
+  background: linear-gradient(
+    135deg,
+    var(--color-primary-dark) 0%,
+    var(--color-primary-hover-light) 100%
+  );
 
-  font-size: 10px;
-  font-weight: 800;
+  color: var(--color-white);
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .sidebar-user-info {
@@ -495,7 +500,7 @@ const navigation = [
 /* Collapsed */
 
 .sidebar.collapsed {
-  width: 64px;
+  width: 45px;
   padding: 12px 8px;
 }
 

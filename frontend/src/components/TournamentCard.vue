@@ -1,18 +1,18 @@
 <script setup>
 import SportBadge from '@/components/SportBadge.vue'
 import Pill from '@/components/Pill.vue'
-import CalendarIcon from "@/components/icons/CalendarIcon.vue";
-import UsersIcon from "@/components/icons/UsersIcon.vue";
+import CalendarIcon from '@/components/icons/CalendarIcon.vue'
+import UsersIcon from '@/components/icons/UsersIcon.vue'
 
 defineProps({
   tournament: {
     type: Object,
-    required: true
+    required: true,
   },
   isCreator: {
     type: Boolean,
-    default: false
-  }
+    default: false,
+  },
 })
 
 function getStatusVariant(status) {
@@ -42,20 +42,12 @@ defineEmits(['click', 'delete'])
 </script>
 
 <template>
-  <article
-    class="tournament-card"
-    @click="$emit('click')"
-  >
+  <article class="tournament-card" @click="$emit('click')">
     <!-- Header -->
     <div class="tournament-card-header">
       <div class="tournament-info-group">
-
         <div class="tournament-titles">
-          <router-link
-            :to="`/tournaments/${tournament._id}`"
-            class="tournament-name"
-            @click.stop
-          >
+          <router-link :to="`/tournaments/${tournament._id}`" class="tournament-name" @click.stop>
             {{ tournament.name }}
           </router-link>
 
@@ -71,14 +63,12 @@ defineEmits(['click', 'delete'])
     <!-- Metadata -->
     <div class="tournament-meta-grid">
       <div class="meta-item">
-       <CalendarIcon/>
-        <span class="meta-text">
-          Starts {{ tournament.startDate }}
-        </span>
+        <CalendarIcon />
+        <span class="meta-text"> Starts {{ tournament.startDate }} </span>
       </div>
 
       <div class="meta-item">
-       <UsersIcon/>
+        <UsersIcon />
         <span class="meta-text">
           {{ tournament.teams?.length || 0 }}
           / {{ tournament.maxTeams }} Teams Registered
@@ -89,11 +79,7 @@ defineEmits(['click', 'delete'])
     <!-- Actions -->
     <div class="tournament-card-footer">
       <div class="tournament-actions">
-        <router-link
-          :to="`/tournaments/${tournament._id}/matches`"
-          class="action-link"
-          @click.stop
-        >
+        <router-link :to="`/tournaments/${tournament._id}/matches`" class="action-link" @click.stop>
           Matches
         </router-link>
 
@@ -124,20 +110,14 @@ svg {
 }
 .tournament-card {
   background: var(--color-white);
-  border: 1px solid rgba(0, 0, 0, 0.08);
+  border: 1px solid var(--card-border-color);
   border-radius: 16px;
   padding: 20px;
   cursor: pointer;
   transition: all 0.1s ease;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02);
   display: flex;
   flex-direction: column;
   gap: 16px;
-}
-
-.tournament-card:hover {
-  border-color: rgba(0, 113, 227, 0.2);
-  box-shadow: 0 8px 24px rgba(0, 113, 227, 0.08);
 }
 
 .tournament-card-header {

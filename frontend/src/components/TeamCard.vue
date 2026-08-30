@@ -59,10 +59,6 @@ const emit = defineEmits(['remove', 'remove-player'])
           :key="player.userId || playerIndex"
           class="player-row"
         >
-          <div class="player-avatar">
-            {{ player.name?.charAt(0) }}{{ player.surname?.charAt(0) }}
-          </div>
-
           <div class="player-info">
             <strong> {{ player.name }} {{ player.surname }} </strong>
           </div>
@@ -97,6 +93,7 @@ const emit = defineEmits(['remove', 'remove-player'])
 .team-card {
   padding: 22px;
   border-radius: 16px;
+  border: 1px solid var(--card-border-color);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -217,39 +214,14 @@ const emit = defineEmits(['remove', 'remove-player'])
 .player-list {
   display: flex;
   flex-direction: column;
-  gap: 7px;
+  gap: 5px;
 }
 
 .player-row {
   display: flex;
   align-items: center;
-  gap: 10px;
-
   padding: 9px;
-
-  border: 1px solid rgba(0, 0, 0, 0.05);
-  border-radius: 10px;
-
-  background: rgba(0, 0, 0, 0.018);
-}
-
-.player-avatar {
-  width: 30px;
-  height: 30px;
-  flex-shrink: 0;
-
-  display: flex;
-  align-items: center;
-  justify-content: center;
-
-  border-radius: 50%;
-
-  background: rgba(0, 113, 227, 0.1);
-  color: #0071e3;
-
-  font-size: 9px;
-  font-weight: 800;
-  text-transform: uppercase;
+  border-top: 1px solid rgba(0, 0, 0, 0.05);
 }
 
 .player-info {
@@ -269,11 +241,7 @@ const emit = defineEmits(['remove', 'remove-player'])
 
 .jersey {
   padding: 4px 8px;
-  border-radius: 999px;
-
   color: #0071e3;
-  background: rgba(0, 113, 227, 0.08);
-
   font-size: 10px;
   font-weight: 750;
 }

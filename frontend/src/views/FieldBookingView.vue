@@ -290,14 +290,6 @@ onMounted(async () => {
       <Panel :title="`Book ${field.name}`">
         <!-- Field summary -->
         <div class="selected-field">
-          <div class="selected-field-main">
-            <span class="field-name">
-              {{ field.name }}
-            </span>
-
-            <SportBadge :sport="field.sport" />
-          </div>
-
           <div class="field-meta">
             <span>
               <PinPointIcon />
@@ -308,6 +300,8 @@ onMounted(async () => {
               <ClockIcon />
               {{ field.slots?.length || 0 }} Daily Slots
             </span>
+
+            <SportBadge :sport="field.sport" />
           </div>
         </div>
 
@@ -488,11 +482,7 @@ onMounted(async () => {
 
 .selected-field {
   background: var(--color-white);
-  border: 1px solid rgba(0, 0, 0, 0.08);
-  border-radius: 12px;
-  padding: 16px 20px;
-  margin-bottom: 20px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02);
+  margin-bottom: 25px;
 }
 
 .selected-field-main {

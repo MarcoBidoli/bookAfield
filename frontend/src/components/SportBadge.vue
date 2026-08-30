@@ -63,14 +63,20 @@ const displaySport = computed(() => {
 
 .sport-basketball {
   border-color: rgb(209 116 0);
+  color: var(--color-white);
+  background: rgb(209 116 0);
 }
 
 .sport-football {
   border-color: rgb(0 89 23);
+  color: var(--color-white);
+  background: rgb(0 89 23);
 }
 
 .sport-volleyball {
   border-color: rgb(36 90 147);
+  color: var(--color-white);
+  background: rgb(36 90 147);
 }
 
 .sport-default {

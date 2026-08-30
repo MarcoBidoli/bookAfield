@@ -460,18 +460,13 @@ onMounted(loadMatches)
 
 .match-card {
   background: var(--color-white);
-  border: 1px solid rgba(0, 0, 0, 0.08);
+  border: 1px solid var(--card-border-color);
   border-radius: 16px;
   padding: 20px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02);
   display: flex;
   flex-direction: column;
   gap: 16px;
   transition: all 0.1s ease;
-}
-
-.match-card:hover {
-  box-shadow: 0 6px 16px rgba(0, 113, 227, 0.08);
 }
 
 .match-played {
@@ -532,8 +527,6 @@ onMounted(loadMatches)
 
   padding: 4px 12px;
   border-radius: 980px;
-
-  box-shadow: 0 2px 6px rgba(0, 113, 227, 0.2);
 }
 
 .score-form {
