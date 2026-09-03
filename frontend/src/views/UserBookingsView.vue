@@ -12,6 +12,7 @@ import AppBanner from '@/components/AppBanner.vue'
 import LoadingState from '@/components/LoadingState.vue'
 import EmptyState from '@/components/EmptyState.vue'
 import Pill from '@/components/Pill.vue'
+import SportBadge from '@/components/SportBadge.vue'
 
 const router = useRouter()
 const authStore = useAuthStore()
@@ -60,14 +61,6 @@ function isPast(booking) {
 
 function getFieldName(booking) {
   return booking.fieldDetails?.name || `Field ${booking.fieldId}`
-}
-
-function getFieldDescription(booking) {
-  const sport = booking.fieldDetails?.sport ? `(${booking.fieldDetails.sport})` : ''
-
-  const address = booking.fieldDetails?.address ? `— ${booking.fieldDetails.address}` : ''
-
-  return `${sport} ${address}`.trim()
 }
 
 function getBookingType(booking) {
@@ -124,9 +117,9 @@ onMounted(loadBookings)
 
 <template>
   <div class="user-bookings-view">
-    <Breadcrumbs section="Fields" section-to="/fields" current="My Reservations" />
+    <Breadcrumbs section="Fields" section-to="/fields" current="My Bookings" />
 
-    <PageHeader title="My Reservations" subtitle="View and manage your sports field bookings" />
+    <PageHeader title="My Bookings" subtitle="View and manage your sports field reservations" />
 
     <AppBanner v-if="successMessage" type="success" :message="successMessage" />
 
@@ -151,7 +144,8 @@ onMounted(loadBookings)
         <table class="bookings-table">
           <thead>
             <tr>
-              <th>Field / Sport</th>
+              <th>Field</th>
+              <th>Sport</th>
               <th>Date</th>
               <th>Time Slot</th>
               <th>Type</th>
@@ -172,8 +166,19 @@ onMounted(loadBookings)
                   {{ getFieldName(booking) }}
                 </div>
 
-                <div v-if="getFieldDescription(booking)" class="field-sub">
-                  {{ getFieldDescription(booking) }}
+                <div v-if="booking.fieldDetails?.address" class="field-sub">
+                  {{ booking.fieldDetails.address }}
+                </div>
+              </td>
+
+              <!-- Sport -->
+              <td>
+                <div class="sport-badge-wrapper">
+                  <SportBadge
+                    v-if="booking.fieldDetails?.sport"
+                    :sport="booking.fieldDetails.sport"
+                  />
+                  <span v-else class="hint-text">—</span>
                 </div>
               </td>
 
@@ -295,6 +300,13 @@ onMounted(loadBookings)
   font-size: 11px;
   font-weight: 500;
   color: var(--color-lightgray-text);
+}
+
+.sport-badge-wrapper {
+  display: flex;
+  align-items: center;
+  transform: scale(0.85);
+  transform-origin: left center;
 }
 
 .actions-column {
