@@ -72,19 +72,25 @@ const sportClass = computed(() => {
   --sport-bg: rgb(128 128 128 / 0.08);
   --sport-border: rgb(128 128 128 / 0.12);
 
-  background: #ffffff;
-  border: 1px solid var(--card-border-color);
-  border-radius: 16px;
-  padding: 20px;
-  cursor: pointer;
-  transition: all 0.1s ease;
-
   display: flex;
   flex-direction: column;
   gap: 16px;
+
+  padding: 20px;
+
+  background: #ffffff;
+  border: 1px solid var(--card-border-color);
+  border-radius: 16px;
+
+  cursor: pointer;
+
+  transition:
+    border-color 0.15s ease,
+    box-shadow 0.15s ease;
 }
 
 /* Sport colors */
+
 .field-card.sport-football {
   --sport-color: rgb(0 89 23);
   --sport-bg: rgb(0 89 28 / 0.08);
@@ -103,37 +109,48 @@ const sportClass = computed(() => {
   --sport-border: rgb(36 90 147 / 0.12);
 }
 
+/* Card hover */
+
+.field-card:hover {
+  border-color: color-mix(in srgb, var(--sport-color) 35%, var(--card-border-color));
+
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+}
+
 /* Header */
+
 .field-card-header {
   display: flex;
-  justify-content: space-between;
   align-items: center;
+  justify-content: space-between;
+
+  padding-bottom: 14px;
 
   border-bottom: 1px solid rgba(0, 0, 0, 0.06);
-  padding-bottom: 14px;
 }
 
 /* Sport information */
+
 .field-info-group {
   display: flex;
   align-items: center;
   gap: 12px;
+
   min-width: 0;
 }
 
 .field-sport-avatar {
-  width: 45px;
-  height: 45px;
-  border-radius: 8px;
-
-  color: var(--color-white);
-  background: var(--sport-color);
-
-  padding: 8px;
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
+  width: 45px;
+  height: 45px;
+  padding: 8px;
+  background: var(--sport-color);
+  border-radius: 8px;
+
+  color: var(--color-white);
 }
 
 .field-titles {
@@ -144,10 +161,10 @@ const sportClass = computed(() => {
 }
 
 .field-name {
-  color: var(--color-black);
-  font-weight: 700;
-  font-size: 15px;
   margin: 0;
+  color: var(--color-black);
+  font-size: 15px;
+  font-weight: 700;
   letter-spacing: -0.2px;
 
   white-space: nowrap;
@@ -156,45 +173,63 @@ const sportClass = computed(() => {
 }
 
 .sport-badge {
-  background: var(--sport-bg);
-  color: var(--sport-color);
-
+  width: fit-content;
   padding: 2px 8px;
+  background: var(--sport-bg);
   border-radius: 980px;
+  color: var(--sport-color);
 
   font-size: 11px;
   font-weight: 600;
   text-transform: capitalize;
-
-  width: fit-content;
 }
 
-/* Book button */
+/* Book action */
+
 .book-action-indicator {
-  font-size: 12px;
-  font-weight: 600;
-
-  color: var(--sport-color);
-  background: var(--sport-bg);
-
-  padding: 6px 12px;
-  border-radius: 980px;
-
-  transition: all 0.1s ease;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
 
   flex-shrink: 0;
 
-  display: flex;
-  align-items: center;
-  gap: 4px;
+  padding: 6px 11px;
+
+  background: var(--sport-bg);
+  border: 1px solid transparent;
+  border-radius: 980px;
+
+  color: var(--sport-color);
+
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 16px;
+
+  transition:
+    background-color 0.15s ease,
+    border-color 0.15s ease,
+    color 0.15s ease;
+}
+
+.book-action-indicator svg {
+  width: 13px;
+  height: 13px;
+
+  transition: transform 0.2s ease-in-out;
 }
 
 .field-card:hover .book-action-indicator {
   background: var(--sport-color);
+  border-color: var(--sport-color);
   color: var(--color-white);
 }
 
+.field-card:hover .book-action-indicator svg {
+  transform: translateX(2px);
+}
+
 /* Metadata */
+
 .field-meta-grid {
   display: flex;
   flex-direction: column;
@@ -206,14 +241,16 @@ const sportClass = computed(() => {
   align-items: center;
   gap: 8px;
 
+  color: var(--color-darkgray);
+
   font-size: 13px;
   font-weight: 500;
-  color: var(--color-darkgray);
 }
 
-.meta-icon {
-  color: var(--color-darkgray);
+.meta-item svg {
   flex-shrink: 0;
+
+  color: var(--color-darkgray);
 }
 
 .meta-text {
