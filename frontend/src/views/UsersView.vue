@@ -1,7 +1,7 @@
 <script setup>
-import { ref, watch } from 'vue'
-import { useRouter } from 'vue-router'
 import { fetchUsers } from '@/api/users'
+import { ref, watch } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 
 import Panel from '@/components/Panel.vue'
 import Breadcrumbs from '@/components/Breadcrumbs.vue'
@@ -13,16 +13,17 @@ import AppBanner from '@/components/AppBanner.vue'
 import Pill from '@/components/Pill.vue'
 
 const router = useRouter()
+const route = useRoute()
 
 const users = ref([])
-const searchQuery = ref('')
+const searchQuery = ref(route.query.q || '')
 const isLoading = ref(false)
 const errorMessage = ref('')
-const hasSearched = ref(false)
+const hasSearched = ref(!!route.query.q)
 
 let debounceTimer = null
 
-async function searchUsers(query) {
+async function searchUsers(query = searchQuery.value) {
   const trimmedQuery = query.trim()
 
   if (!trimmedQuery) {
@@ -50,10 +51,33 @@ async function searchUsers(query) {
 // Automatically search as the user types (debounced by 300ms)
 watch(searchQuery, (newQuery) => {
   clearTimeout(debounceTimer)
+
   debounceTimer = setTimeout(() => {
-    searchUsers(newQuery)
+    const routeQuery = { ...route.query }
+    const trimmedQuery = newQuery.trim()
+
+    if (trimmedQuery) {
+      routeQuery.q = trimmedQuery
+    } else {
+      delete routeQuery.q
+    }
+
+    router.replace({ query: routeQuery })
+
+    searchUsers(trimmedQuery)
   }, 300)
 })
+
+watch(
+  () => route.query.q,
+  (newSearch) => {
+    const value = newSearch || ''
+
+    if (value !== searchQuery.value) {
+      searchQuery.value = value
+    }
+  },
+)
 
 function openUserTournaments(userId) {
   router.push(`/users/${userId}/tournaments`)

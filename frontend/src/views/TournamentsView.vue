@@ -1,5 +1,5 @@
 <script setup>
-import { computed, onMounted, reactive, ref } from 'vue'
+import { computed, onMounted, reactive, ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import { createTournament, deleteTournament, fetchTournaments } from '@/api/tournaments'
@@ -19,7 +19,8 @@ const route = useRoute()
 const authStore = useAuthStore()
 
 const tournaments = ref([])
-const searchQuery = ref('')
+const searchQuery = ref(route.query.q || '')
+
 const tournamentsFilter = computed(() => [
   { label: 'All', value: 'all' },
   ...(authStore.isAuthenticated ? [{ label: 'My Tournaments', value: 'myTournaments' }] : []),
@@ -45,6 +46,37 @@ const selectedSportFilter = computed({
     router.replace({ query })
   },
 })
+
+// Debounced URL search sync
+let searchDebounceTimeout = null
+
+watch(searchQuery, (newVal) => {
+  clearTimeout(searchDebounceTimeout)
+
+  searchDebounceTimeout = setTimeout(() => {
+    const query = { ...route.query }
+    const trimmed = newVal.trim()
+
+    if (trimmed) {
+      query.q = trimmed
+    } else {
+      delete query.q
+    }
+
+    router.replace({ query })
+
+    loadTournaments(trimmed)
+  }, 300)
+})
+
+// Synchronize state if URL query changes (e.g., browser navigation)
+watch(
+  () => route.query.q,
+  (newSearch) => {
+    searchQuery.value = newSearch || ''
+  },
+)
+
 const isLoading = ref(true)
 const isSubmitting = ref(false)
 const errorMessage = ref('')
@@ -64,12 +96,12 @@ function getTomorrowDate() {
   return date.toISOString().split('T')[0]
 }
 
-async function loadTournaments() {
+async function loadTournaments(search = searchQuery.value) {
   isLoading.value = true
   errorMessage.value = ''
 
   try {
-    tournaments.value = await fetchTournaments(searchQuery.value)
+    tournaments.value = await fetchTournaments(search)
   } catch (err) {
     errorMessage.value = err.message || 'Error loading tournaments'
   } finally {
@@ -77,17 +109,20 @@ async function loadTournaments() {
   }
 }
 
-function filteredTournaments() {
-  if (selectedSportFilter.value === 'all') {
-    return tournaments.value
-  }
+// Reactively filter tournaments by search query and active sport
+const filteredTournaments = computed(() => {
+  let list = tournaments.value
 
   if (selectedSportFilter.value === 'myTournaments') {
-    return tournaments.value.filter((tournament) => isCreator(tournament))
+    return list.filter((tournament) => isCreator(tournament))
   }
 
-  return tournaments.value.filter((tournament) => tournament.sport === selectedSportFilter.value)
-}
+  if (selectedSportFilter.value !== 'all') {
+    return list.filter((tournament) => tournament.sport === selectedSportFilter.value)
+  }
+
+  return list
+})
 
 function openTournament(tournamentId) {
   router.push(`/tournaments/${tournamentId}`)
@@ -172,7 +207,6 @@ onMounted(() => {
 
     <AppBanner v-if="errorMessage" type="error" :message="errorMessage" />
 
-    <!-- Create Tournament -->
     <Panel title="Create New Tournament">
       <div v-if="!authStore.isAuthenticated" class="auth-notice">
         <span>Sign in to host and manage sports tournaments.</span>
@@ -234,13 +268,12 @@ onMounted(() => {
 
         <div class="form-actions">
           <Button type="submit" :disabled="isSubmitting || !newTournament.name">
-            {{ isSubmitting ? 'Creating...' : 'Post Tournament' }}
+            {{ isSubmitting ? 'Creating...' : 'Create Tournament' }}
           </Button>
         </div>
       </form>
     </Panel>
 
-    <!-- Tournament Directory -->
     <Panel>
       <FilterToolbar
         v-model="searchQuery"
@@ -252,14 +285,14 @@ onMounted(() => {
       <LoadingState v-if="isLoading" message="Loading available tournaments..." />
 
       <EmptyState
-        v-else-if="filteredTournaments().length === 0"
+        v-else-if="filteredTournaments.length === 0"
         title="No Tournaments Found"
         message="Try adjusting your search criteria or sport filters."
       />
 
       <div v-else class="tournaments-grid">
         <TournamentCard
-          v-for="tournament in filteredTournaments()"
+          v-for="tournament in filteredTournaments"
           :key="tournament._id"
           :tournament="tournament"
           :is-creator="isCreator(tournament)"
