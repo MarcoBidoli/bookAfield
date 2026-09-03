@@ -255,7 +255,7 @@ onMounted(loadMatches)
                 {{ match.teamAName === 'BYE' ? match.teamBName : match.teamAName }}
               </span>
 
-              <Pill variant="secondary"> Rest Day </Pill>
+              <Pill variant="muted"> Rest Day </Pill>
             </div>
 
             <!-- STANDARD MATCH -->
@@ -311,7 +311,7 @@ onMounted(loadMatches)
 
                   <!-- Everyone else -->
                   <template v-else>
-                    <Pill variant="secondary"> VS </Pill>
+                    <span class="match-vs">VS</span>
                   </template>
                 </div>
 
@@ -354,8 +354,8 @@ onMounted(loadMatches)
                   </span>
                 </div>
 
-                <Pill :variant="match.status === 'played' ? 'success' : 'warning'">
-                  {{ match.status === 'played' ? 'Played' : 'Upcoming' }}
+                <Pill :variant="match.status === 'played' ? 'muted' : 'warning'">
+                  {{ match.status === 'played' ? 'Completed' : 'Upcoming' }}
                 </Pill>
               </div>
 
@@ -410,8 +410,7 @@ onMounted(loadMatches)
 </template>
 
 <style scoped>
-.navigation-button,
-.start-button {
+.navigation-button {
   display: inline-flex;
   align-items: center;
   gap: 7px;
@@ -516,6 +515,13 @@ onMounted(loadMatches)
 
   min-width: 110px;
   margin-bottom: 10px;
+}
+
+.match-vs {
+  color: var(--color-lightgray-text);
+  font-size: 11px;
+  font-weight: 700;
+  white-space: nowrap;
 }
 
 .score-badge {

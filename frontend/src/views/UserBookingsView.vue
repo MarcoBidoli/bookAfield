@@ -199,8 +199,8 @@ onMounted(loadBookings)
 
               <!-- Status -->
               <td>
-                <Pill :status="isPast(booking) ? 'completed' : 'active'">
-                  {{ isPast(booking) ? 'Completed' : 'Active' }}
+                <Pill :variant="isPast(booking) ? 'muted' : 'success'">
+                  {{ isPast(booking) ? 'Past booking' : 'Booked' }}
                 </Pill>
               </td>
 

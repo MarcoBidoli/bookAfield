@@ -23,10 +23,8 @@ function getStatusVariant(status) {
     case 'active':
       return 'success'
     case 'registration':
-    case 'upcoming':
-      return 'warning'
+      return 'primary'
     case 'completed':
-    case 'played':
       return 'muted'
     default:
       return 'default'
@@ -34,8 +32,16 @@ function getStatusVariant(status) {
 }
 
 function formatStatus(status) {
-  if (!status) return ''
-  return status.charAt(0).toUpperCase() + status.slice(1)
+  switch (status) {
+    case 'active':
+      return 'In progress'
+    case 'registration':
+      return 'Registration open'
+    case 'completed':
+      return 'Completed'
+    default:
+      return status || ''
+  }
 }
 
 function getSportClass(sport) {

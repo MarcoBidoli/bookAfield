@@ -104,10 +104,8 @@ function getStatusVariant(status) {
     case 'active':
       return 'success'
     case 'registration':
-    case 'upcoming':
-      return 'warning'
+      return 'primary'
     case 'completed':
-    case 'played':
       return 'muted'
     default:
       return 'default'
@@ -115,8 +113,16 @@ function getStatusVariant(status) {
 }
 
 function formatStatus(status) {
-  if (!status) return ''
-  return status.charAt(0).toUpperCase() + status.slice(1)
+  switch (status) {
+    case 'active':
+      return 'In progress'
+    case 'registration':
+      return 'Registration open'
+    case 'completed':
+      return 'Completed'
+    default:
+      return status || ''
+  }
 }
 
 async function loadTournament() {
@@ -429,7 +435,9 @@ onMounted(loadTournament)
           <div v-if="canAddTeams" class="reg-section">
             <p class="reg-section-label">
               Register Team
-              <span class="reg-count">{{ teamsRemaining }} slot{{ teamsRemaining === 1 ? '' : 's' }} left</span>
+              <span class="reg-count"
+                >{{ teamsRemaining }} slot{{ teamsRemaining === 1 ? '' : 's' }} left</span
+              >
             </p>
 
             <form class="reg-form" @submit.prevent="handleAddTeam">
@@ -445,7 +453,11 @@ onMounted(loadTournament)
               </div>
 
               <div class="form-submit">
-                <Button type="submit" variant="primary" :disabled="isUpdating || !newTeamName.trim()">
+                <Button
+                  type="submit"
+                  variant="primary"
+                  :disabled="isUpdating || !newTeamName.trim()"
+                >
                   Add Team
                 </Button>
               </div>

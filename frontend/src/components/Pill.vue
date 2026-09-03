@@ -1,5 +1,5 @@
 <script setup>
-import {computed} from 'vue'
+import { computed } from 'vue'
 
 const props = defineProps({
   variant: {
@@ -8,60 +8,59 @@ const props = defineProps({
   },
 })
 
-const variantClass = computed(() => `pill-${props.variant}`)
+const variantClass = computed(() => `status-${props.variant}`)
 </script>
 
 <template>
-  <span :class="['pill', variantClass]">
-    <slot />
+  <span :class="['status', variantClass]">
+    <span class="status-led" aria-hidden="true" />
+    <span class="status-label">
+      <slot />
+    </span>
   </span>
 </template>
 
 <style scoped>
-.pill {
+.status {
   display: inline-flex;
   align-items: center;
-  gap: 5px;
-  padding: 3px 10px;
-  border-radius: 980px;
+  gap: 6px;
   font-size: 11px;
   font-weight: 600;
+  line-height: 1;
   white-space: nowrap;
 }
 
-.pill-success {
-  background: rgba(52, 199, 89, 0.12);
-  color: #1b5e20;
-  border: 1px solid rgba(52, 199, 89, 0.25);
+.status-led {
+  width: 6px;
+  height: 6px;
+  flex: 0 0 6px;
+  border-radius: 50%;
+  background: currentColor;
+  box-shadow: 0 0 0 2px color-mix(in srgb, currentColor 12%, transparent);
 }
 
-.pill-warning {
-  background: rgba(255, 149, 0, 0.12);
-  color: #b25000;
-  border: 1px solid rgba(255, 149, 0, 0.25);
+.status-success {
+  color: #2f8f46;
 }
 
-.pill-danger {
-  background: rgba(255, 59, 48, 0.12);
-  color: var(--color-danger-banner);
-  border: 1px solid rgba(255, 59, 48, 0.25);
+.status-warning {
+  color: #c18303;
 }
 
-.pill-muted {
-  background: rgba(0, 0, 0, 0.04);
+.status-danger {
+  color: #c43d36;
+}
+
+.status-muted {
+  color: #8a8a8a;
+}
+
+.status-primary {
+  color: #3478b9;
+}
+
+.status-default {
   color: #6e6e73;
-  border: 1px solid rgba(0, 0, 0, 0.08);
-}
-
-.pill-primary {
-  background: rgba(0, 113, 227, 0.08);
-  color: var(--color-primary);
-  border: 1px solid rgba(0, 113, 227, 0.2);
-}
-
-.pill-default {
-  background: rgba(0, 0, 0, 0.04);
-  color: #48484a;
-  border: 1px solid rgba(0, 0, 0, 0.08);
 }
 </style>
