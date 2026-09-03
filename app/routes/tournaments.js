@@ -233,6 +233,8 @@ router.post(
                     const home = teams[i];
                     const away = teams[N - 1 - i];
 
+                    const isBye = home._id === null || away._id === null;
+
                     matches.push({
                         tournamentId: tournament._id,
                         teamA: home._id,
@@ -240,7 +242,7 @@ router.post(
                         teamAName: home.name,
                         teamBName: away.name,
                         round,
-                        status: "upcoming",
+                        status: isBye ? "played" : "upcoming",
                         fieldId: null,
                         date: null,
                         slot: null,

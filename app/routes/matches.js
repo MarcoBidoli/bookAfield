@@ -64,6 +64,23 @@ router.put(
             }
         );
 
+        // Check whether all matches are completed and update tournament status if all matches have a score
+        const remainingMatches = await db.collection("matches").countDocuments({
+            tournamentId: tournament._id,
+            status: { $ne: "played" }
+        });
+
+        if (remainingMatches === 0) {
+            await db.collection("tournaments").updateOne(
+                { _id: tournament._id },
+                {
+                    $set: {
+                        status: "completed"
+                    }
+                }
+            );
+        }
+
         res.json(updatedMatch);
     } catch (error) {
         next(error);
