@@ -239,7 +239,6 @@ async function handleAddPlayer() {
   }
 
   team.players.push({
-    userId: authStore.user?._id || authStore.user?.id || null,
     name,
     surname,
     jerseyNumber: newPlayer.jerseyNumber.trim() || null,

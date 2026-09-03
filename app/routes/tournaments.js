@@ -150,7 +150,6 @@ router.put(
                     name: String(team.name || "").trim(),
                     players: Array.isArray(team.players)
                         ? team.players.map((player) => ({
-                            userId: new ObjectId(player.userId),
                             name: String(player.name || "").trim(),
                             surname: String(player.surname || "").trim(),
                             jerseyNumber:

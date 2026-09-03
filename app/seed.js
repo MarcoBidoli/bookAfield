@@ -383,18 +383,8 @@ async function seedDatabase() {
      * ==================================================================
      */
 
-    function registeredPlayer(user, jerseyNumber = null) {
+    function createPlayer(name, surname, jerseyNumber = null) {
       return {
-        userId: user._id,
-        name: user.name,
-        surname: user.surname,
-        jerseyNumber,
-      };
-    }
-
-    function guestPlayer(name, surname, jerseyNumber = null) {
-      return {
-        userId: null,
         name,
         surname,
         jerseyNumber,
@@ -541,31 +531,31 @@ async function seedDatabase() {
     const readyTournamentId = new ObjectId();
 
     const readyTeam1 = createTeam("Trieste Sharks", [
-      registeredPlayer(userFabbro, 10),
-      guestPlayer("Luca", "Rossi", 7),
-      guestPlayer("Marco", "Bianchi", 12),
-      guestPlayer("Andrea", "Moro", 4),
+      createPlayer(userFabbro.name, userFabbro.surname, 10),
+      createPlayer("Luca", "Rossi", 7),
+      createPlayer("Marco", "Bianchi", 12),
+      createPlayer("Andrea", "Moro", 4),
     ]);
 
     const readyTeam2 = createTeam("Udine Eagles", [
-      registeredPlayer(userVisintin, 8),
-      guestPlayer("Matteo", "Verdi", 5),
-      guestPlayer("Paolo", "Russo", 11),
-      guestPlayer("Davide", "Furlan", 3),
+      createPlayer(userVisintin.name, userVisintin.surname, 8),
+      createPlayer("Matteo", "Verdi", 5),
+      createPlayer("Paolo", "Russo", 11),
+      createPlayer("Davide", "Furlan", 3),
     ]);
 
     const readyTeam3 = createTeam("Gorizia Block", [
-      registeredPlayer(userCalligaris, 6),
-      guestPlayer("Stefano", "Moro", 9),
-      guestPlayer("Pietro", "Neri", 13),
-      guestPlayer("Fabio", "Basso", 2),
+      createPlayer(userCalligaris.name, userCalligaris.surname, 6),
+      createPlayer("Stefano", "Moro", 9),
+      createPlayer("Pietro", "Neri", 13),
+      createPlayer("Fabio", "Basso", 2),
     ]);
 
     const readyTeam4 = createTeam("Pordenone Volley", [
-      registeredPlayer(userZuliani, 1),
-      guestPlayer("Nicola", "Pavan", 7),
-      guestPlayer("Enrico", "Moretti", 15),
-      guestPlayer("Giorgio", "Rossi", 10),
+      createPlayer(userZuliani.name, userZuliani.surname, 1),
+      createPlayer("Nicola", "Pavan", 7),
+      createPlayer("Enrico", "Moretti", 15),
+      createPlayer("Giorgio", "Rossi", 10),
     ]);
 
     const readyTournament = {
@@ -605,35 +595,35 @@ async function seedDatabase() {
     const activeTournamentId = new ObjectId();
 
     const activeTeam1 = createTeam("Trieste United", [
-      registeredPlayer(userFabbro, 10),
-      guestPlayer("Luca", "Rossi", 7),
-      guestPlayer("Marco", "Bianchi", 12),
-      guestPlayer("Andrea", "Moro", 4),
-      guestPlayer("Stefano", "Neri", 8),
+      createPlayer(userFabbro.name, userFabbro.surname, 10),
+      createPlayer("Luca", "Rossi", 7),
+      createPlayer("Marco", "Bianchi", 12),
+      createPlayer("Andrea", "Moro", 4),
+      createPlayer("Stefano", "Neri", 8),
     ]);
 
     const activeTeam2 = createTeam("Udine FC", [
-      registeredPlayer(userVisintin, 9),
-      guestPlayer("Matteo", "Verdi", 5),
-      guestPlayer("Paolo", "Russo", 11),
-      guestPlayer("Davide", "Furlan", 3),
-      guestPlayer("Giorgio", "Basso", 6),
+      createPlayer(userVisintin.name, userVisintin.surname, 9),
+      createPlayer("Matteo", "Verdi", 5),
+      createPlayer("Paolo", "Russo", 11),
+      createPlayer("Davide", "Furlan", 3),
+      createPlayer("Giorgio", "Basso", 6),
     ]);
 
     const activeTeam3 = createTeam("Gorizia United", [
-      registeredPlayer(userCalligaris, 1),
-      guestPlayer("Stefano", "Moro", 4),
-      guestPlayer("Pietro", "Neri", 8),
-      guestPlayer("Fabio", "Basso", 13),
-      guestPlayer("Lorenzo", "Pavan", 17),
+      createPlayer(userCalligaris.name, userCalligaris.surname, 1),
+      createPlayer("Stefano", "Moro", 4),
+      createPlayer("Pietro", "Neri", 8),
+      createPlayer("Fabio", "Basso", 13),
+      createPlayer("Lorenzo", "Pavan", 17),
     ]);
 
     const activeTeam4 = createTeam("Pordenone FC", [
-      registeredPlayer(userZuliani, 12),
-      guestPlayer("Nicola", "Moretti", 7),
-      guestPlayer("Enrico", "Rossi", 9),
-      guestPlayer("Gabriele", "Moro", 14),
-      guestPlayer("Simone", "Bianchi", 18),
+      createPlayer(userZuliani.name, userZuliani.surname, 12),
+      createPlayer("Nicola", "Moretti", 7),
+      createPlayer("Enrico", "Rossi", 9),
+      createPlayer("Gabriele", "Moro", 14),
+      createPlayer("Simone", "Bianchi", 18),
     ]);
 
     const activeTeams = [
@@ -783,35 +773,35 @@ async function seedDatabase() {
     const completedTournamentId = new ObjectId();
 
     const completedTeam1 = createTeam("Trieste Basketball", [
-      registeredPlayer(userFabbro, 10),
-      guestPlayer("Luca", "Rossi", 7),
-      guestPlayer("Marco", "Bianchi", 12),
-      guestPlayer("Andrea", "Moro", 4),
-      guestPlayer("Stefano", "Neri", 8),
+      createPlayer(userFabbro.name, userFabbro.surname, 10),
+      createPlayer("Luca", "Rossi", 7),
+      createPlayer("Marco", "Bianchi", 12),
+      createPlayer("Andrea", "Moro", 4),
+      createPlayer("Stefano", "Neri", 8),
     ]);
 
     const completedTeam2 = createTeam("Udine Eagles", [
-      registeredPlayer(userPozzo, 9),
-      guestPlayer("Matteo", "Verdi", 5),
-      guestPlayer("Paolo", "Russo", 11),
-      guestPlayer("Davide", "Furlan", 3),
-      guestPlayer("Giorgio", "Basso", 6),
+      createPlayer(userPozzo.name, userPozzo.surname, 9),
+      createPlayer("Matteo", "Verdi", 5),
+      createPlayer("Paolo", "Russo", 11),
+      createPlayer("Davide", "Furlan", 3),
+      createPlayer("Giorgio", "Basso", 6),
     ]);
 
     const completedTeam3 = createTeam("Gorizia Basket", [
-      registeredPlayer(userCalligaris, 6),
-      guestPlayer("Stefano", "Moro", 9),
-      guestPlayer("Pietro", "Neri", 13),
-      guestPlayer("Fabio", "Basso", 2),
-      guestPlayer("Lorenzo", "Pavan", 15),
+      createPlayer(userCalligaris.name, userCalligaris.surname, 6),
+      createPlayer("Stefano", "Moro", 9),
+      createPlayer("Pietro", "Neri", 13),
+      createPlayer("Fabio", "Basso", 2),
+      createPlayer("Lorenzo", "Pavan", 15),
     ]);
 
     const completedTeam4 = createTeam("Pordenone Hoops", [
-      registeredPlayer(userZuliani, 12),
-      guestPlayer("Nicola", "Moretti", 7),
-      guestPlayer("Enrico", "Rossi", 9),
-      guestPlayer("Gabriele", "Moro", 14),
-      guestPlayer("Simone", "Bianchi", 18),
+      createPlayer(userZuliani.name, userZuliani.surname, 12),
+      createPlayer("Nicola", "Moretti", 7),
+      createPlayer("Enrico", "Rossi", 9),
+      createPlayer("Gabriele", "Moro", 14),
+      createPlayer("Simone", "Bianchi", 18),
     ]);
 
     const completedTeams = [
@@ -923,15 +913,15 @@ async function seedDatabase() {
     const otherVolleyTournamentId = new ObjectId();
 
     const otherVolleyTeam1 = createTeam("Udine Panthers", [
-      registeredPlayer(userVisintin, 10),
-      guestPlayer("Anna", "Rossi", 4),
-      guestPlayer("Marta", "Visentin", 8),
+      createPlayer(userVisintin.name, userVisintin.surname, 10),
+      createPlayer("Anna", "Rossi", 4),
+      createPlayer("Marta", "Visentin", 8),
     ]);
 
     const otherVolleyTeam2 = createTeam("Trieste Waves", [
-      registeredPlayer(userRossi, 7),
-      guestPlayer("Chiara", "Furlan", 3),
-      guestPlayer("Elisa", "Pavan", 9),
+      createPlayer(userRossi.name, userRossi.surname, 7),
+      createPlayer("Chiara", "Furlan", 3),
+      createPlayer("Elisa", "Pavan", 9),
     ]);
 
     const otherVolleyTournament = {
@@ -967,14 +957,14 @@ async function seedDatabase() {
       status: "registration",
       teams: [
         createTeam("Trieste Lions", [
-          registeredPlayer(userCalligaris, 10),
-          guestPlayer("Alberto", "Rossi", 4),
-          guestPlayer("Lorenzo", "Moro", 8),
+          createPlayer(userCalligaris.name, userCalligaris.surname, 10),
+          createPlayer("Alberto", "Rossi", 4),
+          createPlayer("Lorenzo", "Moro", 8),
         ]),
         createTeam("Muggia Basket", [
-          registeredPlayer(userBianchi, 7),
-          guestPlayer("Marco", "Neri", 12),
-          guestPlayer("Fabio", "Pavan", 15),
+          createPlayer(userBianchi.name, userBianchi.surname, 7),
+          createPlayer("Marco", "Neri", 12),
+          createPlayer("Fabio", "Pavan", 15),
         ]),
       ],
       createdAt: new Date("2026-08-06T10:00:00"),
@@ -989,31 +979,31 @@ async function seedDatabase() {
     const otherFootballTournamentId = new ObjectId();
 
     const otherFootballTeam1 = createTeam("Cividale FC", [
-      registeredPlayer(userZuliani, 10),
-      guestPlayer("Alessio", "Bortolin", 7),
-      guestPlayer("Matteo", "Fabbro", 9),
-      guestPlayer("Luca", "Basso", 11),
+      createPlayer(userZuliani.name, userZuliani.surname, 10),
+      createPlayer("Alessio", "Bortolin", 7),
+      createPlayer("Matteo", "Fabbro", 9),
+      createPlayer("Luca", "Basso", 11),
     ]);
 
     const otherFootballTeam2 = createTeam("San Daniele United", [
-      registeredPlayer(userBianchi, 8),
-      guestPlayer("Mauro", "Ciani", 4),
-      guestPlayer("Stefano", "Venier", 6),
-      guestPlayer("Pietro", "Zorzi", 12),
+      createPlayer(userBianchi.name, userBianchi.surname, 8),
+      createPlayer("Mauro", "Ciani", 4),
+      createPlayer("Stefano", "Venier", 6),
+      createPlayer("Pietro", "Zorzi", 12),
     ]);
 
     const otherFootballTeam3 = createTeam("Cervignano Calcio", [
-      registeredPlayer(userPozzo, 1),
-      guestPlayer("Andrea", "Pellizzari", 5),
-      guestPlayer("Nicola", "Comelli", 13),
-      guestPlayer("Fabio", "Furlan", 15),
+      createPlayer(userPozzo.name, userPozzo.surname, 1),
+      createPlayer("Andrea", "Pellizzari", 5),
+      createPlayer("Nicola", "Comelli", 13),
+      createPlayer("Fabio", "Furlan", 15),
     ]);
 
     const otherFootballTeam4 = createTeam("Sacile United", [
-      registeredPlayer(userRossi, 3),
-      guestPlayer("Davide", "Saccavino", 8),
-      guestPlayer("Lorenzo", "Benedetti", 10),
-      guestPlayer("Marco", "Zorzi", 14),
+      createPlayer(userRossi.name, userRossi.surname, 3),
+      createPlayer("Davide", "Saccavino", 8),
+      createPlayer("Lorenzo", "Benedetti", 10),
+      createPlayer("Marco", "Zorzi", 14),
     ]);
 
     const otherFootballTeams = [
@@ -1101,27 +1091,27 @@ async function seedDatabase() {
     const otherCompletedTournamentId = new ObjectId();
 
     const otherCompletedTeam1 = createTeam("Udine Basket", [
-      registeredPlayer(userPozzo, 10),
-      guestPlayer("Federico", "Marin", 4),
-      guestPlayer("Alessandro", "Comisso", 8),
+      createPlayer(userPozzo.name, userPozzo.surname, 10),
+      createPlayer("Federico", "Marin", 4),
+      createPlayer("Alessandro", "Comisso", 8),
     ]);
 
     const otherCompletedTeam2 = createTeam("Trieste Basket Club", [
-      registeredPlayer(userFabbro, 7),
-      guestPlayer("Gabriele", "Visentin", 9),
-      guestPlayer("Davide", "Rossi", 12),
+      createPlayer(userFabbro.name, userFabbro.surname, 7),
+      createPlayer("Gabriele", "Visentin", 9),
+      createPlayer("Davide", "Rossi", 12),
     ]);
 
     const otherCompletedTeam3 = createTeam("Pordenone Hoops", [
-      registeredPlayer(userZuliani, 3),
-      guestPlayer("Simone", "Furlan", 6),
-      guestPlayer("Andrea", "Zanier", 11),
+      createPlayer(userZuliani.name, userZuliani.surname, 3),
+      createPlayer("Simone", "Furlan", 6),
+      createPlayer("Andrea", "Zanier", 11),
     ]);
 
     const otherCompletedTeam4 = createTeam("Gorizia Basket", [
-      registeredPlayer(userCalligaris, 5),
-      guestPlayer("Giulio", "Dri", 13),
-      guestPlayer("Riccardo", "Cescutti", 15),
+      createPlayer(userCalligaris.name, userCalligaris.surname, 5),
+      createPlayer("Giulio", "Dri", 13),
+      createPlayer("Riccardo", "Cescutti", 15),
     ]);
 
     const otherCompletedTeams = [
@@ -1218,9 +1208,9 @@ async function seedDatabase() {
       status: "registration",
       teams: [
         createTeam("Winter FC", [
-          registeredPlayer(userBianchi, 10),
-          guestPlayer("Luca", "Moro", 4),
-          guestPlayer("Paolo", "Rossi", 7),
+          createPlayer(userBianchi.name, userBianchi.surname, 10),
+          createPlayer("Luca", "Moro", 4),
+          createPlayer("Paolo", "Rossi", 7),
         ]),
       ],
       createdAt: new Date("2026-08-12T10:00:00"),

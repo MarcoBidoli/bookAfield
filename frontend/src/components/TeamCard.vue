@@ -56,7 +56,7 @@ const emit = defineEmits(['remove', 'remove-player'])
       <div v-if="team.players?.length" class="player-list">
         <div
           v-for="(player, playerIndex) in team.players"
-          :key="player.userId || playerIndex"
+          :key="playerIndex"
           class="player-row"
         >
           <div class="player-info">
