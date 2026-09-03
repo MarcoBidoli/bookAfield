@@ -39,17 +39,18 @@ import AppFooter from '@/components/layout/AppFooter.vue'
 }
 
 .content-card {
+  position: relative;
   flex: 1;
   min-width: 0;
 
-  background: #fff;
+  background: #ffffff;
 
   border: 1px solid rgba(0, 0, 0, 0.06);
   border-radius: 12px;
 
   box-shadow:
-    0 20px 25px -5px rgba(0, 0, 0, 0.05),
-    0 8px 10px -6px rgba(0, 0, 0, 0.05);
+    0 20px 25px -5px rgba(0, 0, 0, 0.04),
+    0 8px 10px -6px rgba(0, 0, 0, 0.03);
 
   overflow-y: auto;
 }
