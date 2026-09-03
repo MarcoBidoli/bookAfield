@@ -1,5 +1,5 @@
 <script setup>
-import Panel from '@/components/Panel.vue'
+import BasePanel from '@/components/BasePanel.vue'
 import TrashIcon from '@/components/icons/TrashIcon.vue'
 import UsersIcon from '@/components/icons/UsersIcon.vue'
 
@@ -22,7 +22,7 @@ const emit = defineEmits(['remove', 'remove-player'])
 </script>
 
 <template>
-  <Panel class="team-card">
+  <BasePanel class="team-card">
     <!-- Team header -->
     <div class="team-header">
       <div class="team-title">
@@ -54,11 +54,7 @@ const emit = defineEmits(['remove', 'remove-player'])
 
       <!-- Players -->
       <div v-if="team.players?.length" class="player-list">
-        <div
-          v-for="(player, playerIndex) in team.players"
-          :key="playerIndex"
-          class="player-row"
-        >
+        <div v-for="(player, playerIndex) in team.players" :key="playerIndex" class="player-row">
           <div class="player-info">
             <strong> {{ player.name }} {{ player.surname }} </strong>
           </div>
@@ -86,7 +82,7 @@ const emit = defineEmits(['remove', 'remove-player'])
         <span>No players registered</span>
       </div>
     </div>
-  </Panel>
+  </BasePanel>
 </template>
 
 <style scoped>

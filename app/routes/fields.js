@@ -69,15 +69,13 @@ router.get("/:id/slots", async (req, res, next) => {
     }
 });
 
-// TODO: how to manage tournament bookings?
 router.post("/:id/bookings", passport.authenticate("jwt", { session: false }), async (req, res, next) => {
     try {
         const {
             date,
             slot,
             type = "standard",
-            tournamentId = null,
-            matchId = null
+            tournamentId = null
         } = req.body;
 
         const fieldId = new ObjectId(req.params.id);

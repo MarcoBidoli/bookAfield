@@ -3,14 +3,14 @@ import { fetchUsers } from '@/api/users'
 import { ref, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 
-import Panel from '@/components/Panel.vue'
-import Breadcrumbs from '@/components/Breadcrumbs.vue'
+import BasePanel from '@/components/BasePanel.vue'
+import AppBreadcrumbs from '@/components/AppBreadcrumbs.vue'
 import PageHeader from '@/components/PageHeader.vue'
 import FilterToolbar from '@/components/FilterToolbar.vue'
 import LoadingState from '@/components/LoadingState.vue'
 import EmptyState from '@/components/EmptyState.vue'
 import AppBanner from '@/components/AppBanner.vue'
-import Pill from '@/components/Pill.vue'
+import StatusPill from '@/components/StatusPill.vue'
 
 const router = useRouter()
 const route = useRoute()
@@ -85,13 +85,13 @@ function openUserTournaments(userId) {
 
 <template>
   <div class="users-view">
-    <Breadcrumbs section="Users" section-to="/users" current="Search Users" />
+    <AppBreadcrumbs section="Users" section-to="/users" current="Search Users" />
 
     <PageHeader title="Users" subtitle="Browse users and view their tournaments" />
 
     <AppBanner v-if="errorMessage" type="error" :message="errorMessage" />
 
-    <Panel title="Users">
+    <BasePanel title="Users">
       <FilterToolbar
         v-model="searchQuery"
         model-filter="all"
@@ -135,11 +135,11 @@ function openUserTournaments(userId) {
           </span>
 
           <span class="user-meta">
-            <Pill variant="default"> @{{ user.username }} </Pill>
+            <StatusPill variant="default"> @{{ user.username }} </StatusPill>
           </span>
         </button>
       </div>
-    </Panel>
+    </BasePanel>
   </div>
 </template>
 

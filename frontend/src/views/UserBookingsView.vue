@@ -4,14 +4,14 @@ import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import { cancelBooking, fetchUserBookings } from '@/api/fields'
 
-import Panel from '@/components/Panel.vue'
-import Button from '@/components/Button.vue'
-import Breadcrumbs from '@/components/Breadcrumbs.vue'
+import BasePanel from '@/components/BasePanel.vue'
+import BaseButton from '@/components/BaseButton.vue'
+import AppBreadcrumbs from '@/components/AppBreadcrumbs.vue'
 import PageHeader from '@/components/PageHeader.vue'
 import AppBanner from '@/components/AppBanner.vue'
 import LoadingState from '@/components/LoadingState.vue'
 import EmptyState from '@/components/EmptyState.vue'
-import Pill from '@/components/Pill.vue'
+import StatusPill from '@/components/StatusPill.vue'
 import SportBadge from '@/components/SportBadge.vue'
 
 const router = useRouter()
@@ -66,11 +66,6 @@ function getFieldName(booking) {
 function getBookingType(booking) {
   return booking.type === 'tournament' ? 'Tournament' : 'Standard'
 }
-
-function getBookingTypeVariant(booking) {
-  return booking.type === 'tournament' ? 'primary' : 'neutral'
-}
-
 async function handleCancel(booking) {
   if (isPast(booking)) {
     errorMessage.value = 'Cannot cancel past reservations'
@@ -117,7 +112,7 @@ onMounted(loadBookings)
 
 <template>
   <div class="user-bookings-view">
-    <Breadcrumbs section="Fields" section-to="/fields" current="My Bookings" />
+    <AppBreadcrumbs section="Fields" section-to="/fields" current="My Bookings" />
 
     <PageHeader title="My Bookings" subtitle="View and manage your sports field reservations" />
 
@@ -125,7 +120,7 @@ onMounted(loadBookings)
 
     <AppBanner v-if="errorMessage" type="error" :message="errorMessage" />
 
-    <Panel title="Court & Field Reservations">
+    <BasePanel title="Court & Field Reservations">
       <LoadingState v-if="isLoading" message="Loading your reservations..." />
 
       <EmptyState
@@ -135,7 +130,7 @@ onMounted(loadBookings)
       >
         <template #action>
           <router-link to="/fields">
-            <Button> Book a Sports Field </Button>
+            <BaseButton> Book a Sports Field </BaseButton>
           </router-link>
         </template>
       </EmptyState>
@@ -199,21 +194,21 @@ onMounted(loadBookings)
 
               <!-- Status -->
               <td>
-                <Pill :variant="isPast(booking) ? 'muted' : 'success'">
+                <StatusPill :variant="isPast(booking) ? 'muted' : 'success'">
                   {{ isPast(booking) ? 'Past booking' : 'Booked' }}
-                </Pill>
+                </StatusPill>
               </td>
 
               <!-- Actions -->
               <td class="actions-column">
-                <Button
+                <BaseButton
                   v-if="!isPast(booking)"
                   variant="danger"
                   :disabled="cancellingId === booking._id"
                   @click="handleCancel(booking)"
                 >
                   {{ cancellingId === booking._id ? 'Cancelling...' : 'Cancel' }}
-                </Button>
+                </BaseButton>
 
                 <span v-else class="hint-text"> — </span>
               </td>
@@ -221,7 +216,7 @@ onMounted(loadBookings)
           </tbody>
         </table>
       </div>
-    </Panel>
+    </BasePanel>
   </div>
 </template>
 

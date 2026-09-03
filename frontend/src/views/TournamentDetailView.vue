@@ -8,14 +8,14 @@ import {
   updateTournament,
 } from '@/api/tournaments'
 
-import Panel from '@/components/Panel.vue'
-import Button from '@/components/Button.vue'
-import Breadcrumbs from '@/components/Breadcrumbs.vue'
+import BasePanel from '@/components/BasePanel.vue'
+import BaseButton from '@/components/BaseButton.vue'
+import AppBreadcrumbs from '@/components/AppBreadcrumbs.vue'
 import EmptyState from '@/components/EmptyState.vue'
 import LoadingState from '@/components/LoadingState.vue'
 import AppBanner from '@/components/AppBanner.vue'
 import SportBadge from '@/components/SportBadge.vue'
-import Pill from '@/components/Pill.vue'
+import StatusPill from '@/components/StatusPill.vue'
 import TeamCard from '@/components/TeamCard.vue'
 
 import UserIcon from '@/components/icons/UserIcon.vue'
@@ -354,7 +354,7 @@ onMounted(loadTournament)
 
 <template>
   <div class="tournament-view">
-    <Breadcrumbs
+    <AppBreadcrumbs
       section="Tournaments"
       section-to="/tournaments"
       :current="tournament?.name || 'Tournament'"
@@ -366,15 +366,15 @@ onMounted(loadTournament)
     <LoadingState v-if="isLoading" message="Loading tournament..." />
 
     <template v-else-if="tournament">
-      <!-- Header Panel -->
-      <Panel :title="tournament.name">
+      <!-- Header BasePanel -->
+      <BasePanel :title="tournament.name">
         <div class="header-content">
           <!-- Meta info -->
           <div class="header-meta">
             <SportBadge :sport="tournament.sport" />
-            <Pill :variant="getStatusVariant(tournament.status)">
+            <StatusPill :variant="getStatusVariant(tournament.status)">
               {{ formatStatus(tournament.status) }}
-            </Pill>
+            </StatusPill>
             <span class="meta-separator" />
             <span class="meta-stat">
               <CalendarIcon />
@@ -392,17 +392,17 @@ onMounted(loadTournament)
 
           <!-- Actions -->
           <div class="header-actions">
-            <Button variant="secondary" class="action-btn" @click="goToMatches">
+            <BaseButton variant="secondary" class="action-btn" @click="goToMatches">
               <MatchesIcon />
               Matches
-            </Button>
+            </BaseButton>
 
-            <Button variant="secondary" class="action-btn" @click="goToStandings">
+            <BaseButton variant="secondary" class="action-btn" @click="goToStandings">
               <StandingsIcon />
               Standings
-            </Button>
+            </BaseButton>
 
-            <Button
+            <BaseButton
               v-if="isOwner"
               variant="secondary"
               class="action-btn"
@@ -411,9 +411,9 @@ onMounted(loadTournament)
             >
               <PencilIcon />
               Edit
-            </Button>
+            </BaseButton>
 
-            <Button
+            <BaseButton
               v-if="canStartTournament"
               variant="primary"
               class="action-btn action-btn--start"
@@ -422,13 +422,13 @@ onMounted(loadTournament)
             >
               <BoltIcon />
               {{ isUpdating ? 'Starting…' : 'Start Tournament' }}
-            </Button>
+            </BaseButton>
           </div>
         </div>
-      </Panel>
+      </BasePanel>
 
       <!-- Registration management (owner only, registration status) -->
-      <Panel v-if="canManageTournament" title="Registration">
+      <BasePanel v-if="canManageTournament" title="Registration">
         <div class="registration-grid">
           <!-- Add Team -->
           <div v-if="canAddTeams" class="reg-section">
@@ -452,13 +452,13 @@ onMounted(loadTournament)
               </div>
 
               <div class="form-submit">
-                <Button
+                <BaseButton
                   type="submit"
                   variant="primary"
                   :disabled="isUpdating || !newTeamName.trim()"
                 >
                   Add Team
-                </Button>
+                </BaseButton>
               </div>
             </form>
           </div>
@@ -517,21 +517,21 @@ onMounted(loadTournament)
               </div>
 
               <div class="form-submit">
-                <Button
+                <BaseButton
                   type="submit"
                   variant="secondary"
                   :disabled="isUpdating || !newPlayer.name.trim() || !newPlayer.surname.trim()"
                 >
                   Add Player
-                </Button>
+                </BaseButton>
               </div>
             </form>
           </div>
         </div>
-      </Panel>
+      </BasePanel>
 
       <!-- Teams -->
-      <Panel title="Teams">
+      <BasePanel title="Teams">
         <div v-if="teams.length" class="teams-grid">
           <TeamCard
             v-for="team in teams"
@@ -549,7 +549,7 @@ onMounted(loadTournament)
           title="No Teams Registered"
           message="Add teams to start building the tournament."
         />
-      </Panel>
+      </BasePanel>
     </template>
   </div>
 </template>
@@ -568,7 +568,7 @@ onMounted(loadTournament)
 }
 
 /* =========================================================
-   Header Panel
+   Header BasePanel
    ========================================================= */
 
 .header-content {
@@ -638,7 +638,7 @@ onMounted(loadTournament)
 }
 
 /* =========================================================
-   Registration Panel
+   Registration BasePanel
    ========================================================= */
 
 .registration-grid {

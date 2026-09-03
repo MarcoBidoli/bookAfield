@@ -1,6 +1,6 @@
 <script setup>
 import SportBadge from '@/components/SportBadge.vue'
-import Pill from '@/components/Pill.vue'
+import StatusPill from '@/components/StatusPill.vue'
 import CalendarIcon from '@/components/icons/CalendarIcon.vue'
 import UsersIcon from '@/components/icons/UsersIcon.vue'
 import BookArrowIcon from '@/components/icons/BookArrowIcon.vue'
@@ -61,9 +61,9 @@ function getSportClass(sport) {
         <SportBadge :sport="tournament.sport" />
       </div>
 
-      <Pill :variant="getStatusVariant(tournament.status)">
+      <StatusPill :variant="getStatusVariant(tournament.status)">
         {{ formatStatus(tournament.status) }}
-      </Pill>
+      </StatusPill>
     </div>
 
     <!-- Metadata -->

@@ -4,9 +4,9 @@ import { useRoute, useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import { createTournament, deleteTournament, fetchTournaments } from '@/api/tournaments'
 
-import Panel from '@/components/Panel.vue'
-import Button from '@/components/Button.vue'
-import Breadcrumbs from '@/components/Breadcrumbs.vue'
+import BasePanel from '@/components/BasePanel.vue'
+import BaseButton from '@/components/BaseButton.vue'
+import AppBreadcrumbs from '@/components/AppBreadcrumbs.vue'
 import PageHeader from '@/components/PageHeader.vue'
 import FilterToolbar from '@/components/FilterToolbar.vue'
 import EmptyState from '@/components/EmptyState.vue'
@@ -199,7 +199,11 @@ onMounted(() => {
 
 <template>
   <div class="tournaments-view">
-    <Breadcrumbs section="Tournaments" section-to="/tournaments" current="Available Tournaments" />
+    <AppBreadcrumbs
+      section="Tournaments"
+      section-to="/tournaments"
+      current="Available Tournaments"
+    />
 
     <PageHeader title="Sports Tournaments" subtitle="Discover, join and host sports tournaments" />
 
@@ -207,12 +211,12 @@ onMounted(() => {
 
     <AppBanner v-if="errorMessage" type="error" :message="errorMessage" />
 
-    <Panel title="Create New Tournament">
+    <BasePanel title="Create New Tournament">
       <div v-if="!authStore.isAuthenticated" class="auth-notice">
         <span>Sign in to host and manage sports tournaments.</span>
 
         <router-link to="/login">
-          <Button>Sign In</Button>
+          <BaseButton>Sign In</BaseButton>
         </router-link>
       </div>
 
@@ -267,14 +271,14 @@ onMounted(() => {
         </div>
 
         <div class="form-actions">
-          <Button type="submit" :disabled="isSubmitting || !newTournament.name">
+          <BaseButton type="submit" :disabled="isSubmitting || !newTournament.name">
             {{ isSubmitting ? 'Creating...' : 'Create Tournament' }}
-          </Button>
+          </BaseButton>
         </div>
       </form>
-    </Panel>
+    </BasePanel>
 
-    <Panel>
+    <BasePanel>
       <FilterToolbar
         v-model="searchQuery"
         v-model:modelFilter="selectedSportFilter"
@@ -300,7 +304,7 @@ onMounted(() => {
           @delete="handleDelete"
         />
       </div>
-    </Panel>
+    </BasePanel>
   </div>
 </template>
 

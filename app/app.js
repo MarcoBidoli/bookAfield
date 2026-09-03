@@ -75,7 +75,7 @@ if (process.env.NODE_ENV === "production") {
 }
 
 // Error handler
-app.use((err, req, res, next) => {
+app.use((err, req, res) => {
   if (
     err.name === "BSONError" ||
     err.message?.includes("Argument passed in must be a string of 12 bytes")

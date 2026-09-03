@@ -5,8 +5,7 @@ import passport from "passport";
 
 const router = Router();
 
-// Added because of missing functionality even if not in the project spec
-// TODO: add tests
+// Added because of missing functionality even if not in the project specs
 router.get("/:id/bookings", passport.authenticate("jwt", { session: false }), async (req, res, next) => {
     try {
         const db = getDB();
@@ -46,11 +45,6 @@ router.get("/:id/bookings", passport.authenticate("jwt", { session: false }), as
 
 router.get("/:id", async function(req, res, next) {
     try {
-        // TODO: Insert the following validation as middleware everytime /:id is used!!!
-        /*if (!ObjectId.isValid(req.params.id)) {
-            return res.status(400).json({ error: "Invalid user ID format" });
-        }*/
-
         const db = getDB();
         const userId = new ObjectId(req.params.id);
 

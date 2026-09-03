@@ -1,14 +1,14 @@
 <script setup>
-import {onMounted, ref} from 'vue'
-import {useRoute} from 'vue-router'
+import { onMounted, ref } from 'vue'
+import { useRoute } from 'vue-router'
 
-import {fetchTournamentById, fetchTournamentStandings} from '@/api/tournaments'
+import { fetchTournamentById, fetchTournamentStandings } from '@/api/tournaments'
 
-import Panel from '@/components/Panel.vue'
-import Breadcrumbs from '@/components/Breadcrumbs.vue'
+import BasePanel from '@/components/BasePanel.vue'
+import AppBreadcrumbs from '@/components/AppBreadcrumbs.vue'
 import AppBanner from '@/components/AppBanner.vue'
 import SportBadge from '@/components/SportBadge.vue'
-import Pill from '@/components/Pill.vue'
+import StatusPill from '@/components/StatusPill.vue'
 
 const route = useRoute()
 
@@ -83,8 +83,8 @@ onMounted(() => {
 
 <template>
   <div class="standings-view">
-    <!-- Breadcrumbs row -->
-    <Breadcrumbs
+    <!-- AppBreadcrumbs row -->
+    <AppBreadcrumbs
       section="Tournaments"
       section-to="/tournaments"
       :parent="{
@@ -98,103 +98,100 @@ onMounted(() => {
     <AppBanner v-if="errorMessage" type="error" :message="errorMessage" />
 
     <!-- Header -->
-    <Panel :title="`Standings — ${tournament?.name || 'Tournament'}`">
+    <BasePanel :title="`Standings — ${tournament?.name || 'Tournament'}`">
       <div class="header-content">
         <div class="header-info">
           <SportBadge v-if="tournament?.sport" :sport="tournament.sport" />
-          <Pill
-            v-if="tournament?.status"
-            :variant="getStatusVariant(tournament.status)"
-          >
+          <StatusPill v-if="tournament?.status" :variant="getStatusVariant(tournament.status)">
             {{ formatStatus(tournament.status) }}
-          </Pill>
+          </StatusPill>
         </div>
       </div>
-    </Panel>
+    </BasePanel>
 
     <!-- Loading -->
     <div v-if="isLoading" class="loading-state">Loading tournament standings...</div>
 
     <!-- Empty -->
     <div v-else-if="standings.length === 0" class="empty-state">
-      <Panel title="Standings">
+      <BasePanel title="Standings">
         <p>No teams are currently registered in this tournament.</p>
-      </Panel>
+      </BasePanel>
     </div>
 
     <!-- Standings Table -->
-    <Panel v-else title="Tournament Table">
+    <BasePanel v-else title="Tournament Table">
       <div class="table-wrapper">
         <table class="standings-table">
           <thead>
-          <tr>
-            <th class="position-column">#</th>
-            <th class="team-column">Team</th>
-            <th>P</th>
-            <th>W</th>
-            <th>D</th>
-            <th>L</th>
-            <th>GF</th>
-            <th>GA</th>
-            <th>GD</th>
-            <th class="points-column">Pts</th>
-          </tr>
+            <tr>
+              <th class="position-column">#</th>
+              <th class="team-column">Team</th>
+              <th>P</th>
+              <th>W</th>
+              <th>D</th>
+              <th>L</th>
+              <th>GF</th>
+              <th>GA</th>
+              <th>GD</th>
+              <th class="points-column">Pts</th>
+            </tr>
           </thead>
 
           <tbody>
-          <tr
-            v-for="(team, index) in standings"
-            :key="team.teamId"
-            :class="['standing-row', getPositionClass(index)]"
-          >
-            <!-- Position -->
-            <td class="position-cell">
+            <tr
+              v-for="(team, index) in standings"
+              :key="team.teamId"
+              :class="['standing-row', getPositionClass(index)]"
+            >
+              <!-- Position -->
+              <td class="position-cell">
                 <span class="pos-badge">
                   <span class="pos-badge">{{ index + 1 }}</span>
                 </span>
-            </td>
+              </td>
 
-            <!-- Team -->
-            <td class="team-cell">
-              {{ team.name }}
-            </td>
+              <!-- Team -->
+              <td class="team-cell">
+                {{ team.name }}
+              </td>
 
-            <!-- Played -->
-            <td>{{ team.played }}</td>
+              <!-- Played -->
+              <td>{{ team.played }}</td>
 
-            <!-- Won -->
-            <td>{{ team.won }}</td>
+              <!-- Won -->
+              <td>{{ team.won }}</td>
 
-            <!-- Drawn -->
-            <td>{{ team.drawn }}</td>
+              <!-- Drawn -->
+              <td>{{ team.drawn }}</td>
 
-            <!-- Lost -->
-            <td>{{ team.lost }}</td>
+              <!-- Lost -->
+              <td>{{ team.lost }}</td>
 
-            <!-- Goals / Points scored -->
-            <td>{{ team.scored }}</td>
+              <!-- Goals / Points scored -->
+              <td>{{ team.scored }}</td>
 
-            <!-- Goals / Points conceded -->
-            <td>{{ team.conceded }}</td>
+              <!-- Goals / Points conceded -->
+              <td>{{ team.conceded }}</td>
 
-            <!-- Difference -->
-            <td
-              :class="[
+              <!-- Difference -->
+              <td
+                :class="[
                   'difference-cell',
                   {
                     positive: team.diff > 0,
                     negative: team.diff < 0,
                   },
                 ]"
-            >
-              {{ formatDifference(team.diff) }}
-            </td>
+              >
+                {{ formatDifference(team.diff) }}
+              </td>
 
-            <!-- Points -->
-            <td class="points-cell">
-              {{ team.points }}
-            </td>
-          </tr>
+              <!-- Points -->
+              <td class="points-cell">
+                {{ team.points }}
+              </td>
+            </tr>
           </tbody>
         </table>
       </div>
@@ -210,7 +207,7 @@ onMounted(() => {
         <span>GD = Difference</span>
         <span>Pts = Points</span>
       </div>
-    </Panel>
+    </BasePanel>
   </div>
 </template>
 

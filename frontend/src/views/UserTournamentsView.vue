@@ -4,8 +4,8 @@ import { useRoute, useRouter } from 'vue-router'
 
 import { fetchUserById } from '@/api/users'
 
-import Panel from '@/components/Panel.vue'
-import Breadcrumbs from '@/components/Breadcrumbs.vue'
+import BasePanel from '@/components/BasePanel.vue'
+import AppBreadcrumbs from '@/components/AppBreadcrumbs.vue'
 import AppBanner from '@/components/AppBanner.vue'
 import LoadingState from '@/components/LoadingState.vue'
 import EmptyState from '@/components/EmptyState.vue'
@@ -44,7 +44,7 @@ onMounted(() => {
 
 <template>
   <div class="user-tournaments-view">
-    <Breadcrumbs
+    <AppBreadcrumbs
       section="Users"
       section-to="/users"
       :current="user ? `${user.name} ${user.surname}` : 'User'"
@@ -79,7 +79,7 @@ onMounted(() => {
       </div>
 
       <!-- Tournaments -->
-      <Panel title="Tournaments">
+      <BasePanel title="Tournaments">
         <EmptyState
           v-if="tournaments.length === 0"
           title="No Tournaments found"
@@ -94,7 +94,7 @@ onMounted(() => {
             @click="router.push(`/tournaments/${tournament._id}`)"
           />
         </div>
-      </Panel>
+      </BasePanel>
     </template>
   </div>
 </template>

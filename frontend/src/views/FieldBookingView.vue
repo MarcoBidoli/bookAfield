@@ -6,13 +6,13 @@ import { useAuthStore } from '@/stores/auth'
 import { bookFieldSlot, fetchFieldById, fetchFieldSlots } from '@/api/fields'
 import { fetchTournaments } from '@/api/tournaments'
 
-import Panel from '@/components/Panel.vue'
-import Button from '@/components/Button.vue'
-import Breadcrumbs from '@/components/Breadcrumbs.vue'
+import BasePanel from '@/components/BasePanel.vue'
+import BaseButton from '@/components/BaseButton.vue'
+import AppBreadcrumbs from '@/components/AppBreadcrumbs.vue'
 import AppBanner from '@/components/AppBanner.vue'
 import SportBadge from '@/components/SportBadge.vue'
-import Switcher from '@/components/Switcher.vue'
-import Pill from '@/components/Pill.vue'
+import TabSwitcher from '@/components/TabSwitcher.vue'
+import StatusPill from '@/components/StatusPill.vue'
 
 import ClockIcon from '@/components/icons/ClockIcon.vue'
 import PinPointIcon from '@/components/icons/PinPointIcon.vue'
@@ -268,7 +268,7 @@ onMounted(async () => {
 
 <template>
   <div class="field-booking-view">
-    <Breadcrumbs section="Fields" section-to="/fields" current="Book a Field" />
+    <AppBreadcrumbs section="Fields" section-to="/fields" current="Book a Field" />
 
     <AppBanner v-if="successMessage" type="success" :message="successMessage" />
 
@@ -278,16 +278,16 @@ onMounted(async () => {
     <div v-if="isLoading" class="loading-state">Loading field...</div>
 
     <!-- Field not found -->
-    <Panel v-else-if="!field" title="Field Booking">
+    <BasePanel v-else-if="!field" title="Field Booking">
       <div class="empty-state">The requested field could not be found.</div>
 
       <div class="actions-row">
-        <Button variant="secondary" @click="goBackToFields"> ← Back to Fields </Button>
+        <BaseButton variant="secondary" @click="goBackToFields"> ← Back to Fields </BaseButton>
       </div>
-    </Panel>
+    </BasePanel>
 
     <template v-else>
-      <Panel :title="`Book ${field.name}`">
+      <BasePanel :title="`Book ${field.name}`">
         <!-- Field summary -->
         <div class="selected-field">
           <div class="field-meta">
@@ -309,7 +309,7 @@ onMounted(async () => {
         <div class="type-switcher-container">
           <label class="section-label"> Reservation Purpose: </label>
 
-          <Switcher v-model="bookingType" :options="bookingTypeOptions" />
+          <TabSwitcher v-model="bookingType" :options="bookingTypeOptions" />
         </div>
 
         <!-- TOURNAMENT SECTION -->
@@ -330,9 +330,9 @@ onMounted(async () => {
             </div>
 
             <div class="quick-actions">
-              <Button type="button" variant="secondary" @click="goToTournaments">
+              <BaseButton type="button" variant="secondary" @click="goToTournaments">
                 Go to Tournaments
-              </Button>
+              </BaseButton>
             </div>
           </div>
 
@@ -351,14 +351,14 @@ onMounted(async () => {
               </option>
             </select>
 
-            <Button
+            <BaseButton
               type="button"
               variant="secondary"
               :disabled="isSubmitting"
               @click="goToTournaments"
             >
               Manage Tournaments
-            </Button>
+            </BaseButton>
           </div>
         </div>
 
@@ -413,25 +413,25 @@ onMounted(async () => {
                   {{ slotInfo.slot }}
                 </span>
 
-                <Pill :variant="slotInfo.available ? 'success' : 'danger'">
+                <StatusPill :variant="slotInfo.available ? 'success' : 'danger'">
                   {{ slotInfo.available ? 'Available' : 'Booked' }}
-                </Pill>
+                </StatusPill>
               </label>
             </div>
           </div>
 
           <!-- Actions -->
           <div class="actions-row">
-            <Button
+            <BaseButton
               type="button"
               variant="secondary"
               :disabled="isSubmitting"
               @click="goBackToFields"
             >
               ← Back to Fields
-            </Button>
+            </BaseButton>
 
-            <Button
+            <BaseButton
               type="submit"
               variant="primary"
               :disabled="
@@ -449,10 +449,10 @@ onMounted(async () => {
                       : 'Confirm Standard Booking'
                     : 'Sign In to Book'
               }}
-            </Button>
+            </BaseButton>
           </div>
         </form>
-      </Panel>
+      </BasePanel>
     </template>
   </div>
 </template>

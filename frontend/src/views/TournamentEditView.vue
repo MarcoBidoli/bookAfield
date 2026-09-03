@@ -1,14 +1,14 @@
 <script setup>
-import {computed, onMounted, reactive, ref} from 'vue'
-import {useRoute, useRouter} from 'vue-router'
-import {useAuthStore} from '@/stores/auth'
-import {fetchTournamentById, updateTournament} from '@/api/tournaments'
+import { computed, onMounted, reactive, ref } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
+import { useAuthStore } from '@/stores/auth'
+import { fetchTournamentById, updateTournament } from '@/api/tournaments'
 
-import Panel from '@/components/Panel.vue'
-import Button from '@/components/Button.vue'
-import Breadcrumbs from '@/components/Breadcrumbs.vue'
-import AppBanner from "@/components/AppBanner.vue";
-import LoadingState from "@/components/LoadingState.vue";
+import BasePanel from '@/components/BasePanel.vue'
+import BaseButton from '@/components/BaseButton.vue'
+import AppBreadcrumbs from '@/components/AppBreadcrumbs.vue'
+import AppBanner from '@/components/AppBanner.vue'
+import LoadingState from '@/components/LoadingState.vue'
 
 const route = useRoute()
 const router = useRouter()
@@ -106,8 +106,8 @@ onMounted(() => {
 
 <template>
   <div class="tournament-edit-view">
-    <!-- Breadcrumbs row  -->
-    <Breadcrumbs
+    <!-- AppBreadcrumbs row  -->
+    <AppBreadcrumbs
       section="Tournaments"
       section-to="/tournaments"
       :parent="{
@@ -118,46 +118,35 @@ onMounted(() => {
     />
 
     <!-- Feedback -->
-    <AppBanner
-      v-if="successMessage"
-      type="success"
-      :message="successMessage"
-    />
+    <AppBanner v-if="successMessage" type="success" :message="successMessage" />
 
-    <AppBanner
-      v-if="errorMessage"
-      type="error"
-      :message="errorMessage"
-    />
+    <AppBanner v-if="errorMessage" type="error" :message="errorMessage" />
 
     <!-- Loading -->
-    <LoadingState
-      v-if="isLoading"
-      message="Loading tournament..."
-    />
+    <LoadingState v-if="isLoading" message="Loading tournament..." />
 
     <!-- Not owner -->
-    <Panel v-else-if="!isOwner" title="Edit Tournament">
+    <BasePanel v-else-if="!isOwner" title="Edit Tournament">
       <div class="access-denied">You are not allowed to edit this tournament.</div>
 
       <div class="actions">
-        <Button @click="handleCancel"> ← Back to Tournament </Button>
+        <BaseButton @click="handleCancel"> ← Back to Tournament </BaseButton>
       </div>
-    </Panel>
+    </BasePanel>
 
     <!-- Tournament already active -->
-    <Panel v-else-if="tournament.status !== 'registration'" title="Edit Tournament">
+    <BasePanel v-else-if="tournament.status !== 'registration'" title="Edit Tournament">
       <div class="access-denied">
         Tournament details can only be edited while registration is open.
       </div>
 
       <div class="actions">
-        <Button @click="handleCancel"> ← Back to Tournament </Button>
+        <BaseButton @click="handleCancel"> ← Back to Tournament </BaseButton>
       </div>
-    </Panel>
+    </BasePanel>
 
     <!-- Edit form -->
-    <Panel v-else title="Edit Tournament">
+    <BasePanel v-else title="Edit Tournament">
       <div class="form-container">
         <div class="form-row">
           <label for="name">Tournament Name</label>
@@ -184,9 +173,7 @@ onMounted(() => {
             :disabled="isSaving"
           />
 
-          <span class="field-hint">
-            Current teams: {{ numberOfTeams }}
-          </span>
+          <span class="field-hint"> Current teams: {{ numberOfTeams }} </span>
         </div>
 
         <div class="form-row">
@@ -203,19 +190,19 @@ onMounted(() => {
       </div>
 
       <div class="actions">
-        <Button variant="secondary" :disabled="isSaving" @click="handleCancel">
+        <BaseButton variant="secondary" :disabled="isSaving" @click="handleCancel">
           Cancel
-        </Button>
+        </BaseButton>
 
-        <Button
+        <BaseButton
           variant="primary"
           :disabled="isSaving || !form.name.trim() || Number(form.maxTeams) < 2"
           @click="handleSave"
         >
           {{ isSaving ? 'Saving...' : 'Save Changes' }}
-        </Button>
+        </BaseButton>
       </div>
-    </Panel>
+    </BasePanel>
   </div>
 </template>
 
@@ -270,8 +257,10 @@ onMounted(() => {
 }
 
 .form-input:focus {
-  border-color: var(--color-primary-dark)7;
-  box-shadow: 0 0 0 3px rgba(0, 81, 199, 0.25), inset 0 1px 3px rgba(0, 0, 0, 0.08);
+  border-color: var(--color-primary-dark) 7;
+  box-shadow:
+    0 0 0 3px rgba(0, 81, 199, 0.25),
+    inset 0 1px 3px rgba(0, 0, 0, 0.08);
 }
 
 .form-input:disabled {

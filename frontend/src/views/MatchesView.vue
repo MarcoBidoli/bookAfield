@@ -10,11 +10,11 @@ import {
   recordMatchScore,
 } from '@/api/tournaments'
 
-import Panel from '@/components/Panel.vue'
-import Button from '@/components/Button.vue'
-import Breadcrumbs from '@/components/Breadcrumbs.vue'
+import BasePanel from '@/components/BasePanel.vue'
+import BaseButton from '@/components/BaseButton.vue'
+import AppBreadcrumbs from '@/components/AppBreadcrumbs.vue'
 import AppBanner from '@/components/AppBanner.vue'
-import Pill from '@/components/Pill.vue'
+import StatusPill from '@/components/StatusPill.vue'
 
 import CalendarIcon from '@/components/icons/CalendarIcon.vue'
 import ClockIcon from '@/components/icons/ClockIcon.vue'
@@ -183,8 +183,8 @@ onMounted(loadMatches)
 
 <template>
   <div class="matches-view">
-    <!-- Breadcrumbs -->
-    <Breadcrumbs
+    <!-- AppBreadcrumbs -->
+    <AppBreadcrumbs
       section="Tournaments"
       section-to="/tournaments"
       :parent="{
@@ -200,40 +200,40 @@ onMounted(loadMatches)
     <AppBanner v-if="errorMessage" type="error" :message="errorMessage" />
 
     <!-- Header -->
-    <Panel :title="`Fixtures & Scores — ${tournament?.name || 'Tournament'}`">
+    <BasePanel :title="`Fixtures & Scores — ${tournament?.name || 'Tournament'}`">
       <div class="header-actions">
-        <Button
+        <BaseButton
           v-if="isOwner && tournament?.status === 'active'"
           variant="primary"
           @click="goToBookField"
         >
           Book a Field
-        </Button>
-        <Button variant="secondary" class="navigation-button" @click="goToStandings">
+        </BaseButton>
+        <BaseButton variant="secondary" class="navigation-button" @click="goToStandings">
           <StandingsIcon />
           Standings
-        </Button>
+        </BaseButton>
       </div>
-    </Panel>
+    </BasePanel>
 
     <!-- Loading -->
     <div v-if="isLoading" class="loading-state">Loading tournament match fixtures...</div>
 
     <!-- Empty -->
     <div v-else-if="matches.length === 0" class="empty-state">
-      <Panel title="Schedule">
+      <BasePanel title="Schedule">
         <p>No matches generated yet.</p>
 
         <p v-if="isOwner" class="empty-description">
           Once all teams are registered in the tournament details page, generate the match fixtures
           to start the tournament.
         </p>
-      </Panel>
+      </BasePanel>
     </div>
 
     <!-- Matches -->
     <template v-else>
-      <Panel
+      <BasePanel
         v-for="(roundMatches, roundNum) in matchesByRound"
         :key="roundNum"
         :title="`Round ${roundNum} Fixtures`"
@@ -255,7 +255,7 @@ onMounted(loadMatches)
                 {{ match.teamAName === 'BYE' ? match.teamBName : match.teamAName }}
               </span>
 
-              <Pill variant="muted"> Rest Day </Pill>
+              <StatusPill variant="muted"> Rest Day </StatusPill>
             </div>
 
             <!-- STANDARD MATCH -->
@@ -297,7 +297,7 @@ onMounted(loadMatches)
                         placeholder="0"
                       />
 
-                      <Button
+                      <BaseButton
                         type="button"
                         variant="primary"
                         class="btn-enter"
@@ -305,7 +305,7 @@ onMounted(loadMatches)
                         @click="handleSaveScore(match)"
                       >
                         Enter
-                      </Button>
+                      </BaseButton>
                     </div>
                   </template>
 
@@ -354,9 +354,9 @@ onMounted(loadMatches)
                   </span>
                 </div>
 
-                <Pill :variant="match.status === 'played' ? 'muted' : 'warning'">
+                <StatusPill :variant="match.status === 'played' ? 'muted' : 'warning'">
                   {{ match.status === 'played' ? 'Completed' : 'Upcoming' }}
-                </Pill>
+                </StatusPill>
               </div>
 
               <!-- Booking assignment -->
@@ -390,7 +390,7 @@ onMounted(loadMatches)
                     </option>
                   </select>
 
-                  <Button
+                  <BaseButton
                     type="button"
                     variant="primary"
                     class="btn-assign"
@@ -398,13 +398,13 @@ onMounted(loadMatches)
                     @click="handleAssignBooking(match)"
                   >
                     Assign
-                  </Button>
+                  </BaseButton>
                 </div>
               </div>
             </div>
           </div>
         </div>
-      </Panel>
+      </BasePanel>
     </template>
   </div>
 </template>

@@ -1390,4 +1390,7 @@ async function seedDatabase() {
   }
 }
 
-seedDatabase();
+seedDatabase().catch((error) => {
+  console.error("Unexpected db seeding error:", error);
+  process.exit(1);
+});

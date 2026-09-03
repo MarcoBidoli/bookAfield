@@ -1,12 +1,12 @@
 <script setup>
-import {reactive, ref, watch} from 'vue'
-import {useRouter} from 'vue-router'
-import {useAuthStore} from '@/stores/auth'
+import { reactive, ref, watch } from 'vue'
+import { useRouter } from 'vue-router'
+import { useAuthStore } from '@/stores/auth'
 
-import Panel from '@/components/Panel.vue'
-import Button from '@/components/Button.vue'
+import BasePanel from '@/components/BasePanel.vue'
+import BaseButton from '@/components/BaseButton.vue'
 import AppBanner from '@/components/AppBanner.vue'
-import Switcher from '@/components/Switcher.vue'
+import TabSwitcher from '@/components/TabSwitcher.vue'
 
 const router = useRouter()
 const authStore = useAuthStore()
@@ -90,30 +90,13 @@ async function handleRegister() {
 
 <template>
   <div class="auth-container">
-    <Panel
-      :title="
-        activeTab === 'login'
-          ? 'System Login'
-          : 'User Registration'
-      "
-    >
-      <Switcher
-        v-model="activeTab"
-        :options="authTabs"
-      />
+    <BasePanel :title="activeTab === 'login' ? 'System Login' : 'User Registration'">
+      <TabSwitcher v-model="activeTab" :options="authTabs" />
 
-      <AppBanner
-        v-if="errorMessage"
-        type="error"
-        :message="errorMessage"
-      />
+      <AppBanner v-if="errorMessage" type="error" :message="errorMessage" />
 
       <!-- Login -->
-      <form
-        v-if="activeTab === 'login'"
-        class="auth-form"
-        @submit.prevent="handleLogin"
-      >
+      <form v-if="activeTab === 'login'" class="auth-form" @submit.prevent="handleLogin">
         <div class="form-group">
           <label for="login-username">Username</label>
 
@@ -141,22 +124,14 @@ async function handleRegister() {
         </div>
 
         <div class="form-actions">
-          <Button
-            type="submit"
-            variant="primary"
-            :disabled="isLoading"
-          >
+          <BaseButton type="submit" variant="primary" :disabled="isLoading">
             {{ isLoading ? 'Signing In...' : 'Sign In' }}
-          </Button>
+          </BaseButton>
         </div>
       </form>
 
       <!-- Registration -->
-      <form
-        v-else
-        class="auth-form"
-        @submit.prevent="handleRegister"
-      >
+      <form v-else class="auth-form" @submit.prevent="handleRegister">
         <div class="form-group">
           <label for="reg-username">Username</label>
 
@@ -212,9 +187,7 @@ async function handleRegister() {
         </div>
 
         <div class="form-group">
-          <label for="reg-confirm-password">
-            Confirm Password
-          </label>
+          <label for="reg-confirm-password"> Confirm Password </label>
 
           <input
             id="reg-confirm-password"
@@ -227,20 +200,12 @@ async function handleRegister() {
         </div>
 
         <div class="form-actions">
-          <Button
-            type="submit"
-            variant="primary"
-            :disabled="isLoading"
-          >
-            {{
-              isLoading
-                ? 'Registering...'
-                : 'Register Account'
-            }}
-          </Button>
+          <BaseButton type="submit" variant="primary" :disabled="isLoading">
+            {{ isLoading ? 'Registering...' : 'Register Account' }}
+          </BaseButton>
         </div>
       </form>
-    </Panel>
+    </BasePanel>
   </div>
 </template>
 

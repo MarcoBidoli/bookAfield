@@ -3,8 +3,8 @@ import { computed, onMounted, ref, watch } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { fetchFields } from '@/api/fields'
 
-import Panel from '@/components/Panel.vue'
-import Breadcrumbs from '@/components/Breadcrumbs.vue'
+import BasePanel from '@/components/BasePanel.vue'
+import AppBreadcrumbs from '@/components/AppBreadcrumbs.vue'
 import PageHeader from '@/components/PageHeader.vue'
 import FilterToolbar from '@/components/FilterToolbar.vue'
 import FieldCard from '@/components/FieldCard.vue'
@@ -119,13 +119,13 @@ onMounted(() => {
 
 <template>
   <div class="fields-view">
-    <Breadcrumbs section="Fields" section-to="/fields" current="Available Fields" />
+    <AppBreadcrumbs section="Fields" section-to="/fields" current="Available Fields" />
 
     <PageHeader title="Sports Fields" subtitle="Discover and book available sports facilities" />
 
     <AppBanner v-if="errorMessage" type="error" :message="errorMessage" />
 
-    <Panel>
+    <BasePanel>
       <FilterToolbar
         v-model="searchQuery"
         v-model:modelFilter="selectedSportFilter"
@@ -149,7 +149,7 @@ onMounted(() => {
           @click="bookField(field._id)"
         />
       </div>
-    </Panel>
+    </BasePanel>
   </div>
 </template>
 

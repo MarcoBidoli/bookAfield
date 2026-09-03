@@ -18,4 +18,7 @@ async function startApp() {
     }
 }
 
-startApp();
+startApp().catch((error) => {
+    console.error("Unexpected startup error:", error);
+    process.exit(1);
+});
