@@ -38,7 +38,6 @@ async function searchUsers(query = searchQuery.value) {
   hasSearched.value = true
 
   try {
-    // Calls API with the search query (e.g. /api/users?q=searchname)
     users.value = await fetchUsers(trimmedQuery)
   } catch (err) {
     errorMessage.value = err.message || 'Error loading users'
@@ -120,28 +119,25 @@ function openUserTournaments(userId) {
       />
 
       <div v-else class="user-list">
-        <article
+        <button
           v-for="user in users"
           :key="user._id"
+          type="button"
           class="user-item"
-          role="button"
-          tabindex="0"
           @click="openUserTournaments(user._id)"
-          @keydown.enter="openUserTournaments(user._id)"
-          @keydown.space.prevent="openUserTournaments(user._id)"
         >
-          <div class="user-header">
-            <div class="user-title">
+          <span class="user-header">
+            <span class="user-title">
               <span class="user-name"> {{ user.name }} {{ user.surname }} </span>
-            </div>
+            </span>
 
             <span class="user-chevron"> → </span>
-          </div>
+          </span>
 
-          <div class="user-meta">
+          <span class="user-meta">
             <Pill variant="default"> @{{ user.username }} </Pill>
-          </div>
-        </article>
+          </span>
+        </button>
       </div>
     </Panel>
   </div>
@@ -164,6 +160,9 @@ function openUserTournaments(userId) {
 }
 
 .user-item {
+  width: 100%;
+  text-align: left;
+  font-family: inherit;
   background: var(--color-white);
   border: 1px solid var(--card-border-color);
   border-radius: 14px;
