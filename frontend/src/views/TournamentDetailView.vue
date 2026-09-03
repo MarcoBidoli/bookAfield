@@ -11,19 +11,19 @@ import {
 import Panel from '@/components/Panel.vue'
 import Button from '@/components/Button.vue'
 import Breadcrumbs from '@/components/Breadcrumbs.vue'
-import PageHeader from '@/components/PageHeader.vue'
 import EmptyState from '@/components/EmptyState.vue'
 import LoadingState from '@/components/LoadingState.vue'
 import AppBanner from '@/components/AppBanner.vue'
 import SportBadge from '@/components/SportBadge.vue'
+import Pill from '@/components/Pill.vue'
+import TeamCard from '@/components/TeamCard.vue'
+
 import UserIcon from '@/components/icons/UserIcon.vue'
 import UsersIcon from '@/components/icons/UsersIcon.vue'
 import CalendarIcon from '@/components/icons/CalendarIcon.vue'
 import MatchesIcon from '@/components/icons/MatchesIcon.vue'
 import StandingsIcon from '@/components/icons/StandingsIcon.vue'
-import TeamCard from '@/components/TeamCard.vue'
 import PencilIcon from '@/components/icons/PencilIcon.vue'
-import AddIcon from '@/components/icons/AddIcon.vue'
 import BoltIcon from '@/components/icons/BoltIcon.vue'
 
 const route = useRoute()
@@ -94,12 +94,38 @@ const selectedTeam = computed(() => {
   return teams.value.find((team) => String(team._id) === String(selectedTeamId.value))
 })
 
+const teamsRemaining = computed(() => {
+  if (!tournament.value) return 0
+  return tournament.value.maxTeams - numberOfTeams.value
+})
+
+function getStatusVariant(status) {
+  switch (status) {
+    case 'active':
+      return 'success'
+    case 'registration':
+    case 'upcoming':
+      return 'warning'
+    case 'completed':
+    case 'played':
+      return 'muted'
+    default:
+      return 'default'
+  }
+}
+
+function formatStatus(status) {
+  if (!status) return ''
+  return status.charAt(0).toUpperCase() + status.slice(1)
+}
+
 async function loadTournament() {
   isLoading.value = true
   errorMessage.value = ''
 
   try {
     tournament.value = await fetchTournamentById(tournamentId)
+
     if (!selectedTeam.value && teams.value.length) {
       selectedTeamId.value = teams.value[0]._id
     }
@@ -136,6 +162,10 @@ async function handleAddTeam() {
 
     newTeamName.value = ''
     successMessage.value = 'Team registered successfully.'
+
+    if (!selectedTeamId.value && tournament.value.teams?.length) {
+      selectedTeamId.value = tournament.value.teams[0]._id
+    }
   } catch (err) {
     errorMessage.value = err.message || 'Failed to add team'
   } finally {
@@ -180,12 +210,16 @@ async function handleRemoveTeam(team) {
 }
 
 async function handleAddPlayer() {
-  if (!canManagePlayers.value) return
+  if (!canManagePlayers.value) {
+    return
+  }
 
   const name = newPlayer.name.trim()
   const surname = newPlayer.surname.trim()
 
-  if (!name || !surname || !selectedTeamId.value) return
+  if (!name || !surname || !selectedTeamId.value) {
+    return
+  }
 
   const teamsToUpdate = teams.value.map((team) => ({
     ...team,
@@ -194,7 +228,9 @@ async function handleAddPlayer() {
 
   const team = teamsToUpdate.find((team) => String(team._id) === String(selectedTeamId.value))
 
-  if (!team) return
+  if (!team) {
+    return
+  }
 
   team.players.push({
     userId: authStore.user?._id || authStore.user?.id || null,
@@ -223,11 +259,15 @@ async function handleAddPlayer() {
 }
 
 async function handleRemovePlayer(team, playerIndex) {
-  if (!canManagePlayers.value || !team) return
+  if (!canManagePlayers.value || !team) {
+    return
+  }
 
   const player = team.players?.[playerIndex]
 
-  if (!player) return
+  if (!player) {
+    return
+  }
 
   if (!window.confirm(`Remove "${player.name} ${player.surname}" from ${team.name}?`)) {
     return
@@ -315,217 +355,190 @@ onMounted(loadTournament)
       :current="tournament?.name || 'Tournament'"
     />
 
-    <PageHeader
-      v-if="!isLoading && tournament"
-      :title="tournament.name"
-      subtitle="Tournament details"
-    />
-
     <AppBanner v-if="errorMessage" type="error" :message="errorMessage" />
-
     <AppBanner v-if="successMessage" type="success" :message="successMessage" />
 
     <LoadingState v-if="isLoading" message="Loading tournament..." />
 
     <template v-else-if="tournament">
-      <!-- Overview -->
-      <Panel class="overview-panel">
-        <div class="overview-stats">
-          <div class="stat">
-            <div>
-              <span class="stat-label">Sport</span>
-              <SportBadge :sport="tournament.sport" />
-            </div>
-          </div>
-          <div class="stat">
-            <div class="stat-icon">
+      <!-- Header Panel -->
+      <Panel :title="tournament.name">
+        <div class="header-content">
+          <!-- Meta info -->
+          <div class="header-meta">
+            <SportBadge :sport="tournament.sport" />
+            <Pill :variant="getStatusVariant(tournament.status)">
+              {{ formatStatus(tournament.status) }}
+            </Pill>
+            <span class="meta-separator" />
+            <span class="meta-stat">
               <CalendarIcon />
-            </div>
-
-            <div>
-              <span class="stat-label">Start Date</span>
-              <strong>{{ tournament.startDate }}</strong>
-            </div>
-          </div>
-
-          <div class="stat">
-            <div class="stat-icon">
+              {{ tournament.startDate }}
+            </span>
+            <span class="meta-stat">
               <UsersIcon />
-            </div>
-
-            <div>
-              <span class="stat-label">Teams</span>
-              <strong>
-                {{ numberOfTeams }}
-                <span class="stat-muted"> / {{ tournament.maxTeams }} </span>
-              </strong>
-            </div>
-          </div>
-
-          <div class="stat">
-            <div class="stat-icon">
+              {{ numberOfTeams }} / {{ tournament.maxTeams }} teams
+            </span>
+            <span class="meta-stat">
               <UserIcon />
-            </div>
-
-            <div>
-              <span class="stat-label">Players</span>
-              <strong>{{ numberOfPlayers }}</strong>
-            </div>
+              {{ numberOfPlayers }} players
+            </span>
           </div>
-        </div>
 
-        <div class="overview-actions">
-          <Button variant="secondary" class="navigation-button" @click="goToMatches">
-            <MatchesIcon />
-            Matches
-          </Button>
+          <!-- Actions -->
+          <div class="header-actions">
+            <Button variant="secondary" class="action-btn" @click="goToMatches">
+              <MatchesIcon />
+              Matches
+            </Button>
 
-          <Button variant="secondary" class="navigation-button" @click="goToStandings">
-            <StandingsIcon />
-            Standings
-          </Button>
+            <Button variant="secondary" class="action-btn" @click="goToStandings">
+              <StandingsIcon />
+              Standings
+            </Button>
 
-          <div class="overview-spacer"></div>
+            <Button
+              v-if="isOwner"
+              variant="secondary"
+              class="action-btn"
+              :disabled="!isRegistrationOpen"
+              @click="goToEdit"
+            >
+              <PencilIcon />
+              Edit
+            </Button>
 
-          <Button
-            v-if="isOwner"
-            variant="secondary"
-            class="navigation-button"
-            :disabled="!isRegistrationOpen"
-            @click="goToEdit"
-          >
-            <PencilIcon />
-            Edit
-          </Button>
-
-          <Button
-            v-if="canStartTournament"
-            variant="primary"
-            class="start-button"
-            :disabled="isUpdating"
-            @click="handleGenerateSchedule"
-          >
-            <BoltIcon />
-
-            {{ isUpdating ? 'Starting...' : 'Start Tournament' }}
-          </Button>
+            <Button
+              v-if="canStartTournament"
+              variant="primary"
+              class="action-btn action-btn--start"
+              :disabled="isUpdating"
+              @click="handleGenerateSchedule"
+            >
+              <BoltIcon />
+              {{ isUpdating ? 'Starting…' : 'Start Tournament' }}
+            </Button>
+          </div>
         </div>
       </Panel>
 
-      <!-- Registration -->
-      <template v-if="tournament.status === 'registration'">
-        <div class="section-heading">
-          <div>
-            <h2>Teams</h2>
-            <p>Manage the teams and player rosters registered for this tournament.</p>
+      <!-- Registration management (owner only, registration status) -->
+      <Panel v-if="canManageTournament" title="Registration">
+        <div class="registration-grid">
+          <!-- Add Team -->
+          <div v-if="canAddTeams" class="reg-section">
+            <p class="reg-section-label">
+              Register Team
+              <span class="reg-count">{{ teamsRemaining }} slot{{ teamsRemaining === 1 ? '' : 's' }} left</span>
+            </p>
+
+            <form class="reg-form" @submit.prevent="handleAddTeam">
+              <div class="form-group form-group--grow">
+                <label for="team-name">Team Name</label>
+                <input
+                  id="team-name"
+                  v-model="newTeamName"
+                  type="text"
+                  placeholder="e.g. Red Hawks"
+                  :disabled="isUpdating"
+                />
+              </div>
+
+              <div class="form-submit">
+                <Button type="submit" variant="primary" :disabled="isUpdating || !newTeamName.trim()">
+                  Add Team
+                </Button>
+              </div>
+            </form>
+          </div>
+
+          <!-- Full notice -->
+          <div v-else class="reg-full-notice">
+            <UsersIcon />
+            <span>All {{ tournament.maxTeams }} team slots are filled.</span>
+          </div>
+
+          <!-- Add Player -->
+          <div v-if="canManagePlayers" class="reg-section reg-section--player">
+            <p class="reg-section-label">Add Player</p>
+
+            <form class="reg-form reg-form--player" @submit.prevent="handleAddPlayer">
+              <div class="form-group">
+                <label for="player-team">Team</label>
+                <select id="player-team" v-model="selectedTeamId" :disabled="isUpdating">
+                  <option v-for="team in teams" :key="team._id" :value="team._id">
+                    {{ team.name }}
+                  </option>
+                </select>
+              </div>
+
+              <div class="form-group">
+                <label for="player-name">First Name</label>
+                <input
+                  id="player-name"
+                  v-model="newPlayer.name"
+                  type="text"
+                  placeholder="First name"
+                  :disabled="isUpdating"
+                />
+              </div>
+
+              <div class="form-group">
+                <label for="player-surname">Surname</label>
+                <input
+                  id="player-surname"
+                  v-model="newPlayer.surname"
+                  type="text"
+                  placeholder="Surname"
+                  :disabled="isUpdating"
+                />
+              </div>
+
+              <div class="form-group form-group--jersey">
+                <label for="player-jersey">Number</label>
+                <input
+                  id="player-jersey"
+                  v-model="newPlayer.jerseyNumber"
+                  type="text"
+                  placeholder="#"
+                  :disabled="isUpdating"
+                />
+              </div>
+
+              <div class="form-submit">
+                <Button
+                  type="submit"
+                  variant="secondary"
+                  :disabled="isUpdating || !newPlayer.name.trim() || !newPlayer.surname.trim()"
+                >
+                  Add Player
+                </Button>
+              </div>
+            </form>
           </div>
         </div>
-
-        <!-- Add Team -->
-        <Panel v-if="canAddTeams" class="management-panel">
-          <div class="panel-heading">
-            <div class="heading-icon">
-              <AddIcon />
-            </div>
-
-            <div>
-              <h3>Add Team</h3>
-              <p>
-                {{ tournament.maxTeams - numberOfTeams }}
-                team{{ tournament.maxTeams - numberOfTeams === 1 ? '' : 's' }}
-                remaining
-              </p>
-            </div>
-          </div>
-
-          <form class="team-form" @submit.prevent="handleAddTeam">
-            <input
-              v-model="newTeamName"
-              class="form-input"
-              type="text"
-              placeholder="Enter team name"
-              :disabled="isUpdating"
-            />
-
-            <Button type="submit" variant="primary" :disabled="isUpdating || !newTeamName.trim()">
-              Add Team
-            </Button>
-          </form>
-        </Panel>
-
-        <!-- Add Player -->
-        <Panel v-if="canManagePlayers" class="management-panel">
-          <div class="panel-heading">
-            <div class="heading-icon">
-              <UserIcon />
-            </div>
-
-            <div>
-              <h3>Add Player</h3>
-              <p>Add a player to one of the registered teams.</p>
-            </div>
-          </div>
-
-          <form class="player-form" @submit.prevent="handleAddPlayer">
-            <select v-model="selectedTeamId" class="form-input" :disabled="isUpdating">
-              <option v-for="team in teams" :key="team._id" :value="team._id">
-                {{ team.name }}
-              </option>
-            </select>
-
-            <input
-              v-model="newPlayer.name"
-              class="form-input"
-              type="text"
-              placeholder="First name"
-              :disabled="isUpdating"
-            />
-
-            <input
-              v-model="newPlayer.surname"
-              class="form-input"
-              type="text"
-              placeholder="Surname"
-              :disabled="isUpdating"
-            />
-
-            <input
-              v-model="newPlayer.jerseyNumber"
-              class="form-input jersey-input"
-              type="text"
-              placeholder="Number"
-              :disabled="isUpdating"
-            />
-
-            <Button
-              type="submit"
-              variant="secondary"
-              :disabled="isUpdating || !newPlayer.name.trim() || !newPlayer.surname.trim()"
-            >
-              Add Player
-            </Button>
-          </form>
-        </Panel>
-      </template>
+      </Panel>
 
       <!-- Teams -->
-      <div v-if="teams.length" class="teams-grid">
-        <TeamCard
-          v-for="team in teams"
-          :key="team._id"
-          :team="team"
-          :can-remove="canManageTournament"
-          :is-updating="isUpdating"
-          @remove="handleRemoveTeam(team)"
-          @remove-player="handleRemovePlayer(team, $event)"
-        />
-      </div>
+      <Panel title="Teams">
+        <div v-if="teams.length" class="teams-grid">
+          <TeamCard
+            v-for="team in teams"
+            :key="team._id"
+            :team="team"
+            :can-remove="canManageTournament"
+            :is-updating="isUpdating"
+            @remove="handleRemoveTeam(team)"
+            @remove-player="handleRemovePlayer(team, $event)"
+          />
+        </div>
 
-      <EmptyState
-        v-else
-        title="No Teams Registered"
-        message="Add teams to start building the tournament."
-      />
+        <EmptyState
+          v-else
+          title="No Teams Registered"
+          message="Add teams to start building the tournament."
+        />
+      </Panel>
     </template>
   </div>
 </template>
@@ -534,298 +547,286 @@ onMounted(loadTournament)
 .tournament-view {
   display: flex;
   flex-direction: column;
-  gap: 24px;
+  gap: 20px;
+
   width: 100%;
   max-width: 1200px;
+
   margin: 0 auto;
   box-sizing: border-box;
 }
 
-/* Overview */
+/* =========================================================
+   Header Panel
+   ========================================================= */
 
-.overview-panel {
-  border-radius: 18px;
-}
-
-.overview-stats {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 14px;
-  margin-top: 24px;
-}
-
-.stat {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 15px;
-  border: 1px solid var(--card-border-color);
-  border-radius: 12px;
-}
-
-.stat-icon {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 38px;
-  height: 38px;
-  flex-shrink: 0;
-  border-radius: 10px;
-  color: var(--color-primary);
-  background: rgba(0, 113, 227, 0.08);
-}
-
-.stat-icon svg {
-  width: 24px;
-  height: 24px;
-}
-
-.stat > div:last-child {
-  display: flex;
-  flex-direction: column;
-  gap: 3px;
-}
-
-.stat-label {
-  color: #8e8e93;
-  font-size: 10px;
-  font-weight: 700;
-  letter-spacing: 1px;
-  text-transform: uppercase;
-}
-
-.stat strong {
-  color: var(--color-black);
-  font-size: 14px;
-}
-
-.stat-muted {
-  font-size: 12px;
-  vertical-align: central;
-  color: #8e8e93;
-  font-weight: 600;
-}
-
-.overview-actions {
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 10px;
-  margin-top: 24px;
-  padding-top: 20px;
-  border-top: 1px solid rgba(0, 0, 0, 0.06);
-}
-
-.overview-spacer {
-  flex: 1;
-}
-
-.navigation-button,
-.start-button {
-  display: inline-flex;
-  align-items: center;
-  gap: 7px;
-}
-
-.navigation-button svg,
-.start-button svg {
-  width: 16px;
-  height: 16px;
-}
-
-/* Section heading */
-
-.section-heading {
+.header-content {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 20px;
-  padding: 0 4px;
+  flex-wrap: wrap;
+  gap: 12px;
 }
 
-.section-heading h2 {
-  margin: 0;
-  color: var(--color-black);
-  font-size: 20px;
-  font-weight: 750;
-  letter-spacing: -0.3px;
+.header-meta {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
 }
 
-.section-heading p {
-  margin: 5px 0 0;
-  color: #8e8e93;
+.meta-separator {
+  width: 1px;
+  height: 16px;
+  background: rgba(0, 0, 0, 0.1);
+  flex-shrink: 0;
+  margin: 0 2px;
+}
+
+.meta-stat {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+
+  color: var(--color-darkgray);
   font-size: 12px;
   font-weight: 500;
 }
 
-/* Management panels */
-
-.management-panel {
-  padding: 22px 24px;
-  border-radius: 16px;
-}
-
-.panel-heading {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  margin-bottom: 18px;
-}
-
-.heading-icon {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 38px;
-  height: 38px;
+.meta-stat :deep(svg) {
+  width: 13px;
+  height: 13px;
   flex-shrink: 0;
-  border-radius: 10px;
-  color: var(--color-primary-dark);
-  background: rgba(0, 113, 227, 0.08);
 }
 
-.heading-icon svg {
-  width: 19px;
-  height: 19px;
+.header-actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
 }
 
-.panel-heading h3 {
+.action-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+
+  padding: 7px 11px;
+
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.action-btn :deep(svg) {
+  width: 14px;
+  height: 14px;
+}
+
+.action-btn--start {
+  gap: 7px;
+}
+
+/* =========================================================
+   Registration Panel
+   ========================================================= */
+
+.registration-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.reg-section {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.reg-section--player {
+  padding-top: 20px;
+  border-top: 1px solid rgba(0, 0, 0, 0.06);
+}
+
+.reg-section-label {
   margin: 0;
+
+  display: flex;
+  align-items: center;
+  gap: 8px;
+
   color: var(--color-black);
-  font-size: 14px;
+  font-size: 11px;
   font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1px;
 }
 
-.panel-heading p {
-  margin: 3px 0 0;
-  color: #8e8e93;
-  font-size: 11px;
+.reg-count {
+  padding: 2px 8px;
+  border-radius: 980px;
+  background: rgba(0, 113, 227, 0.08);
+  color: var(--color-primary);
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: none;
+  letter-spacing: 0;
+}
+
+.reg-full-notice {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+
+  padding: 14px 16px;
+  border-radius: 10px;
+  background: rgba(52, 199, 89, 0.07);
+  border: 1px solid rgba(52, 199, 89, 0.2);
+
+  color: #1b5e20;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.reg-full-notice :deep(svg) {
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
 }
 
 /* Forms */
 
-.team-form {
+.reg-form {
   display: flex;
-  align-items: center;
+  align-items: flex-end;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.reg-form--player {
   gap: 10px;
 }
 
-.player-form {
-  display: grid;
-  grid-template-columns: 1.2fr 1fr 1fr 100px auto;
-  gap: 10px;
-  align-items: center;
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 140px;
+  flex: 1;
 }
 
-.form-input {
-  width: 100%;
-  height: 40px;
-  box-sizing: border-box;
-  padding: 0 12px;
-  border: 1px solid rgba(0, 0, 0, 0.14);
-  border-radius: 9px;
-  outline: none;
+.form-group--grow {
+  flex: 2;
+  min-width: 200px;
+}
+
+.form-group--jersey {
+  flex: 0 0 80px;
+  min-width: 80px;
+}
+
+.form-group label {
+  font-size: 11px;
+  font-weight: 700;
   color: var(--color-black);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.form-group input,
+.form-group select {
+  width: 100%;
+  height: 38px;
+  padding: 0 12px;
+  border: 1px solid rgba(0, 0, 0, 0.15);
+  border-radius: 8px;
   background: rgba(255, 255, 255, 0.95);
+  color: var(--color-black);
+  font-family: inherit;
   font-size: 12px;
   font-weight: 600;
-  box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.03);
+  outline: none;
+  box-sizing: border-box;
+  transition:
+    border-color 0.15s ease,
+    box-shadow 0.15s ease;
 }
 
-.form-input:focus {
+.form-group input:focus,
+.form-group select:focus {
   border-color: var(--color-primary);
   box-shadow: 0 0 0 3px rgba(0, 113, 227, 0.12);
 }
 
-.form-input:disabled {
+.form-group input:disabled,
+.form-group select:disabled {
   opacity: 0.6;
   cursor: not-allowed;
 }
 
-.team-form .form-input {
-  flex: 1;
+.form-submit {
+  flex-shrink: 0;
+  padding-bottom: 0;
 }
 
-/* Teams */
+/* =========================================================
+   Teams Grid
+   ========================================================= */
 
 .teams-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
-  gap: 18px;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 16px;
 }
 
-/* Responsive */
+/* =========================================================
+   Responsive
+   ========================================================= */
 
-@media (max-width: 800px) {
-  .overview-stats {
-    grid-template-columns: 1fr;
-  }
-
-  .player-form {
-    grid-template-columns: 1fr 1fr;
-  }
-
-  .player-form .form-input:first-child {
-    grid-column: 1 / -1;
-  }
-}
-
-@media (max-width: 600px) {
-  .overview-panel {
-    padding: 20px;
-  }
-
-  .overview-header {
+@media (max-width: 768px) {
+  .header-content {
+    flex-direction: column;
     align-items: flex-start;
-    flex-direction: column;
   }
 
-  .overview-actions {
-    align-items: stretch;
-    flex-direction: column;
+  .header-actions {
+    width: 100%;
   }
 
-  .overview-spacer {
-    display: none;
-  }
-
-  .navigation-button,
-  .start-button {
+  .action-btn {
+    flex: 1;
     justify-content: center;
-    width: 100%;
   }
 
-  .team-form {
-    align-items: stretch;
+  .reg-form {
     flex-direction: column;
+    align-items: stretch;
   }
 
-  .team-form .form-input {
+  .form-group,
+  .form-group--grow,
+  .form-group--jersey {
+    flex: unset;
+    min-width: unset;
     width: 100%;
   }
 
-  .team-form button {
+  .form-submit {
     width: 100%;
   }
 
-  .player-form {
-    grid-template-columns: 1fr;
-  }
-
-  .player-form .form-input:first-child {
-    grid-column: auto;
-  }
-
-  .player-form button {
+  .form-submit :deep(.btn) {
     width: 100%;
-  }
-
-  .section-heading {
-    align-items: flex-start;
+    justify-content: center;
   }
 
   .teams-grid {
     grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 500px) {
+  .header-actions {
+    flex-direction: column;
   }
 }
 </style>
