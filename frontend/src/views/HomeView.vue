@@ -168,7 +168,7 @@ onMounted(async () => {
   height: 100%;
   background-image: url('/martin-sanchez-pX91vVDV6GQ-unsplash.jpg');
   background-size: cover;
-  background-position: center 60%;
+  background-position: center 30%;
   transform: scale(1.05);
 }
 
@@ -180,12 +180,12 @@ onMounted(async () => {
   width: 100%;
   height: 100%;
   background: linear-gradient(
-    15deg,
+    2deg,
     rgba(0, 0, 0, 0.95),
-    rgba(0, 0, 0, 0.85) 12.18%,
-    rgba(0, 0, 0, 0.65) 50.84%,
-    rgba(0, 0, 0, 0.35) 78.99%,
-    rgba(0, 0, 0, 0.05)
+    rgba(0, 0, 0, 0.85) 21.43%,
+    rgba(0, 0, 0, 0.65) 46.22%,
+    rgba(0, 0, 0, 0.35) 66.81%,
+    rgba(0, 0, 0, 0.05) 87.39%
   );
 }
 
