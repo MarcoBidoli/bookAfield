@@ -1,6 +1,6 @@
 <script setup>
 import { fetchUsers } from '@/api/users'
-import { ref, watch } from 'vue'
+import { ref, watch, onMounted } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 
 import BasePanel from '@/components/BasePanel.vue'
@@ -10,7 +10,6 @@ import FilterToolbar from '@/components/FilterToolbar.vue'
 import LoadingState from '@/components/LoadingState.vue'
 import EmptyState from '@/components/EmptyState.vue'
 import AppBanner from '@/components/AppBanner.vue'
-import StatusPill from '@/components/StatusPill.vue'
 
 const router = useRouter()
 const route = useRoute()
@@ -19,23 +18,14 @@ const users = ref([])
 const searchQuery = ref(route.query.q || '')
 const isLoading = ref(false)
 const errorMessage = ref('')
-const hasSearched = ref(!!route.query.q)
 
 let debounceTimer = null
 
 async function searchUsers(query = searchQuery.value) {
   const trimmedQuery = query.trim()
 
-  if (!trimmedQuery) {
-    users.value = []
-    hasSearched.value = false
-    isLoading.value = false
-    return
-  }
-
   isLoading.value = true
   errorMessage.value = ''
-  hasSearched.value = true
 
   try {
     users.value = await fetchUsers(trimmedQuery)
@@ -46,6 +36,10 @@ async function searchUsers(query = searchQuery.value) {
     isLoading.value = false
   }
 }
+
+onMounted(() => {
+  searchUsers(searchQuery.value)
+})
 
 // Automatically search as the user types (debounced by 300ms)
 watch(searchQuery, (newQuery) => {
@@ -62,7 +56,6 @@ watch(searchQuery, (newQuery) => {
     }
 
     router.replace({ query: routeQuery })
-
     searchUsers(trimmedQuery)
   }, 300)
 })
@@ -107,12 +100,6 @@ function openUserTournaments(userId) {
       <LoadingState v-if="isLoading" message="Searching users..." />
 
       <EmptyState
-        v-else-if="!hasSearched"
-        title="Search Users"
-        message="Type a name or username in the search box above."
-      />
-
-      <EmptyState
         v-else-if="users.length === 0"
         title="No Users Found"
         message="Try adjusting your search criteria."
@@ -135,7 +122,7 @@ function openUserTournaments(userId) {
           </span>
 
           <span class="user-meta">
-            <StatusPill variant="default"> @{{ user.username }} </StatusPill>
+            <span>@{{ user.username }}</span>
           </span>
         </button>
       </div>
@@ -173,7 +160,7 @@ function openUserTournaments(userId) {
 
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 7px;
 
   transition: all 0.1s ease;
 }
@@ -208,12 +195,13 @@ function openUserTournaments(userId) {
   font-size: 16px;
   font-weight: 600;
 
-  transition: all 0.1s ease;
+  transition: all 0.2s ease-in-out;
 }
 
 .user-item:hover .user-chevron,
 .user-item:focus-visible .user-chevron {
   color: var(--color-primary);
+  transform: translateX(2px);
 }
 
 .user-meta {
