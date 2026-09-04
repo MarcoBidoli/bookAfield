@@ -16,14 +16,17 @@ router.get('/', async (req, res, next) => {
         const db = getDB();
         const query = escapeRegExp(req.query.q || "");
 
-        const filter = query ? {
+        // FIXME: currently searching only in tournament names. To add search for teams and players substitute filter with
+        /*const filter = query ? {
             $or: [
                 {name: {$regex: query, $options: "i"}},
                 {"teams.name": {$regex: query, $options: "i"}},
                 {"teams.players.name": {$regex: query, $options: "i"}},
                 {"teams.players.surname": {$regex: query, $options: "i"}},
             ]
-        } : {};
+        } : {};*/
+
+        const filter = query  ? { name: { $regex: query, $options: "i" } }  : {};
 
         const tournaments = await db.collection("tournaments")
             .aggregate([
