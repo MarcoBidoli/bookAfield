@@ -33,7 +33,7 @@ async function loadBookings() {
   errorMessage.value = ''
 
   try {
-    const userId = authStore.user?._id || authStore.user?.id
+    const userId = authStore.userId
 
     // reversed to show new bookings on top
     bookings.value = (await fetchUserBookings(userId)).reverse()

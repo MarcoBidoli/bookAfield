@@ -187,7 +187,7 @@ function isCreator(tournament) {
     return false
   }
 
-  const currentUserId = authStore.user._id || authStore.user.id
+  const currentUserId = authStore.userId
 
   return String(tournament.creatorId) === String(currentUserId)
 }

@@ -67,7 +67,7 @@ const myActiveTournaments = computed(() => {
     return []
   }
 
-  const userId = authStore.user._id || authStore.user.id
+  const userId = authStore.userId
 
   return tournaments.value.filter(
     (tournament) =>

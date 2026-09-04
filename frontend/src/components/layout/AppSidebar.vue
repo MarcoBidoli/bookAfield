@@ -7,7 +7,7 @@ const authStore = useAuthStore()
 const isCollapsed = ref(false)
 
 const currentUserId = computed(() => {
-  return authStore.user?._id || authStore.user?.id
+  return authStore.userId
 })
 
 const currentUserName = computed(() => {

@@ -45,7 +45,7 @@ const isOwner = computed(() => {
     return false
   }
 
-  const currentUserId = authStore.user._id || authStore.user.id
+  const currentUserId = authStore.userId
 
   return String(tournament.value.creatorId) === String(currentUserId)
 })
@@ -414,6 +414,14 @@ onMounted(loadMatches)
   display: inline-flex;
   align-items: center;
   gap: 7px;
+  color: var(--color-black);
+}
+
+.navigation-button :deep(svg) {
+  color: inherit;
+  width: 16px;
+  height: 16px;
+  flex-shrink: 0;
 }
 
 .matches-view {

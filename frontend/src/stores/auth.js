@@ -6,6 +6,7 @@ export const useAuthStore = defineStore('auth', () => {
   const user = ref(null);
 
   const isAuthenticated = computed(() => !!user.value);
+  const userId = computed(() => user.value?._id || user.value?.id || null);
 
   async function checkAuth() {
     user.value = await fetchCurrentUser();
@@ -36,6 +37,7 @@ export const useAuthStore = defineStore('auth', () => {
 
   return {
     user,
+    userId,
     isAuthenticated,
     checkAuth,
     performLogin,

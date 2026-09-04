@@ -53,7 +53,7 @@ const isOwner = computed(() => {
     return false
   }
 
-  const currentUserId = authStore.user._id || authStore.user.id
+  const currentUserId = authStore.userId
 
   return String(tournament.value.creatorId) === String(currentUserId)
 })
