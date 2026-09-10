@@ -52,27 +52,9 @@ app.get("/api/whoami", (req, res, next) => {
   })(req, res, next);
 });
 
+// Serve static files
+app.use(express.static(path.join(__dirname, "public")));
 
-// PRODUCTION STATIC FILES & SPA FALLBACK
-if (process.env.NODE_ENV === "production") {
-  // Serve optimized Vue build files
-  app.use(
-    express.static(path.join(__dirname, "../frontend/dist"), {
-      maxAge: "1y",
-      etag: true,
-    }),
-  );
-
-  // Vue SPA Fallback (Express 5 syntax)
-  app.get("/*splat", (req, res) => {
-    res.sendFile(path.join(__dirname, "../frontend/dist/index.html"));
-  });
-} else {
-  // Development / Test root route
-  app.get("/", (req, res) => {
-    res.send("Hello bookAfield!");
-  });
-}
 
 // Error handler
 app.use((err, req, res) => {

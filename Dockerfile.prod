@@ -21,8 +21,8 @@ RUN npm ci --omit=dev
 # Copy backend source
 COPY app/ ./
 
-# Copy Vue production build
-COPY --from=frontend-builder /app/frontend/dist /usr/src/frontend/dist
+# Copy Vue production build into Express public folder
+COPY --from=frontend-builder /app/frontend/dist /usr/src/app/public
 
 EXPOSE 3000
 
